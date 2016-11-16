@@ -22,8 +22,9 @@ type CSVRecord struct {
 
 func main() {
 
+	fileName := "../../data/cyberlibris_100.csv"
 	// open csv file
-	csvFile, err := os.Open("../../data/cyberlibris_100.csv")
+	csvFile, err := os.Open(fileName)
 	if err != nil {
 		logger.Error.Println("cannot open csv file")
 	}
@@ -38,45 +39,69 @@ func main() {
 	reader.FieldsPerRecord = 10
 	reader.Comma = ';'
 
-	// counter to keep track of records parsed, for logging
+	// counters to keep track of records parsed, for logging
 	line := 1
+	var rejectedLines []int
+	isbnCount := 1
+	eisbnCount := 1
 
 	for {
 		// read a row
 		record, err := reader.Read()
 		// if at EOF, break out of loop
-		if err == io.EOF {
-			break
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			logger.Error.Println(err)
 		}
+
 		if len(record) != 10 {
 			log.Printf("parsing line %d failed: invalid length of %d, expected 10\n", line, len(record))
+			rejectedLines = append(rejectedLines, line)
 		}
 
 		// one record for the row
 		var csvRecord CSVRecord
+		authors := make([]string, 0)
 
 		for i, value := range record {
-			authors := make([]string, 3) // replace 3 by length as recorded in config json
-			switch i {
-			case 0:
-				csvRecord.publisher = value
-			case 1:
-				csvRecord.title = value
-			case 2, 3, 4:
-				authors = append(authors, value)
-				csvRecord.authors = authors
-			case 5:
-				csvRecord.isbn = value
-			case 6:
-				csvRecord.eisbn = value
-			case 7:
-				csvRecord.pubdate = value
-			case 8:
-				csvRecord.url = value
-			case 9:
-				csvRecord.lang = value
+
+			if value == "" { // is value is empty, move on to next field
+				continue
+			} else { // value not empty, save in struct
+				switch i {
+				case 0:
+					csvRecord.publisher = value
+				case 1:
+					csvRecord.title = value
+				case 2, 3, 4:
+					authors = append(authors, value)
+				case 5:
+					csvRecord.isbn = value
+					isbnCount++
+				case 6:
+					csvRecord.eisbn = value
+					eisbnCount++
+				case 7:
+					csvRecord.pubdate = value
+				case 8:
+					csvRecord.url = value
+				case 9:
+					csvRecord.lang = value
+				}
+
 			}
 
+		}
+
+		// write the authors slice to the record
+		csvRecord.authors = authors
+
+		// if the record doesn't have at least an isbn || eisbn, not worth saving
+		if csvRecord.eisbn == "" && csvRecord.isbn == "" {
+			rejectedLines = append(rejectedLines, line)
+			continue
 		}
 
 		// add this particular record to the slice
@@ -87,6 +112,6 @@ func main() {
 	}
 
 	// log number of records successfully parsed
-	log.Printf("successfully parsed %d lines", len(csvData))
-
+	logger.Info.Printf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), fileName, isbnCount, eisbnCount)
+	logger.Info.Println("rejected lines ", rejectedLines)
 }

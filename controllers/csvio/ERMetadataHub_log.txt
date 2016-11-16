@@ -1,0 +1,16 @@
+ERROR: 2016/11/16 17:46:12.346414 csvio.go:29: cannot open csv file
+ERROR: 2016/11/16 17:46:12.366440 csvio.go:56: invalid argument
+INFO: 2016/11/16 17:46:12.367931 csvio.go:117: successfully parsed 0 lines from ../../data/cyberlibris_10.csv - CSV contained 1 isbn and 1 eisbn
+INFO: 2016/11/16 17:46:12.367931 csvio.go:118: rejected lines  []
+ERROR: 2016/11/16 17:47:46.138801 csvio.go:56: line 13, column 0: wrong number of fields in line
+INFO: 2016/11/16 17:47:46.158831 csvio.go:117: successfully parsed 10 lines from ../../data/cyberlibris_100.csv - CSV contained 10 isbn and 9 eisbn
+INFO: 2016/11/16 17:47:46.160359 csvio.go:118: rejected lines  [1 6]
+ERROR: 2016/11/16 17:48:16.292315 csvio.go:56: line 13, column 0: wrong number of fields in line
+INFO: 2016/11/16 17:48:16.311840 csvio.go:116: successfully parsed 10 lines from ../../data/cyberlibris_100.csv - CSV contained 10 isbn and 9 eisbn
+INFO: 2016/11/16 17:48:16.313330 csvio.go:117: rejected lines  [1 6]
+ERROR: 2016/11/16 17:51:23.340205 csvio.go:56: line 13, column 0: wrong number of fields in line
+INFO: 2016/11/16 17:51:23.360719 csvio.go:116: successfully parsed 10 lines from ../../data/cyberlibris_100.csv - CSV contained 10 isbn and 9 eisbn
+INFO: 2016/11/16 17:51:23.362220 csvio.go:117: rejected lines  [1 6]
+ERROR: 2016/11/16 17:52:02.057925 csvio.go:56: line 13, column 0: wrong number of fields in line
+INFO: 2016/11/16 17:52:02.079952 csvio.go:116: successfully parsed 89 lines from ../../data/cyberlibris_100.csv - CSV contained 83 isbn and 73 eisbn
+INFO: 2016/11/16 17:52:02.079952 csvio.go:117: rejected lines  [1 6 11 26 38 54 60 64 64 73 75]

@@ -1,4 +1,3 @@
-Publisher;Title;Contributor1;Contributor2;Contributor3;ISBN;eISBN;PubDate;URL;Lang
 Guy Benchimol;L'Entreprise à l'heure de l'Economie de la Connaissance;Benchimol, Guy;;;;;2006;http://uag.cyberlibris.com/book/10126348;fr
 L'Etudiant;Les métiers de l'environnement;Goiran, Roseline;Perez, Dominique;;978-2-8176-0043-7;;2010;http://uag.cyberlibris.com/book/45007158;fr
 Les Belles Lettres;Histoire et morale dans les Vies Parallèles de Plutarque;Frazier, Françoise;;;978-2-251-32895-9;;2016;http://uag.cyberlibris.com/book/88833561;fr
@@ -6,12 +5,12 @@ CODESRIA;Academic Freedom and the Social Responsibilities of Academics in Tanzan
 World Trade Press;Panama Travel Complete Profile ;World Trade Press;;;;978-1-60780-758-2;2010;http://uag.cyberlibris.com/book/45005292;en
 Editions MultiMondes;La fille préférée d'Alphonse Desjardins ou L'histoire de la Caisse populaire Desjardins de Lauzon, 1902-1995;Darhouani, Lahcen;;;978-2-921146-78-4;978-2-89544-226-4;1999;http://uag.cyberlibris.com/book/88816063;fr
 Domaine public;La deux fois morte;Lermina, Jules;;;;;1895;http://uag.cyberlibris.com/book/45000417;fr
-Editions Quae;Les pucerons des arbres fruitiers : Cycles biologiques et activités de vol;Hullé, Maurice;Turpeau, Evelyne;Leclant, François;978-2-7380-0789-6;978-2-7592-0545-5;1998;http://uag.cyberlibris.com/book/45007015;fr
-Armand Colin;L'Afrique subsaharienne : Une géographie du changement Ed. 3;Dubresson, Alain;Moreau, Sophie;Raison, Jean-Pierre ;978-2-200-27276-0;978-2-200-27383-5;2011;http://uag.cyberlibris.com/book/88819552;fr
+Editions Quae;Les pucerons des arbres fruitiers : Cycles biologiques et activités de vol;Hullé, Maurice;Turpeau, Evelyne;;978-2-7380-0789-6;978-2-7592-0545-5;1998;http://uag.cyberlibris.com/book/45007015;fr
+Armand Colin;L'Afrique subsaharienne : Une géographie du changement Ed. 3;Dubresson, Alain;Moreau, Sophie;;978-2-200-27276-0;978-2-200-27383-5;2011;http://uag.cyberlibris.com/book/88819552;fr
 Eyrolles;L'Antiquité romaine - 80 mots-clés pour découvrir l'histoire, la culture et la vie quotidienne à Rome.;Proust Tanguy, Julie;;;978-2-212-56463-1;978-2-212-13062-1;2016;http://uag.cyberlibris.com/book/88834351;fr
 Ibis Rouge;Une sprinteuse en bout de piste ...;Gargar, Michelle;;;978-2-84450-193-6;978-2-84450-693-1;2002;http://uag.cyberlibris.com/book/45006809;fr
 Elsevier Science;Ion Beam Treatment of Polymers : Application Aspects from Medicine to Space;Kondyurin, Alexey;Bilek, Marcela;;978-0-08-044692-9;978-0-08-055674-1;2010;http://uag.cyberlibris.com/book/88811921;en
-Presses de l'Université du Québec;L'intervention collective en environnement;Comeau, Yvan;;;978-2-7605-2573-3;978-2-7605-2574-0;2010;http://uag.cyberlibris.com/book/88801742;fr
+Presses de l'Université du Québec;L'interve;;;ntion collective en environnement;Comeau, Yvan;;;978-2-7605-2573-3;978-2-7605-2574-0;2010;http://uag.cyberlibris.com/book/88801742;fr
 World Trade Press;Turkey Women in Culture, Business & Travel;World Trade Press;;;;978-1-60780-271-6;2010;http://uag.cyberlibris.com/book/45004702;en
 John Wiley & Sons;Delivering the Goods : The Art of Managing Your Supply Chain;Schechter, Damon;Sander, Gordon F.;;978-0-471-21114-3;;2002;http://uag.cyberlibris.com/book/10046729;en
 EDP Sciences;Relativité restreinte : Des particules à l'astrophysique;Gourgoulhon, Éric;;;978-2-7598-0067-4;978-2-7598-0923-3;2010;http://uag.cyberlibris.com/book/88803116;fr
@@ -91,10 +90,10 @@ Dunod;Aide-mémoire de gestion des déchets;Balet, Jean-Michel;;;978-2-10-070894-9
 Eyrolles;LTE pour les reseaux 4G Ed. 1;Bouguen, Yannick;Hardouin, Eric;Wolff, François-Xavier;978-2-212-12990-8;978-2-212-17686-5;2012;http://uag.cyberlibris.com/book/88812562;fr
 Régionalismes (Ed. des) ;Histoire de la Maurienne : Tome Ier;Gros, Chanoine A.;;;978-2-8240-0208-8;978-2-8240-5017-1;2014;http://uag.cyberlibris.com/book/88820534;fr
 Presses de l'Université du Québec;Amour, violence et adolescence;Fernet, Mylène;;;978-2-7605-1347-1;978-2-7605-1837-7;2005;http://uag.cyberlibris.com/book/88801450;fr
-Bayard éditions;Les Héros de la Bible;Bus, Sabrina;Deneux, Xavier;Renon, Delphine;978-2-7470-2390-0;;2008;http://uag.cyberlibris.com/book/40000068;fr
+Bayard éditions;Les Héros de la Bible;Bus, Sabrina;Deneux, Xavier;Renon, Delphine;978-2-7470-2390-0;978-2-7470-2390-0;2008;http://uag.cyberlibris.com/book/40000068;fr
 Dunod;La gestion des ressources humaines Ed. 4;Cadin, Loïc;Guérin, Francis;;978-2-10-072235-8;978-2-10-074096-3;2015;http://uag.cyberlibris.com/book/88830670;fr
 Presses de l'Université du Québec;Rédaction de courriels efficaces, suivi de Rédiger avec concision ;Armand, Nathalène;;;978-2-7605-3142-0;978-2-7605-3143-7;2011;http://uag.cyberlibris.com/book/88806176;fr
 Atlantico Press;Viagens na minha terra;Garret, Almeida;;;978-989-8373-19-9;;2012;http://uag.cyberlibris.com/book/88814185;pt
 Editions Rue d'ULM;La beauté du geste : Pour une esthétique des conduites;Galard, Jean;;;978-2-7288-0097-1;978-2-7288-3546-1;1984;http://uag.cyberlibris.com/book/45007699;fr
-Marshall Cavendish Editions;CultureShock! Morocco;Hargraves, Orin;;;978-981-261-261-8;978-981-261-711-8;2008;http://uag.cyberlibris.com/book/10255210;en
-Springer;Introduction to Mathematical Systems Theory : Linear Systems, Identification and Control;Heij, Christiaan;Ran, André;Schagen, Freek;978-3-7643-7548-5;978-3-7643-7549-2;2007;http://uag.cyberlibris.com/book/88804424;en
+Marshall Cavendish Editions;CultureShock! Morocco;Hargraves, Orin;;;978-981-261-711-8;978-981-261-711-8;2008;http://uag.cyberlibris.com/book/10255210;en
+Springer;Introduction to Mathematical Systems Theory : Linear Systems, Identification and Control;Heij, Christiaan;Ran, André;Schagen, Freek;978-2-7288-0097-1;978-2-7288-3546-1;2007;http://uag.cyberlibris.com/book/88804424;en
