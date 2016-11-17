@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"io"
 	"log"
 	"os"
@@ -9,6 +10,18 @@ import (
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
+
+type CSVConf struct {
+	nfields    int
+	ititle     int
+	iauthors   []int
+	ipublisher int
+	isbn       int
+	eisbn      int
+	ipubdate   int
+	iurl       int
+	ilang      int
+}
 
 type CSVRecord struct {
 	authors   []string
@@ -28,6 +41,22 @@ func main() {
 	}
 
 	csvSaveProcessed(csvData)
+}
+
+// csvConfig reads the config for parsing the csv file provided by a given vendor
+func csvConf(vendor string) CSVConf {
+	configFile, err := os.Open("../../conf_csv.json")
+	if err != nil {
+		logger.Error.Println("cannot open conf_csv.json")
+	}
+	decoder := json.NewDecoder(configFile)
+	conf := CSVConf{}
+	decoderErr := decoder.Decode(&conf)
+	if err != nil {
+		logger.Error.Println(decoderErr)
+	}
+
+	return conf
 }
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
@@ -124,10 +153,10 @@ func csvClean(filename string) ([]CSVRecord, error) {
 	logger.Info.Println("rejected lines ", rejectedLines)
 
 	return csvData, nil
-
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file
+
 func csvSaveProcessed(csvData []CSVRecord) {
 
 	// change the []CSVRecord data into [][]string
@@ -169,5 +198,4 @@ func csvSaveProcessed(csvData []CSVRecord) {
 	if err := w.Error(); err != nil {
 		log.Fatal(err)
 	}
-
 }
