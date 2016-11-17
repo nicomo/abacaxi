@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
@@ -21,8 +22,13 @@ type CSVRecord struct {
 }
 
 func main() {
+	csvClean()
+}
+
+func csvClean() {
 
 	fileName := "../../data/cyberlibris_100.csv"
+
 	// open csv file
 	csvFile, err := os.Open(fileName)
 	if err != nil {
@@ -90,15 +96,13 @@ func main() {
 				case 9:
 					csvRecord.lang = value
 				}
-
 			}
-
 		}
 
 		// write the authors slice to the record
 		csvRecord.authors = authors
 
-		// if the record doesn't have at least an isbn || eisbn, not worth saving
+		// if the record has neither an isbn nor an eisbn, not worth saving
 		if csvRecord.eisbn == "" && csvRecord.isbn == "" {
 			rejectedLines = append(rejectedLines, line)
 			continue
@@ -114,4 +118,30 @@ func main() {
 	// log number of records successfully parsed
 	logger.Info.Printf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), fileName, isbnCount, eisbnCount)
 	logger.Info.Println("rejected lines ", rejectedLines)
+
+	csvProcess(csvData)
+
+}
+
+func csvProcess(csvData []CSVRecord) {
+	// write the result as a processed csv file
+	t := time.Now()
+	outputFilename := "cyberlibris_processed_" + t.Format(time.RFC3339)
+	fileOutput, err := os.Create(outputFilename)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+	defer fileOutput.Close()
+
+	// create output CSV writer
+	w := csv.NewWriter(fileOutput)
+	w.Comma = ';'
+
+	//TODO: need to change the []CSVRecord data into [][]string
+	// so we can use encoding/csv to save the cleaned up csv file
+
+	/*	w.WriteAll(csvData)
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}*/
 }
