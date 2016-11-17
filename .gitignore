@@ -25,4 +25,4 @@ _testmain.go
 *.prof
 
 # specific files
-ERMetadataHub_log.txt
+controllers/csvio/ERMetadataHub_log.txt

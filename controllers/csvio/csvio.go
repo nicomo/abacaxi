@@ -22,15 +22,19 @@ type CSVRecord struct {
 }
 
 func main() {
-	csvClean()
+	csvData, err := csvClean("../../data/cyberlibris_100.csv")
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	csvSaveProcessed(csvData)
 }
 
-func csvClean() {
-
-	fileName := "../../data/cyberlibris_100.csv"
+// csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
+func csvClean(filename string) ([]CSVRecord, error) {
 
 	// open csv file
-	csvFile, err := os.Open(fileName)
+	csvFile, err := os.Open(filename)
 	if err != nil {
 		logger.Error.Println("cannot open csv file")
 	}
@@ -73,7 +77,7 @@ func csvClean() {
 
 		for i, value := range record {
 
-			if value == "" { // is value is empty, move on to next field
+			if value == "" { // if value is empty, move on to next field
 				continue
 			} else { // value not empty, save in struct
 				switch i {
@@ -116,17 +120,40 @@ func csvClean() {
 	}
 
 	// log number of records successfully parsed
-	logger.Info.Printf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), fileName, isbnCount, eisbnCount)
+	logger.Info.Printf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), filename, isbnCount, eisbnCount)
 	logger.Info.Println("rejected lines ", rejectedLines)
 
-	csvProcess(csvData)
+	return csvData, nil
 
 }
 
-func csvProcess(csvData []CSVRecord) {
-	// write the result as a processed csv file
+// csvSaveProcessed saves cleaned values to a new, clean csv file
+func csvSaveProcessed(csvData []CSVRecord) {
+
+	// change the []CSVRecord data into [][]string
+	// so we can use encoding/csv to save to a cleaned up csv file
+	var records [][]string
+	for _, recordIn := range csvData {
+		recordOut := make([]string, 0)
+		for _, aut := range recordIn.authors {
+			recordOut = append(recordOut, aut)
+		}
+		recordOut = append(recordOut,
+			recordIn.title,
+			recordIn.pubdate,
+			recordIn.publisher,
+			recordIn.isbn,
+			recordIn.eisbn,
+			recordIn.lang,
+			recordIn.url)
+
+		// append this record to the slice
+		records = append(records, recordOut)
+	}
+
+	// create a new csv file
 	t := time.Now()
-	outputFilename := "cyberlibris_processed_" + t.Format(time.RFC3339)
+	outputFilename := "../../data/cyberlibris_processed_" + t.Format("20060102150405") + ".csv"
 	fileOutput, err := os.Create(outputFilename)
 	if err != nil {
 		logger.Error.Println(err)
@@ -137,11 +164,10 @@ func csvProcess(csvData []CSVRecord) {
 	w := csv.NewWriter(fileOutput)
 	w.Comma = ';'
 
-	//TODO: need to change the []CSVRecord data into [][]string
-	// so we can use encoding/csv to save the cleaned up csv file
+	// save to file
+	w.WriteAll(records)
+	if err := w.Error(); err != nil {
+		log.Fatal(err)
+	}
 
-	/*	w.WriteAll(csvData)
-		if err := w.Error(); err != nil {
-			log.Fatal(err)
-		}*/
 }
