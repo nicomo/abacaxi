@@ -12,5 +12,10 @@
 {{define "body"}}
 	<body>
 		<h1>&#9973; Hub de métadonnées</h1>
+		<form enctype="multipart/form-data" action="http://localhost:8080/upload" method="post">
+			<input type="file" name="uploadfile" />
+			<input type="hidden" name="token" value="{{.}}"/>
+			<input type="submit" value="upload" />
+		</form>
 	</body>
 {{end}}

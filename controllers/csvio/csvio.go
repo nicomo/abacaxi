@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
@@ -43,6 +43,7 @@ func main() {
 	csvSaveProcessed(csvData)
 }
 
+/*
 // csvConfig reads the config for parsing the csv file provided by a given vendor
 func csvConf(vendor string) CSVConf {
 	configFile, err := os.Open("../../conf_csv.json")
@@ -58,7 +59,7 @@ func csvConf(vendor string) CSVConf {
 
 	return conf
 }
-
+*/
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
 func csvClean(filename string) ([]CSVRecord, error) {
 
@@ -117,10 +118,12 @@ func csvClean(filename string) ([]CSVRecord, error) {
 				case 2, 3, 4:
 					authors = append(authors, value)
 				case 5:
-					csvRecord.isbn = value
+					cleanIsbn := isbnClean(value)
+					csvRecord.isbn = cleanIsbn
 					isbnCount++
 				case 6:
-					csvRecord.eisbn = value
+					cleanEisbn := isbnClean(value)
+					csvRecord.eisbn = cleanEisbn
 					eisbnCount++
 				case 7:
 					csvRecord.pubdate = value
@@ -198,4 +201,9 @@ func csvSaveProcessed(csvData []CSVRecord) {
 	if err := w.Error(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func isbnClean(s string) string {
+	isbn := strings.Trim(strings.Replace(s, "-", "", -1), " ")
+	return isbn
 }
