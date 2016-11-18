@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"encoding/csv"
@@ -34,8 +34,8 @@ type CSVRecord struct {
 	lang      string
 }
 
-func main() {
-	csvData, err := csvClean("../../data/cyberlibris_100.csv")
+func csvIO(filename string, packname string) {
+	csvData, err := csvClean(filename)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -118,12 +118,11 @@ func csvClean(filename string) ([]CSVRecord, error) {
 				case 2, 3, 4:
 					authors = append(authors, value)
 				case 5:
-					cleanIsbn := isbnClean(value)
-					csvRecord.isbn = cleanIsbn
+					// clean isbn, remove spaces & dashes
+					csvRecord.isbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
 					isbnCount++
 				case 6:
-					cleanEisbn := isbnClean(value)
-					csvRecord.eisbn = cleanEisbn
+					csvRecord.eisbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
 					eisbnCount++
 				case 7:
 					csvRecord.pubdate = value
@@ -185,7 +184,7 @@ func csvSaveProcessed(csvData []CSVRecord) {
 
 	// create a new csv file
 	t := time.Now()
-	outputFilename := "../../data/cyberlibris_processed_" + t.Format("20060102150405") + ".csv"
+	outputFilename := "./data/cyberlibris_processed_" + t.Format("20060102150405") + ".csv"
 	fileOutput, err := os.Create(outputFilename)
 	if err != nil {
 		logger.Error.Println(err)
@@ -201,9 +200,4 @@ func csvSaveProcessed(csvData []CSVRecord) {
 	if err := w.Error(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func isbnClean(s string) string {
-	isbn := strings.Trim(strings.Replace(s, "-", "", -1), " ")
-	return isbn
 }

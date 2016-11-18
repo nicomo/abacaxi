@@ -25,6 +25,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// parsing multipart file
 		r.ParseMultipartForm(32 << 20)
+		// get the ebook package name
+		packname := r.PostFormValue("pack")
 		file, handler, err := r.FormFile("uploadfile")
 		if err != nil {
 			logger.Error.Println(err)
@@ -33,7 +35,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// create new file with same name
-		f, err := os.OpenFile("./data/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+		path := "./data/" + handler.Filename
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			logger.Error.Println(err)
 			return
@@ -41,5 +44,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer f.Close()
 		// copy uploaded file into new file
 		io.Copy(f, file)
+
+		// pass on the name of the package and the name of the file to csvio package
+		csvIO(path, packname)
 	}
 }
