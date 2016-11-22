@@ -34,6 +34,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
+		// TODO: test if file is UTF-8 encoded.
 		// create new file with same name
 		path := "./data/" + handler.Filename
 		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)

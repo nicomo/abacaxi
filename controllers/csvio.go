@@ -35,6 +35,9 @@ type CSVRecord struct {
 }
 
 func csvIO(filename string, packname string) {
+
+	logger.Debug.Println(packname)
+
 	csvData, err := csvClean(filename)
 	if err != nil {
 		logger.Error.Println(err)
