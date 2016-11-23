@@ -6,9 +6,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/nicomo/EResourcesMetadataHub/controllers"
+	"github.com/nicomo/EResourcesMetadataHub/models"
 )
 
 func main() {
+
+	models.InitDB()
 
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))

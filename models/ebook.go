@@ -45,12 +45,14 @@ func EbookCreate(ebk Ebook) error {
 
 // TODO: EbookRead
 func EbookGetByIsbn(isbn string) (Ebook, error) {
-	ebk := new(Ebook{})
+	ebk := Ebook{}
 	return ebk, nil
 }
 
 //TODO: EbookUpdate
-func EbookUpdate(ebk Ebook) (Ebook, error) {}
+func EbookUpdate(ebk Ebook) (Ebook, error) {
+	return ebk, nil
+}
 
 //TODO: EbookSoftDelete
 func EbookSoftDelete(ebkId int) error {
