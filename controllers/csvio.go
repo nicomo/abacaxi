@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
@@ -46,23 +47,6 @@ func csvIO(filename string, packname string) {
 	csvSaveProcessed(csvData)
 }
 
-/*
-// csvConfig reads the config for parsing the csv file provided by a given vendor
-func csvConf(vendor string) CSVConf {
-	configFile, err := os.Open("../../conf_csv.json")
-	if err != nil {
-		logger.Error.Println("cannot open conf_csv.json")
-	}
-	decoder := json.NewDecoder(configFile)
-	conf := CSVConf{}
-	decoderErr := decoder.Decode(&conf)
-	if err != nil {
-		logger.Error.Println(decoderErr)
-	}
-
-	return conf
-}
-*/
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
 func csvClean(filename string) ([]CSVRecord, error) {
 
@@ -74,6 +58,8 @@ func csvClean(filename string) ([]CSVRecord, error) {
 	defer csvFile.Close()
 
 	reader := csv.NewReader(csvFile)
+
+	// is Valid utf-8?
 
 	// slice will hold successfully parsed records
 	var csvData []CSVRecord
@@ -91,6 +77,7 @@ func csvClean(filename string) ([]CSVRecord, error) {
 	for {
 		// read a row
 		record, err := reader.Read()
+
 		// if at EOF, break out of loop
 		if err != nil {
 			if err == io.EOF {
@@ -99,19 +86,25 @@ func csvClean(filename string) ([]CSVRecord, error) {
 			logger.Error.Println(err)
 		}
 
+		// if row not if the expected length, move on
 		if len(record) != 10 {
-			log.Printf("parsing line %d failed: invalid length of %d, expected 10\n", line, len(record))
+			logger.Info.Printf("parsing line %d failed: invalid length of %d, expected 10\n", line, len(record))
 			rejectedLines = append(rejectedLines, line)
 		}
 
 		// one record for the row
 		var csvRecord CSVRecord
+
+		// authors are in a slice of string
 		authors := make([]string, 0)
 
 		for i, value := range record {
 
 			if value == "" { // if value is empty, move on to next field
 				continue
+			} else if !utf8.ValidString(value) { // encoding issue, not utf-8
+				logger.Info.Println("parsing line %d failed: not utf-8 encoded", line)
+				break
 			} else { // value not empty, save in struct
 				switch i {
 				case 0:
@@ -161,7 +154,6 @@ func csvClean(filename string) ([]CSVRecord, error) {
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file
-
 func csvSaveProcessed(csvData []CSVRecord) {
 
 	// change the []CSVRecord data into [][]string
