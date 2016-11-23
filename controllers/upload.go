@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
+	"github.com/nicomo/EResourcesMetadataHub/models"
 )
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,10 +43,16 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer f.Close()
+
 		// copy uploaded file into new file
 		io.Copy(f, file)
 
 		// pass on the name of the package and the name of the file to csvio package
-		csvIO(path, packname)
+		csvRecords, err := csvIO(path, packname)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+
+		models.EbooksCreateOrUpdate(csvRecords)
 	}
 }

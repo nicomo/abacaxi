@@ -49,6 +49,11 @@ func EbookGetByIsbn(isbn string) (Ebook, error) {
 	return ebk, nil
 }
 
+//TODO: EbooksCreateOrUpdate
+func EbooksCreateOrUpdate([]CSVRecord) {
+
+}
+
 //TODO: EbookUpdate
 func EbookUpdate(ebk Ebook) (Ebook, error) {
 	return ebk, nil

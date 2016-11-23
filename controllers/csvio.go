@@ -35,16 +35,22 @@ type CSVRecord struct {
 	lang      string
 }
 
-func csvIO(filename string, packname string) {
+func csvIO(filename string, packname string) ([]CSVRecord, error) {
 
 	logger.Debug.Println(packname)
 
 	csvData, err := csvClean(filename)
 	if err != nil {
 		logger.Error.Println(err)
+		return nil, err
 	}
 
-	csvSaveProcessed(csvData)
+	csvSaveProcessedErr := csvSaveProcessed(csvData)
+	if csvSaveProcessedErr != nil {
+		logger.Error.Println("couldn't save processed CSV", csvSaveProcessedErr)
+		return nil, csvSaveProcessedErr
+	}
+	return csvData, nil
 }
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
@@ -103,7 +109,7 @@ func csvClean(filename string) ([]CSVRecord, error) {
 			if value == "" { // if value is empty, move on to next field
 				continue
 			} else if !utf8.ValidString(value) { // encoding issue, not utf-8
-				logger.Info.Println("parsing line %d failed: not utf-8 encoded", line)
+				logger.Info.Printf("parsing line %d failed: not utf-8 encoded", line)
 				break
 			} else { // value not empty, save in struct
 				switch i {
@@ -154,7 +160,7 @@ func csvClean(filename string) ([]CSVRecord, error) {
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file
-func csvSaveProcessed(csvData []CSVRecord) {
+func csvSaveProcessed(csvData []CSVRecord) error {
 
 	// change the []CSVRecord data into [][]string
 	// so we can use encoding/csv to save to a cleaned up csv file
@@ -183,6 +189,7 @@ func csvSaveProcessed(csvData []CSVRecord) {
 	fileOutput, err := os.Create(outputFilename)
 	if err != nil {
 		logger.Error.Println(err)
+		return err
 	}
 	defer fileOutput.Close()
 
@@ -194,5 +201,9 @@ func csvSaveProcessed(csvData []CSVRecord) {
 	w.WriteAll(records)
 	if err := w.Error(); err != nil {
 		log.Fatal(err)
+		return err
 	}
+
+	logger.Info.Printf("successfully saved cleaned up version of csv file as %s", outputFilename)
+	return nil
 }
