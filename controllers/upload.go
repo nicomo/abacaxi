@@ -47,6 +47,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		// copy uploaded file into new file
 		io.Copy(f, file)
 
+		// TODO: if xml pass on to xmlio, if csv, pass on to csvio
+
 		// pass on the name of the package and the name of the file to csvio package
 		csvRecords, err := csvIO(path, packname)
 		if err != nil {

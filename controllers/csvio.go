@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/csv"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -200,7 +199,7 @@ func csvSaveProcessed(csvData []CSVRecord) error {
 	// save to file
 	w.WriteAll(records)
 	if err := w.Error(); err != nil {
-		log.Fatal(err)
+		logger.Error.Println(err)
 		return err
 	}
 
