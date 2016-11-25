@@ -3,6 +3,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/nicomo/minymapp/logger"
 )
 
 type Ebook struct {
@@ -13,12 +15,15 @@ type Ebook struct {
 	SFXLastHarvest       time.Time
 	PublisherLastHarvest time.Time
 	SudocLastHarvest     time.Time
-	Author               string
+	Authors              []string
 	Title                string
-	PubYear              string
+	Publisher            string
+	Pubdate              string
 	Edition              int
+	Lang                 string
 	TargetService        string
 	OpenURL              string
+	PackageURL           string
 	Acquired             bool
 	Isbns                []Isbn
 	Ppns                 []PPN
@@ -27,15 +32,15 @@ type Ebook struct {
 }
 
 type Isbn struct {
-	isbn       string
-	electronic bool
-	primary    bool
+	Isbn       string
+	Electronic bool
+	Primary    bool
 }
 
 type PPN struct {
-	ppn        string
-	electronic bool
-	primary    bool
+	Ppn        string
+	Electronic bool
+	Primary    bool
 }
 
 //TODO: EbookCreate
@@ -46,12 +51,35 @@ func EbookCreate(ebk Ebook) error {
 // TODO: EbookRead
 func EbookGetByIsbn(isbn string) (Ebook, error) {
 	ebk := Ebook{}
+
+	// TODO: 2 types of errors:
+	// -- EbookNotFoundErr
+	// -- err
+	//EbookNotFoundErr := errors.New("we don't have an ebook with this isbn in our records")
+
 	return ebk, nil
 }
 
 //TODO: EbooksCreateOrUpdate
-func EbooksCreateOrUpdate([]CSVRecord) {
+func EbooksCreateOrUpdate(records []Ebook) error {
+	for _, record := range records { // for each record
+		for _, isbn := range record.Isbns { // for each isbn
+			workingRecord, err := EbookGetByIsbn(isbn.Isbn) // test if we already know this ebook
+			if err != nil {
+				/*
+					if err == EbookNotFoundErr {
+						logger.Error.Println(EbookNotFoundErr) // we don't know the book, let's go create one
 
+					}*/
+				logger.Error.Println(err)
+				return err
+			}
+			// we know this isbn already, let's update the ebook
+			EbookUpdate(workingRecord)
+		}
+
+	}
+	return nil
 }
 
 //TODO: EbookUpdate

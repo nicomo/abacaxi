@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
+	"github.com/nicomo/EResourcesMetadataHub/models"
 )
 
 type CSVConf struct {
@@ -34,22 +35,32 @@ type CSVRecord struct {
 	lang      string
 }
 
-func csvIO(filename string, packname string) ([]CSVRecord, error) {
+func csvIO(filename string, packname string) ([]models.Ebook, error) {
 
 	logger.Debug.Println(packname)
 
+	// clean the csv file
 	csvData, err := csvClean(filename)
 	if err != nil {
 		logger.Error.Println(err)
 		return nil, err
 	}
 
+	// save cleaned copy of csv file
 	csvSaveProcessedErr := csvSaveProcessed(csvData)
 	if csvSaveProcessedErr != nil {
 		logger.Error.Println("couldn't save processed CSV", csvSaveProcessedErr)
 		return nil, csvSaveProcessedErr
 	}
-	return csvData, nil
+
+	// unmarshall csv records into ebook structs
+	ebooks := []models.Ebook{}
+	for _, record := range csvData {
+		ebook := csvUnmarshall(record)
+		ebooks = append(ebooks, ebook)
+	}
+
+	return ebooks, nil
 }
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
@@ -205,4 +216,21 @@ func csvSaveProcessed(csvData []CSVRecord) error {
 
 	logger.Info.Printf("successfully saved cleaned up version of csv file as %s", outputFilename)
 	return nil
+}
+
+func csvUnmarshall(recordIn CSVRecord) models.Ebook {
+	ebk := models.Ebook{}
+	for _, aut := range recordIn.authors {
+		ebk.Authors = append(ebk.Authors, aut)
+	}
+	ebk.Publisher = recordIn.publisher
+	Isbn := models.Isbn{recordIn.isbn, false, false} // print isbn, not electronic, not primary
+	Eisbn := models.Isbn{recordIn.eisbn, true, true} // eisbn, electronic, primary
+	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
+	ebk.Title = recordIn.title
+	ebk.Pubdate = recordIn.pubdate
+	ebk.Lang = recordIn.lang
+	ebk.PackageURL = recordIn.url
+
+	return ebk
 }
