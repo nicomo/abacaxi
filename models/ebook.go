@@ -2,7 +2,11 @@
 package models
 
 import (
+	"fmt"
+	"log"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
@@ -51,11 +55,17 @@ func EbookCreate(ebk Ebook) error {
 // TODO: EbookRead
 func EbookGetByIsbn(isbn string) (Ebook, error) {
 	ebk := Ebook{}
-
+	mgoSession := getMgoSession()
 	// TODO: 2 types of errors:
 	// -- EbookNotFoundErr
 	// -- err
 	//EbookNotFoundErr := errors.New("we don't have an ebook with this isbn in our records")
+	// collection ebooks
+	coll := mgoSession.DB(Database).C("ebooks")
+	err := coll.Find(bson.M{"isbn": isbn}).One(&ebk)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return ebk, nil
 }
@@ -64,21 +74,18 @@ func EbookGetByIsbn(isbn string) (Ebook, error) {
 func EbooksCreateOrUpdate(records []Ebook) error {
 
 	for _, record := range records { // for each record
+
 		for _, isbn := range record.Isbns { // for each isbn
-			workingRecord, err := EbookGetByIsbn(isbn.Isbn) // test if we already know this ebook
-			if err != nil {
-				/*
-					if err == EbookNotFoundErr {
-						logger.Error.Println(EbookNotFoundErr) // we don't know the book, let's go create one
-
-					}*/
-				logger.Error.Println(err)
-				return err
+			if isbn.Isbn != "" {
+				logger.Debug.Println(isbn.Isbn)
+				workingRecord, err := EbookGetByIsbn(isbn.Isbn) // test if we already know this ebook
+				if err != nil {
+					// TODO: manage "not found" error
+					logger.Error.Println(err)
+				}
+				fmt.Println(workingRecord)
 			}
-			// we know this isbn already, let's update the ebook
-			EbookUpdate(workingRecord)
 		}
-
 	}
 	return nil
 }

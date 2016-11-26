@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
@@ -80,8 +81,8 @@ func xmlUnmarshall(recordIn XMLRecord) models.Ebook {
 	/*	for _, aut := range recordIn.Authors {
 		ebk.Authors = append(ebk.Authors, aut)
 	}*/
-	Isbn := models.Isbn{recordIn.Isbn, false, false} // print isbn, not electronic, not primary
-	Eisbn := models.Isbn{recordIn.Eisbn, true, true} // eisbn, electronic, primary
+	Isbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), false, false} // print isbn, not electronic, not primary
+	Eisbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Eisbn, "-", "", -1), " "), true, true} // eisbn, electronic, primary
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.Title
 
