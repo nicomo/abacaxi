@@ -4,7 +4,7 @@ package models
 import (
 	"time"
 
-	"github.com/nicomo/minymapp/logger"
+	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
 
 type Ebook struct {
@@ -62,6 +62,7 @@ func EbookGetByIsbn(isbn string) (Ebook, error) {
 
 //TODO: EbooksCreateOrUpdate
 func EbooksCreateOrUpdate(records []Ebook) error {
+
 	for _, record := range records { // for each record
 		for _, isbn := range record.Isbns { // for each isbn
 			workingRecord, err := EbookGetByIsbn(isbn.Isbn) // test if we already know this ebook

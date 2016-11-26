@@ -35,6 +35,7 @@ type CSVRecord struct {
 	lang      string
 }
 
+// csvIO takes a csv file to clean it, save copy & unmarshall content
 func csvIO(filename string, packname string) ([]models.Ebook, error) {
 
 	logger.Debug.Println(packname)
@@ -218,6 +219,7 @@ func csvSaveProcessed(csvData []CSVRecord) error {
 	return nil
 }
 
+// csvUnmarshall creates ebook object from csv record
 func csvUnmarshall(recordIn CSVRecord) models.Ebook {
 	ebk := models.Ebook{}
 	for _, aut := range recordIn.authors {

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/models"
 )
 
+// UploadHandler manages upload of source file, checks extension
+// then passes the file on to the appropriate controller
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" { // you just arrived here, I'll give you a token
 		crutime := time.Now().Unix()
@@ -28,6 +31,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(32 << 20)
 		// get the ebook package name
 		packname := r.PostFormValue("pack")
+		logger.Debug.Println(packname)
 		file, handler, err := r.FormFile("uploadfile")
 		if err != nil {
 			logger.Error.Println(err)
@@ -47,14 +51,26 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		// copy uploaded file into new file
 		io.Copy(f, file)
 
-		// TODO: if xml pass on to xmlio, if csv, pass on to csvio
+		// if xml pass on to xmlio, if csv, pass on to csvio, if neither, abort
+		ext := filepath.Ext(handler.Filename)
+		fmt.Println(ext)
+		if ext == ".csv" {
+			// pass on the name of the package and the name of the file to csvio package
+			csvRecords, err := csvIO(path, packname)
+			if err != nil {
+				logger.Error.Println(err)
+			}
+			models.EbooksCreateOrUpdate(csvRecords)
 
-		// pass on the name of the package and the name of the file to csvio package
-		csvRecords, err := csvIO(path, packname)
-		if err != nil {
-			logger.Error.Println(err)
+		} else if ext == ".xml" {
+			xmlRecords, err := xmlIO(path, packname)
+			if err != nil {
+				logger.Error.Println(err)
+			}
+			models.EbooksCreateOrUpdate(xmlRecords)
+		} else {
+			logger.Debug.Println("wrong file extension")
 		}
 
-		models.EbooksCreateOrUpdate(csvRecords)
 	}
 }
