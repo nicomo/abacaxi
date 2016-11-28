@@ -87,6 +87,7 @@ func xmlUnmarshall(recordIn XMLRecord, packname string) models.Ebook {
 	ebk.Title = recordIn.Title
 	ebk.SFXLastHarvest = time.Now()
 	ebk.TargetService = packname
+	ebk.SfxId = recordIn.SfxID
 
 	return ebk
 }
