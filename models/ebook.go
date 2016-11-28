@@ -3,7 +3,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -49,26 +48,36 @@ type PPN struct {
 
 //TODO: EbookCreate
 func EbookCreate(ebk Ebook) error {
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getEbooksCol()
+
+	// let's add the time and save
+	ebk.DateCreated = time.Now()
+	err := coll.Insert(ebk)
+	if err != nil {
+		logger.Error.Printf("could not save ebook with isbn %v in DB: %s", ebk.Isbns[0], err)
+		return err
+	}
+
 	return nil
 }
 
-// TODO: EbookRead
+// EbookGetByIsbn retrieves an ebook
 func EbookGetByIsbn(isbn string) (Ebook, error) {
 	ebk := Ebook{}
+
 	// Request a socket connection from the session to process our query.
-	// Close the session when the goroutine exits and put the connection back
-	// into the pool.
-	mgoSessionCopy := mgoSession.Copy()
-	defer mgoSessionCopy.Close()
-	// TODO: 2 types of errors:
-	// -- EbookNotFoundErr
-	// -- err
-	//EbookNotFoundErr := errors.New("we don't have an ebook with this isbn in our records")
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
 	// collection ebooks
 	coll := getEbooksCol()
 	err := coll.Find(bson.M{"isbn": isbn}).One(&ebk)
 	if err != nil {
-		log.Fatal(err)
+		return ebk, err
 	}
 
 	return ebk, nil
@@ -78,16 +87,20 @@ func EbookGetByIsbn(isbn string) (Ebook, error) {
 func EbooksCreateOrUpdate(records []Ebook) error {
 
 	for _, record := range records { // for each record
-
 		for _, isbn := range record.Isbns { // for each isbn
 			if isbn.Isbn != "" {
-				logger.Debug.Println(isbn.Isbn)
 				workingRecord, err := EbookGetByIsbn(isbn.Isbn) // test if we already know this ebook
-				if err != nil {
-					// TODO: manage "not found" error
-					logger.Error.Println(err)
+				if err != nil {                                 // we don't: isbn not found
+					// let's create a new record
+					ebkCreateErr := EbookCreate(record)
+					if ebkCreateErr != nil {
+						logger.Error.Println(ebkCreateErr)
+						return ebkCreateErr
+					}
 				}
-				fmt.Println(workingRecord)
+
+				// TODO: we've found the record, let's update.it
+				fmt.Println("workingRecord", workingRecord)
 			}
 		}
 	}
