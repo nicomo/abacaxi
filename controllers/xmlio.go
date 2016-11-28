@@ -52,7 +52,7 @@ func xmlIO(filename string, packname string) ([]models.Ebook, error) {
 	// unmarshall csv records into ebook structs
 	ebooks := []models.Ebook{}
 	for _, record := range xmlRecords {
-		ebook := xmlUnmarshall(record)
+		ebook := xmlUnmarshall(record, packname)
 		ebooks = append(ebooks, ebook)
 	}
 
@@ -76,17 +76,17 @@ func ReadRecords(reader io.Reader) ([]XMLRecord, error) {
 }
 
 // create ebook object from xml record
-func xmlUnmarshall(recordIn XMLRecord) models.Ebook {
+func xmlUnmarshall(recordIn XMLRecord, packname string) models.Ebook {
 	ebk := models.Ebook{}
-	/*	for _, aut := range recordIn.Authors {
+	for _, aut := range recordIn.Authors {
 		ebk.Authors = append(ebk.Authors, aut)
-	}*/
+	}
 	Isbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), false, false} // print isbn, not electronic, not primary
 	Eisbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Eisbn, "-", "", -1), " "), true, true} // eisbn, electronic, primary
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.Title
-
-	logger.Debug.Println(ebk)
+	ebk.SFXLastHarvest = time.Now()
+	ebk.TargetService = packname
 
 	return ebk
 }

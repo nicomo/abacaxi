@@ -57,7 +57,7 @@ func csvIO(filename string, packname string) ([]models.Ebook, error) {
 	// unmarshall csv records into ebook structs
 	ebooks := []models.Ebook{}
 	for _, record := range csvData {
-		ebook := csvUnmarshall(record)
+		ebook := csvUnmarshall(record, packname)
 		ebooks = append(ebooks, ebook)
 	}
 
@@ -220,7 +220,7 @@ func csvSaveProcessed(csvData []CSVRecord) error {
 }
 
 // csvUnmarshall creates ebook object from csv record
-func csvUnmarshall(recordIn CSVRecord) models.Ebook {
+func csvUnmarshall(recordIn CSVRecord, packname string) models.Ebook {
 	ebk := models.Ebook{}
 	for _, aut := range recordIn.authors {
 		ebk.Authors = append(ebk.Authors, aut)
@@ -233,6 +233,8 @@ func csvUnmarshall(recordIn CSVRecord) models.Ebook {
 	ebk.Pubdate = recordIn.pubdate
 	ebk.Lang = recordIn.lang
 	ebk.PackageURL = recordIn.url
+	ebk.PublisherLastHarvest = time.Now()
+	ebk.TargetService = packname
 
 	return ebk
 }

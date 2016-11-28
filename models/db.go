@@ -29,7 +29,8 @@ func init() {
 	}
 
 	//  mgoSession maintains a pool of socket connections to mongoDB
-	mgoSession, err := mgo.DialWithInfo(mgoDBDialInfo)
+	var err error
+	mgoSession, err = mgo.DialWithInfo(mgoDBDialInfo)
 	if err != nil {
 		log.Fatalf("cannot dial mongodb: %s\n", err)
 	}
