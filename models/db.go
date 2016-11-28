@@ -2,23 +2,43 @@ package models
 
 import (
 	"log"
+	"time"
 
 	"gopkg.in/mgo.v2"
 )
 
 const (
 	MongoDBHosts = "localhost:27017"
-	Database     = "metadatahub"
+	AuthDatabase = "metadatahub"
 )
 
-func getMgoSession() *mgo.Session {
-	// connect to DB
-	mgoSession, err := mgo.Dial(MongoDBHosts)
+var mgoSession *mgo.Session
+
+// FIXME: a package level var is not the right way to maintena a mongo session
+// see http://stackoverflow.com/questions/26574594/best-practice-to-maintain-a-mgo-session/26576589#26576589
+// https://groups.google.com/forum/#!topic/golang-nuts/g_zHm1E3sIs
+// http://stackoverflow.com/questions/37041430/is-there-a-standard-way-to-keep-a-database-session-open-across-packages-in-golan
+
+func init() {
+
+	// ifo required to get a session to mongoDB
+	mgoDBDialInfo := &mgo.DialInfo{
+		Addrs:    []string{MongoDBHosts},
+		Timeout:  60 * time.Second,
+		Database: AuthDatabase,
+	}
+
+	//  mgoSession maintains a pool of socket connections to mongoDB
+	mgoSession, err := mgo.DialWithInfo(mgoDBDialInfo)
 	if err != nil {
-		log.Fatal("cannot dial mongodb", err)
+		log.Fatalf("cannot dial mongodb: %s\n", err)
 	}
 
 	mgoSession.SetMode(mgo.Monotonic, true)
 
-	return mgoSession
+}
+
+func getEbooksCol() *mgo.Collection {
+	ebksColl := mgoSession.DB(AuthDatabase).C("ebooks")
+	return ebksColl
 }

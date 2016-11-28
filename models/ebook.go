@@ -55,13 +55,17 @@ func EbookCreate(ebk Ebook) error {
 // TODO: EbookRead
 func EbookGetByIsbn(isbn string) (Ebook, error) {
 	ebk := Ebook{}
-	mgoSession := getMgoSession()
+	// Request a socket connection from the session to process our query.
+	// Close the session when the goroutine exits and put the connection back
+	// into the pool.
+	mgoSessionCopy := mgoSession.Copy()
+	defer mgoSessionCopy.Close()
 	// TODO: 2 types of errors:
 	// -- EbookNotFoundErr
 	// -- err
 	//EbookNotFoundErr := errors.New("we don't have an ebook with this isbn in our records")
 	// collection ebooks
-	coll := mgoSession.DB(Database).C("ebooks")
+	coll := getEbooksCol()
 	err := coll.Find(bson.M{"isbn": isbn}).One(&ebk)
 	if err != nil {
 		log.Fatal(err)
@@ -89,6 +93,8 @@ func EbooksCreateOrUpdate(records []Ebook) error {
 	}
 	return nil
 }
+
+//TODO: EbookExists returns bool. See https://godoc.org/gopkg.in/mgo.v2#Query.Count
 
 //TODO: EbookUpdate
 func EbookUpdate(ebk Ebook) (Ebook, error) {
