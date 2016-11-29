@@ -23,9 +23,6 @@ type XMLRecord struct {
 	Isbn    string   `xml:"isbn"`
 	Eisbn   string   `xml:"eisbn"`
 	Authors []string `xml:"authorlist>author"`
-
-	//TODO: map sfx xml to struct
-	// see https://www.goinggo.net/2013/06/reading-xml-documents-in-go.html
 }
 
 func xmlIO(filename string, packname string) ([]models.Ebook, error) {

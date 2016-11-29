@@ -12,6 +12,7 @@
 {{define "body"}}
 	<body>
 		<h1>&#9973; Hub de métadonnées</h1>
+		<h2>Upload d'un fichier source (xlm sfx ou csv éditeur)</h2>
 		<form enctype="multipart/form-data" action="http://localhost:8080/upload" method="post">
 			<fieldset>
 				<legend>Package</legend>
@@ -22,5 +23,6 @@
 			<input type="hidden" name="token" value="{{.}}"/>
 			<input type="submit" value="upload" />
 		</form>
+		{{ template "packagesListingShort" }}		
 	</body>
 {{end}}

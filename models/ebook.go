@@ -46,7 +46,7 @@ type PPN struct {
 	Primary    bool
 }
 
-//TODO: EbookCreate
+// EbookCreate saves a single ebook to mongo DB
 func EbookCreate(ebk Ebook) error {
 
 	// Request a socket connection from the session to process our query.
@@ -83,7 +83,7 @@ func EbookGetByIsbn(isbn string) (Ebook, error) {
 	return ebk, nil
 }
 
-//TODO: EbooksCreateOrUpdate
+// EbooksCreateOrUpdate checks if ebook exists in DB, using ISBN, then routes to either create or update
 func EbooksCreateOrUpdate(records []Ebook) error {
 
 	for _, record := range records { // for each record
