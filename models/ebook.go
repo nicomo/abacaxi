@@ -84,7 +84,9 @@ func EbookGetByIsbn(isbn string) (Ebook, error) {
 }
 
 // EbooksCreateOrUpdate checks if ebook exists in DB, using ISBN, then routes to either create or update
-func EbooksCreateOrUpdate(records []Ebook) error {
+func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
+
+	var createdCounter, updatedCounter int
 
 	for _, record := range records { // for each record
 		for _, isbn := range record.Isbns { // for each isbn
@@ -95,8 +97,9 @@ func EbooksCreateOrUpdate(records []Ebook) error {
 					ebkCreateErr := EbookCreate(record)
 					if ebkCreateErr != nil {
 						logger.Error.Println(ebkCreateErr)
-						return ebkCreateErr
+						return createdCounter, updatedCounter, ebkCreateErr
 					}
+					createdCounter++
 				}
 
 				// TODO: we've found the record, let's update.it
@@ -104,7 +107,7 @@ func EbooksCreateOrUpdate(records []Ebook) error {
 			}
 		}
 	}
-	return nil
+	return createdCounter, updatedCounter, nil
 }
 
 //TODO: EbookExists returns bool. See https://godoc.org/gopkg.in/mgo.v2#Query.Count

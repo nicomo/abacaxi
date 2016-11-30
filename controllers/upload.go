@@ -68,10 +68,13 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logger.Error.Println(err)
 			}
-			createUpdateErr := models.EbooksCreateOrUpdate(csvRecords)
+			createdCounter, updatedCounter, createUpdateErr := models.EbooksCreateOrUpdate(csvRecords)
 			if createUpdateErr != nil {
 				logger.Error.Println("EbooksCreateOrUpdate error: ", createUpdateErr)
 			}
+			userM["createdCounter"] = strconv.Itoa(createdCounter)
+			userM["updatedCounter"] = strconv.Itoa(updatedCounter)
+
 			views.RenderTmpl(w, "upload", userM)
 
 		} else if ext == ".xml" {
@@ -79,10 +82,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logger.Error.Println(err)
 			}
-			createUpdateErr := models.EbooksCreateOrUpdate(xmlRecords)
+			createdCounter, updatedCounter, createUpdateErr := models.EbooksCreateOrUpdate(xmlRecords)
 			if createUpdateErr != nil {
 				logger.Error.Println("EbooksCreateOrUpdate error: ", createUpdateErr)
 			}
+			userM["createdCounter"] = strconv.Itoa(createdCounter)
+			userM["updatedCounter"] = strconv.Itoa(updatedCounter)
 			views.RenderTmpl(w, "upload", userM)
 		} else {
 			logger.Debug.Println("wrong file extension")
