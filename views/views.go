@@ -10,8 +10,6 @@ import (
 var (
 	tmpl                    map[string]*template.Template // we bundle our templates in a single map of templates
 	ErrTemplateDoesNotExist = errors.New("The template does not exist.")
-	errEmptyMessage         = errors.New("Ah, the message seems empty. Can you try again?")
-	errUserNotFound         = errors.New("There doesn't seem to be any user by that name...")
 )
 
 // load templates on init
@@ -24,12 +22,17 @@ func init() {
 	// home page
 	tmpl["home"] = template.Must(template.ParseFiles("templates/index.tmpl",
 		"templates/base.tmpl",
-		"templates/packages.tmpl",
+		"templates/packageslistingshort.tmpl",
 	))
 	// epackage page
 	tmpl["epackage"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
-		"templates/package.tmpl",
+		//"templates/package.tmpl",
+	))
+
+	// file uploaded
+	tmpl["upload"] = template.Must(template.ParseFiles("templates/base.tmpl",
+		"templates/upload.tmpl",
 	))
 
 }

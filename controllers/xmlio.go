@@ -25,7 +25,7 @@ type XMLRecord struct {
 	Authors []string `xml:"authorlist>author"`
 }
 
-func xmlIO(filename string, packname string) ([]models.Ebook, error) {
+func xmlIO(filename string, packname string, userM userMessages) ([]models.Ebook, userMessages, error) {
 	logger.Debug.Println(packname)
 
 	// open the source XML file
@@ -58,7 +58,7 @@ func xmlIO(filename string, packname string) ([]models.Ebook, error) {
 	dst := "./data/cairn_" + t.Format("20060102150405") + ".xml"
 	xmlSaveCopy(dst, filename)
 
-	return ebooks, nil
+	return ebooks, userM, nil
 
 }
 

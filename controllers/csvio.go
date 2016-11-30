@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -36,22 +37,24 @@ type CSVRecord struct {
 }
 
 // csvIO takes a csv file to clean it, save copy & unmarshall content
-func csvIO(filename string, packname string) ([]models.Ebook, error) {
+func csvIO(filename string, packname string, userM userMessages) ([]models.Ebook, userMessages, error) {
 
 	logger.Debug.Println(packname)
 
 	// clean the csv file
-	csvData, err := csvClean(filename)
+	csvData, userM, err := csvClean(filename, userM)
 	if err != nil {
 		logger.Error.Println(err)
-		return nil, err
+		userM["err"] = err
+		return nil, userM, err
 	}
 
 	// save cleaned copy of csv file
-	csvSaveProcessedErr := csvSaveProcessed(csvData)
+	userM, csvSaveProcessedErr := csvSaveProcessed(csvData, userM)
 	if csvSaveProcessedErr != nil {
 		logger.Error.Println("couldn't save processed CSV", csvSaveProcessedErr)
-		return nil, csvSaveProcessedErr
+		userM["err"] = csvSaveProcessedErr
+		return nil, userM, csvSaveProcessedErr
 	}
 
 	// unmarshall csv records into ebook structs
@@ -61,11 +64,11 @@ func csvIO(filename string, packname string) ([]models.Ebook, error) {
 		ebooks = append(ebooks, ebook)
 	}
 
-	return ebooks, nil
+	return ebooks, userM, nil
 }
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
-func csvClean(filename string) ([]CSVRecord, error) {
+func csvClean(filename string, userM userMessages) ([]CSVRecord, userMessages, error) {
 
 	// open csv file
 	csvFile, err := os.Open(filename)
@@ -164,14 +167,19 @@ func csvClean(filename string) ([]CSVRecord, error) {
 	}
 
 	// log number of records successfully parsed
-	logger.Info.Printf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), filename, isbnCount, eisbnCount)
-	logger.Info.Println("rejected lines ", rejectedLines)
+	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), filename, isbnCount, eisbnCount)
+	logger.Info.Print(parsedLog)
+	userM["parsedLog"] = parsedLog
+	// log lines rejected
+	rejectedLinesLog := fmt.Sprintln("rejected lines", rejectedLines)
+	logger.Info.Println(rejectedLinesLog)
+	userM["rejectedLinesLog"] = rejectedLinesLog
 
-	return csvData, nil
+	return csvData, userM, nil
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file
-func csvSaveProcessed(csvData []CSVRecord) error {
+func csvSaveProcessed(csvData []CSVRecord, userM userMessages) (userMessages, error) {
 
 	// change the []CSVRecord data into [][]string
 	// so we can use encoding/csv to save to a cleaned up csv file
@@ -200,7 +208,7 @@ func csvSaveProcessed(csvData []CSVRecord) error {
 	fileOutput, err := os.Create(outputFilename)
 	if err != nil {
 		logger.Error.Println(err)
-		return err
+		return userM, err
 	}
 	defer fileOutput.Close()
 
@@ -212,11 +220,13 @@ func csvSaveProcessed(csvData []CSVRecord) error {
 	w.WriteAll(records)
 	if err := w.Error(); err != nil {
 		logger.Error.Println(err)
-		return err
+		return userM, err
 	}
 
-	logger.Info.Printf("successfully saved cleaned up version of csv file as %s", outputFilename)
-	return nil
+	saveCopyMssg := fmt.Sprintf("successfully saved cleaned up version of csv file as %s", outputFilename)
+	logger.Info.Println(saveCopyMssg)
+	userM["saveCopyMssg"] = saveCopyMssg
+	return userM, nil
 }
 
 // csvUnmarshall creates ebook object from csv record

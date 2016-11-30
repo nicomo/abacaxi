@@ -13,6 +13,7 @@ import (
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 	"github.com/nicomo/EResourcesMetadataHub/models"
+	"github.com/nicomo/EResourcesMetadataHub/views"
 )
 
 // UploadHandler manages upload of source file, checks extension
@@ -27,11 +28,17 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("upload.gtpl")
 		t.Execute(w, token)
 	} else {
+
+		// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+		userM := make(userMessages)
+
 		// parsing multipart file
 		r.ParseMultipartForm(32 << 20)
+
 		// get the ebook package name
 		packname := r.PostFormValue("pack")
 		logger.Debug.Println(packname)
+		userM["packname"] = packname
 		file, handler, err := r.FormFile("uploadfile")
 		if err != nil {
 			logger.Error.Println(err)
@@ -56,18 +63,27 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(ext)
 		if ext == ".csv" {
 			// pass on the name of the package and the name of the file to csvio package
-			csvRecords, err := csvIO(path, packname)
+
+			csvRecords, userM, err := csvIO(path, packname, userM)
 			if err != nil {
 				logger.Error.Println(err)
 			}
-			models.EbooksCreateOrUpdate(csvRecords)
+			createUpdateErr := models.EbooksCreateOrUpdate(csvRecords)
+			if createUpdateErr != nil {
+				logger.Error.Println("EbooksCreateOrUpdate error: ", createUpdateErr)
+			}
+			views.RenderTmpl(w, "upload", userM)
 
 		} else if ext == ".xml" {
-			xmlRecords, err := xmlIO(path, packname)
+			xmlRecords, userM, err := xmlIO(path, packname, userM)
 			if err != nil {
 				logger.Error.Println(err)
 			}
-			models.EbooksCreateOrUpdate(xmlRecords)
+			createUpdateErr := models.EbooksCreateOrUpdate(xmlRecords)
+			if createUpdateErr != nil {
+				logger.Error.Println("EbooksCreateOrUpdate error: ", createUpdateErr)
+			}
+			views.RenderTmpl(w, "upload", userM)
 		} else {
 			logger.Debug.Println("wrong file extension")
 		}
