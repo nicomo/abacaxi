@@ -3,9 +3,8 @@ package models
 
 import (
 	"fmt"
+	"strings"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
@@ -66,7 +65,7 @@ func EbookCreate(ebk Ebook) error {
 }
 
 // EbookGetByIsbn retrieves an ebook
-func EbookGetByIsbn(isbn string) (Ebook, error) {
+func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	ebk := Ebook{}
 
 	// Request a socket connection from the session to process our query.
@@ -75,7 +74,20 @@ func EbookGetByIsbn(isbn string) (Ebook, error) {
 
 	// collection ebooks
 	coll := getEbooksCol()
-	err := coll.Find(bson.M{"isbn": isbn}).One(&ebk)
+
+	// construct query
+	qry := []string{"{$or: ["}
+	qryconditions := make([]string, 0)
+	for _, v := range isbns {
+		qryconditions = append(qryconditions, "{isbns: {$elemMatch: {isbn: \"", v, "\"}}}")
+	}
+	qry = append(qry, strings.Join(qryconditions, ","))
+	qry = append(qry, "]}")
+
+	logger.Debug.Println(strings.Join(qry, ""))
+
+	// execute query
+	err := coll.Find(strings.Join(qry, "")).One(&ebk)
 	if err != nil {
 		return ebk, err
 	}
@@ -89,23 +101,29 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 	var createdCounter, updatedCounter int
 
 	for _, record := range records { // for each record
+
+		// pull out the isbns
+		isbnsToQuery := make([]string, 0)
 		for _, isbn := range record.Isbns { // for each isbn
 			if isbn.Isbn != "" {
-				workingRecord, err := EbookGetByIsbn(isbn.Isbn) // test if we already know this ebook
-				if err != nil {                                 // we don't: isbn not found
-					// let's create a new record
-					ebkCreateErr := EbookCreate(record)
-					if ebkCreateErr != nil {
-						logger.Error.Println(ebkCreateErr)
-						return createdCounter, updatedCounter, ebkCreateErr
-					}
-					createdCounter++
-				}
-
-				// TODO: we've found the record, let's update.it
-				fmt.Println("workingRecord", workingRecord)
+				isbnsToQuery = append(isbnsToQuery, isbn.Isbn)
 			}
 		}
+
+		// test if we already know this ebook
+		workingRecord, err := EbookGetByIsbns(isbnsToQuery)
+		if err != nil { // we don't: none of the isbns were found in DB
+			// let's create a new record
+			ebkCreateErr := EbookCreate(record)
+			if ebkCreateErr != nil {
+				logger.Error.Println(ebkCreateErr)
+				return createdCounter, updatedCounter, ebkCreateErr
+			}
+			createdCounter++
+		}
+
+		// TODO: we've found the record, let's update.it
+		fmt.Println("workingRecord", workingRecord)
 	}
 	return createdCounter, updatedCounter, nil
 }
