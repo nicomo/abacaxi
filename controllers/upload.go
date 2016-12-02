@@ -38,7 +38,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		// get the ebook package name
 		packname := r.PostFormValue("pack")
 		logger.Debug.Println(packname)
-		userM["packname"] = packname
+		userM["myPackage"] = packname
 		file, handler, err := r.FormFile("uploadfile")
 		if err != nil {
 			logger.Error.Println(err)
@@ -76,7 +76,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			userM["updatedCounter"] = strconv.Itoa(updatedCounter)
 
 			views.RenderTmpl(w, "upload", userM)
-
 		} else if ext == ".xml" {
 			xmlRecords, userM, err := xmlIO(path, packname, userM)
 			if err != nil {

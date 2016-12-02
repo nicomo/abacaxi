@@ -12,7 +12,13 @@
 {{define "body"}}
 	<body>
 		<h1>&#127821; Hub de métadonnées</h1>
-		<h2>Upload Report</h2>	
-		{{ . }}
+		<h2>Upload Report {{ .myPackage }}</h2>
+		<ul>
+			<li>{{ .parsedLog }}</li>
+			<li>{{ .saveCopyMssg }}</li>
+			<li>{{ .rejectedLinesLog }}</li>
+			<li>records created: {{ .createdCounter }}</li>
+			<li>records updated: {{ .updatedCounter }}</li>
+		</ul>
 	</body>
 {{end}}
