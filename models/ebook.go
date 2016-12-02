@@ -3,13 +3,15 @@ package models
 
 import (
 	"fmt"
-	"strings"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
 
 type Ebook struct {
+	Id                   bson.ObjectId `bson:"_id,omitempty"`
 	DateCreated          time.Time
 	DateUpdated          time.Time
 	Active               bool
@@ -76,18 +78,20 @@ func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	coll := getEbooksCol()
 
 	// construct query
-	qry := []string{"{$or: ["}
-	qryconditions := make([]string, 0)
-	for _, v := range isbns {
-		qryconditions = append(qryconditions, "{isbns: {$elemMatch: {isbn: \"", v, "\"}}}")
-	}
-	qry = append(qry, strings.Join(qryconditions, ","))
-	qry = append(qry, "]}")
 
-	logger.Debug.Println(strings.Join(qry, ""))
+	var isbnQry []bson.M
+	for i := 0; i < len(isbns); i++ {
+		if isbns[i] != "" {
+			sTerm := bson.M{"isbns.isbn": isbns[i]}
+			isbnQry = append(isbnQry, sTerm)
+		}
+	}
+	qry := bson.M{
+		"$or": isbnQry,
+	}
 
 	// execute query
-	err := coll.Find(strings.Join(qry, "")).One(&ebk)
+	err := coll.Find(qry).One(&ebk)
 	if err != nil {
 		return ebk, err
 	}
@@ -111,19 +115,20 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 		}
 
 		// test if we already know this ebook
-		workingRecord, err := EbookGetByIsbns(isbnsToQuery)
+		existingRecord, err := EbookGetByIsbns(isbnsToQuery)
 		if err != nil { // we don't: none of the isbns were found in DB
 			// let's create a new record
 			ebkCreateErr := EbookCreate(record)
 			if ebkCreateErr != nil {
 				logger.Error.Println(ebkCreateErr)
-				return createdCounter, updatedCounter, ebkCreateErr
 			}
 			createdCounter++
+			continue
 		}
 
 		// TODO: we've found the record, let's update.it
-		fmt.Println("workingRecord", workingRecord)
+		fmt.Println(existingRecord)
+		updatedCounter++
 	}
 	return createdCounter, updatedCounter, nil
 }
