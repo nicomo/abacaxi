@@ -16,7 +16,9 @@
 		<ul>
 			<li>{{ .parsedLog }}</li>
 			<li>{{ .saveCopyMssg }}</li>
+			{{ if .rejectedLinesLog }}
 			<li>{{ .rejectedLinesLog }}</li>
+			{{ end }}
 			<li>records created: {{ .createdCounter }}</li>
 			<li>records updated: {{ .updatedCounter }}</li>
 		</ul>

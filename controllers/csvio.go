@@ -80,7 +80,7 @@ func csvIO(filename string, packname string, userM userMessages) ([]models.Ebook
 	}
 
 	// save cleaned copy of csv file
-	userM, csvSaveProcessedErr := csvSaveProcessed(csvData, userM)
+	userM, csvSaveProcessedErr := csvSaveProcessed(csvData, packname, userM)
 	if csvSaveProcessedErr != nil {
 		logger.Error.Println("couldn't save processed CSV", csvSaveProcessedErr)
 		userM["err"] = csvSaveProcessedErr
@@ -203,6 +203,7 @@ func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord
 	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), filename, isbnCount, eisbnCount)
 	logger.Info.Print(parsedLog)
 	userM["parsedLog"] = parsedLog
+
 	// log lines rejected
 	rejectedLinesLog := fmt.Sprintln("rejected lines", rejectedLines)
 	logger.Info.Println(rejectedLinesLog)
@@ -212,7 +213,7 @@ func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file
-func csvSaveProcessed(csvData []CSVRecord, userM userMessages) (userMessages, error) {
+func csvSaveProcessed(csvData []CSVRecord, packname string, userM userMessages) (userMessages, error) {
 
 	// change the []CSVRecord data into [][]string
 	// so we can use encoding/csv to save to a cleaned up csv file
@@ -237,7 +238,7 @@ func csvSaveProcessed(csvData []CSVRecord, userM userMessages) (userMessages, er
 
 	// create a new csv file
 	t := time.Now()
-	outputFilename := "./data/cyberlibris_processed_" + t.Format("20060102150405") + ".csv"
+	outputFilename := "./data/" + packname + "Processed" + t.Format("20060102150405") + ".csv"
 	fileOutput, err := os.Create(outputFilename)
 	if err != nil {
 		logger.Error.Println(err)

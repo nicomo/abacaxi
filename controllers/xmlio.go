@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -53,10 +54,24 @@ func xmlIO(filename string, packname string, userM userMessages) ([]models.Ebook
 		ebooks = append(ebooks, ebook)
 	}
 
+	// log number of records successfully parsed
+	parsedLog := fmt.Sprintf("successfully parsed %d records from %s", len(ebooks), filename)
+	logger.Info.Print(parsedLog)
+	userM["parsedLog"] = parsedLog
+
 	// save a server copy of source xml file
 	t := time.Now()
-	dst := "./data/cairn_" + t.Format("20060102150405") + ".xml"
-	xmlSaveCopy(dst, filename)
+	dst := "./data/" + packname + "Processed" + t.Format("20060102150405") + ".xml"
+	xmlSaveCopyErr := xmlSaveCopy(dst, filename)
+	if xmlSaveCopyErr != nil {
+		logger.Error.Println(xmlSaveCopyErr)
+		return ebooks, userM, xmlSaveCopyErr
+	}
+
+	// logging + user message with result of save copy
+	saveCopyMssg := fmt.Sprintf("successfully saved cleaned up version of xml file as %s", dst)
+	logger.Info.Println(saveCopyMssg)
+	userM["saveCopyMssg"] = saveCopyMssg
 
 	return ebooks, userM, nil
 
@@ -89,12 +104,13 @@ func xmlUnmarshall(recordIn XMLRecord, packname string) models.Ebook {
 	return ebk
 }
 
-func xmlSaveCopy(dst, src string) {
+func xmlSaveCopy(dst, src string) error {
 
 	// open the source XML file
 	in, err := os.Open(src)
 	if err != nil {
 		logger.Error.Println(err)
+		return err
 		os.Exit(1)
 	}
 	defer in.Close()
@@ -103,6 +119,7 @@ func xmlSaveCopy(dst, src string) {
 	out, err := os.Create(dst)
 	if err != nil {
 		logger.Error.Println(err)
+		return err
 	}
 	defer out.Close()
 
@@ -110,10 +127,14 @@ func xmlSaveCopy(dst, src string) {
 	_, copyErr := io.Copy(out, in)
 	if copyErr != nil {
 		logger.Error.Println(copyErr)
+		return copyErr
 	}
 	closeErr := out.Close()
 	if closeErr != nil {
 		logger.Error.Println(closeErr)
+		return closeErr
 	}
+
+	return nil
 
 }
