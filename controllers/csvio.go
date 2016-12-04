@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -13,18 +15,21 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/models"
 )
 
+// CSVConf indicates the column (index) in the csv file
+// where the various pieces of info are located
 type CSVConf struct {
-	nfields    int
-	ititle     int
-	iauthors   []int
-	ipublisher int
-	isbn       int
-	eisbn      int
-	ipubdate   int
-	iurl       int
-	ilang      int
+	Nfields    int   `json:"nfields"`
+	Ititle     int   `json:"ititle"`
+	Iauthors   []int `json:"iauthors"`
+	Ipublisher int   `json:"ipublisher"`
+	Isbn       int   `json:"isbn"`
+	Eisbn      int   `json:"eisbn"`
+	Ipubdate   int   `json:"ipubdate"`
+	Iurl       int   `json:"iurl"`
+	Ilang      int   `json:"ilang"`
 }
 
+// CSVRecord store one line from the csv file
 type CSVRecord struct {
 	authors   []string
 	title     string
@@ -36,13 +41,38 @@ type CSVRecord struct {
 	lang      string
 }
 
+// getCsvConf loads the conf for parsing a particular package csv
+func getCsvConf(packname string) (CSVConf, error) {
+
+	// open & read the json csv conf file
+	file, err := ioutil.ReadFile("./csv-conf/" + packname + ".json")
+	if err != nil {
+		logger.Error.Println(err)
+		os.Exit(1)
+	}
+
+	// unmarshal json into a CSVConf
+	csvConf := CSVConf{}
+	jsonUnmarshalErr := json.Unmarshal(file, &csvConf)
+	if jsonUnmarshalErr != nil {
+		logger.Error.Println(jsonUnmarshalErr)
+	}
+
+	return csvConf, nil
+}
+
 // csvIO takes a csv file to clean it, save copy & unmarshall content
 func csvIO(filename string, packname string, userM userMessages) ([]models.Ebook, userMessages, error) {
 
-	logger.Debug.Println(packname)
+	// load the config for this package from the csv_conf file
+	csvConf, err := getCsvConf(packname)
+	if err != nil {
+		logger.Error.Println(err)
+		return nil, nil, err
+	}
 
 	// clean the csv file
-	csvData, userM, err := csvClean(filename, userM)
+	csvData, userM, err := csvClean(filename, csvConf, userM)
 	if err != nil {
 		logger.Error.Println(err)
 		userM["err"] = err
@@ -68,7 +98,7 @@ func csvIO(filename string, packname string, userM userMessages) ([]models.Ebook
 }
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
-func csvClean(filename string, userM userMessages) ([]CSVRecord, userMessages, error) {
+func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord, userMessages, error) {
 
 	// open csv file
 	csvFile, err := os.Open(filename)
@@ -79,13 +109,11 @@ func csvClean(filename string, userM userMessages) ([]CSVRecord, userMessages, e
 
 	reader := csv.NewReader(csvFile)
 
-	// is Valid utf-8?
-
 	// slice will hold successfully parsed records
 	var csvData []CSVRecord
 
-	// cyberlibris has 10 fields, separator is ;
-	reader.FieldsPerRecord = 10
+	// package csv has n fields, separator is ;
+	reader.FieldsPerRecord = csvConf.Nfields
 	reader.Comma = ';'
 
 	// counters to keep track of records parsed, for logging
@@ -107,7 +135,7 @@ func csvClean(filename string, userM userMessages) ([]CSVRecord, userMessages, e
 		}
 
 		// if row not if the expected length, move on
-		if len(record) != 10 {
+		if len(record) != reader.FieldsPerRecord {
 			logger.Info.Printf("parsing line %d failed: invalid length of %d, expected 10\n", line, len(record))
 			rejectedLines = append(rejectedLines, line)
 		}
@@ -127,25 +155,30 @@ func csvClean(filename string, userM userMessages) ([]CSVRecord, userMessages, e
 				break
 			} else { // value not empty, save in struct
 				switch i {
-				case 0:
+				case csvConf.Ipublisher:
 					csvRecord.publisher = value
-				case 1:
+				case csvConf.Ititle:
 					csvRecord.title = value
-				case 2, 3, 4:
-					authors = append(authors, value)
-				case 5:
+				case csvConf.Isbn:
 					// clean isbn, remove spaces & dashes
 					csvRecord.isbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
 					isbnCount++
-				case 6:
+				case csvConf.Eisbn:
 					csvRecord.eisbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
 					eisbnCount++
-				case 7:
+				case csvConf.Ipubdate:
 					csvRecord.pubdate = value
-				case 8:
+				case csvConf.Iurl:
 					csvRecord.url = value
-				case 9:
+				case csvConf.Ilang:
 					csvRecord.lang = value
+				}
+
+				// authors are in a slice
+				for j := 0; j < len(csvConf.Iauthors); j++ {
+					if i == csvConf.Iauthors[j] {
+						authors = append(authors, value)
+					}
 				}
 			}
 		}
