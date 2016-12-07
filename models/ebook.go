@@ -13,25 +13,25 @@ import (
 type Ebook struct {
 	Id                   bson.ObjectId `bson:"_id,omitempty"`
 	DateCreated          time.Time
-	DateUpdated          time.Time
+	DateUpdated          time.Time `bson:",omitempty"`
 	Active               bool
-	SfxId                string
-	SFXLastHarvest       time.Time
-	PublisherLastHarvest time.Time
-	SudocLastHarvest     time.Time
-	Authors              []string
-	Title                string
-	Publisher            string
-	Pubdate              string
-	Edition              int
-	Lang                 string
-	TargetService        string // this is the name of the package in SFX, e.g. CAIRN QSJ
-	OpenURL              string
-	PackageURL           string
-	Acquired             bool
-	Isbns                []Isbn
-	Ppns                 []PPN
-	MarcRecord           []string
+	SfxId                string    `bson:",omitempty"`
+	SFXLastHarvest       time.Time `bson:",omitempty"`
+	PublisherLastHarvest time.Time `bson:",omitempty"`
+	SudocLastHarvest     time.Time `bson:",omitempty"`
+	Authors              []string  `bson:",omitempty"`
+	Title                string    `bson:",omitempty"`
+	Publisher            string    `bson:",omitempty"`
+	Pubdate              string    `bson:",omitempty"`
+	Edition              int       `bson:",omitempty"`
+	Lang                 string    `bson:",omitempty"`
+	TargetService        string    `bson:",omitempty"` // this is the name of the package in SFX, e.g. CAIRN QSJ
+	OpenURL              string    `bson:",omitempty"`
+	PackageURL           string    `bson:",omitempty"`
+	Acquired             bool      `bson:",omitempty"`
+	Isbns                []Isbn    `bson:",omitempty"`
+	Ppns                 []PPN     `bson:",omitempty"`
+	MarcRecords          []string  `bson:",omitempty"`
 	Deleted              bool
 }
 

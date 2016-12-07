@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/nicomo/EResourcesMetadataHub/logger"
 	"github.com/nicomo/EResourcesMetadataHub/models"
 	"github.com/nicomo/EResourcesMetadataHub/views"
 )
@@ -17,6 +18,12 @@ func EpackageHandler(w http.ResponseWriter, r *http.Request) {
 
 	count := models.PackageCountEbooks(packname)
 	d["myPackageEbooksCount"] = count
+
+	if count > 0 { // no need to query for actual ebooks otherwise
+		nbMarcRecords := models.PackageCountMarcRecords(packname)
+		logger.Debug.Println(nbMarcRecords)
+		d["myPackageMarcRecordsCount"] = nbMarcRecords
+	}
 
 	views.RenderTmpl(w, "epackage", d)
 }
