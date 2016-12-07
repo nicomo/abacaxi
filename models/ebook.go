@@ -25,7 +25,7 @@ type Ebook struct {
 	Pubdate              string
 	Edition              int
 	Lang                 string
-	TargetService        string
+	TargetService        string // this is the name of the package in SFX, e.g. CAIRN QSJ
 	OpenURL              string
 	PackageURL           string
 	Acquired             bool
@@ -148,4 +148,10 @@ func EbookSoftDelete(ebkId int) error {
 //TODO: EbookDelete
 func EbookDelete(ebkId int) error {
 	return nil
+}
+
+//TODO : EbooksGetByPackageName
+func EbooksGetByPackageName(packname string) ([]Ebook, error) {
+	result := []Ebook{}
+	return result, nil
 }

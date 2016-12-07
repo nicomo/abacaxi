@@ -22,16 +22,18 @@ func init() {
 	// home page
 	tmpl["home"] = template.Must(template.ParseFiles("templates/index.tmpl",
 		"templates/base.tmpl",
-		"templates/packageslistingshort.tmpl",
+		"templates/head.tmpl",
 	))
 	// epackage page
 	tmpl["epackage"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
-		//"templates/package.tmpl",
+		"templates/head.tmpl",
+		"templates/package.tmpl",
 	))
 
 	// file uploaded
 	tmpl["upload"] = template.Must(template.ParseFiles("templates/base.tmpl",
+		"templates/head.tmpl",
 		"templates/upload.tmpl",
 	))
 
