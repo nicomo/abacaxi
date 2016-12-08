@@ -20,9 +20,16 @@ func EpackageHandler(w http.ResponseWriter, r *http.Request) {
 	d["myPackageEbooksCount"] = count
 
 	if count > 0 { // no need to query for actual ebooks otherwise
+
+		// how many ebooks have marc records
 		nbMarcRecords := models.PackageCountMarcRecords(packname)
 		logger.Debug.Println(nbMarcRecords)
 		d["myPackageMarcRecordsCount"] = nbMarcRecords
+
+		// how many ebooks have a PPN from the Sudoc Union Catalog
+		nbPPNs := models.PackageCountPPNs(packname)
+		logger.Debug.Println(nbPPNs)
+		d["myPackagePPNsCount"] = nbPPNs
 	}
 
 	views.RenderTmpl(w, "epackage", d)
