@@ -50,7 +50,7 @@ func TSCountEbooks(tsname string) int {
 	coll := getEbooksColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservice": tsname})
+	qry := coll.Find(bson.M{"targetservice.tsname": tsname})
 	count, err := qry.Count()
 
 	if err != nil {
@@ -70,7 +70,7 @@ func TSCountMarcRecords(tsname string) int {
 	coll := getEbooksColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservice": tsname, "marcrecords": bson.M{"$ne": nil}})
+	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "marcrecords": bson.M{"$ne": nil}})
 	logger.Debug.Println(qry)
 	count, err := qry.Count()
 
@@ -91,7 +91,7 @@ func TSCountPPNs(tsname string) int {
 	coll := getEbooksColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservice": tsname, "ppns": false})
+	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "ppns": false})
 	count, err := qry.Count()
 
 	if err != nil {
