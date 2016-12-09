@@ -39,7 +39,12 @@ func init() {
 
 }
 
-func getEbooksCol() *mgo.Collection {
+func getEbooksColl() *mgo.Collection {
 	ebksColl := mgoSession.DB(AuthDatabase).C("ebooks")
 	return ebksColl
+}
+
+func getTargetServiceColl() *mgo.Collection {
+	tsColl := mgoSession.DB(AuthDatabase).C("targetservices")
+	return tsColl
 }

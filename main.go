@@ -14,7 +14,7 @@ func main() {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	router.HandleFunc("/", controllers.HomeHandler)
 	router.HandleFunc("/upload", controllers.UploadHandler)
-	router.HandleFunc("/package/{epackage}", controllers.EpackageHandler)
+	router.HandleFunc("/package/{targetservice}", controllers.TargetServiceHandler)
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(fmt.Sprintf("%s not found\n", r.URL)))

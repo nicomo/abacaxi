@@ -15,23 +15,23 @@ type Ebook struct {
 	DateCreated          time.Time
 	DateUpdated          time.Time `bson:",omitempty"`
 	Active               bool
-	SfxId                string    `bson:",omitempty"`
-	SFXLastHarvest       time.Time `bson:",omitempty"`
-	PublisherLastHarvest time.Time `bson:",omitempty"`
-	SudocLastHarvest     time.Time `bson:",omitempty"`
-	Authors              []string  `bson:",omitempty"`
-	Title                string    `bson:",omitempty"`
-	Publisher            string    `bson:",omitempty"`
-	Pubdate              string    `bson:",omitempty"`
-	Edition              int       `bson:",omitempty"`
-	Lang                 string    `bson:",omitempty"`
-	TargetService        string    `bson:",omitempty"` // this is the name of the package in SFX, e.g. CAIRN QSJ
-	OpenURL              string    `bson:",omitempty"`
-	PackageURL           string    `bson:",omitempty"`
-	Acquired             bool      `bson:",omitempty"`
-	Isbns                []Isbn    `bson:",omitempty"`
-	Ppns                 []PPN     `bson:",omitempty"`
-	MarcRecords          []string  `bson:",omitempty"`
+	SfxId                string          `bson:",omitempty"`
+	SFXLastHarvest       time.Time       `bson:",omitempty"`
+	PublisherLastHarvest time.Time       `bson:",omitempty"`
+	SudocLastHarvest     time.Time       `bson:",omitempty"`
+	Authors              []string        `bson:",omitempty"`
+	Title                string          `bson:",omitempty"`
+	Publisher            string          `bson:",omitempty"`
+	Pubdate              string          `bson:",omitempty"`
+	Edition              int             `bson:",omitempty"`
+	Lang                 string          `bson:",omitempty"`
+	TargetService        []TargetService `bson:",omitempty"` // this is the name of the package in SFX, e.g. CAIRN QSJ
+	OpenURL              string          `bson:",omitempty"`
+	PackageURL           string          `bson:",omitempty"`
+	Acquired             bool            `bson:",omitempty"`
+	Isbns                []Isbn          `bson:",omitempty"`
+	Ppns                 []PPN           `bson:",omitempty"`
+	MarcRecords          []string        `bson:",omitempty"`
 	Deleted              bool
 }
 
@@ -53,7 +53,7 @@ func EbookCreate(ebk Ebook) error {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
-	coll := getEbooksCol()
+	coll := getEbooksColl()
 
 	// let's add the time and save
 	ebk.DateCreated = time.Now()
@@ -75,7 +75,7 @@ func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	defer mgoSession.Close()
 
 	// collection ebooks
-	coll := getEbooksCol()
+	coll := getEbooksColl()
 
 	// construct query
 
@@ -151,7 +151,9 @@ func EbookDelete(ebkId int) error {
 }
 
 //TODO : EbooksGetByPackageName
-func EbooksGetByPackageName(packname string) ([]Ebook, error) {
+func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
 	result := []Ebook{}
 	return result, nil
 }
+
+//TODO: EbooksGetByTitle

@@ -24,8 +24,8 @@ func init() {
 		"templates/base.tmpl",
 		"templates/head.tmpl",
 	))
-	// epackage page
-	tmpl["epackage"] = template.Must(template.ParseFiles(
+	// targetservice page
+	tmpl["targetservice"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
 		"templates/head.tmpl",
 		"templates/package.tmpl",

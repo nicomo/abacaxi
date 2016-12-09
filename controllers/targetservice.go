@@ -8,29 +8,29 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/views"
 )
 
-func EpackageHandler(w http.ResponseWriter, r *http.Request) {
+func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 
 	// package name is last part of the URL
-	packname := r.URL.Path[len("/package/"):]
-	d["myPackage"] = packname
+	tsname := r.URL.Path[len("/package/"):]
+	d["myPackage"] = tsname
 
-	count := models.PackageCountEbooks(packname)
+	count := models.TSCountEbooks(tsname)
 	d["myPackageEbooksCount"] = count
 
 	if count > 0 { // no need to query for actual ebooks otherwise
 
 		// how many ebooks have marc records
-		nbMarcRecords := models.PackageCountMarcRecords(packname)
+		nbMarcRecords := models.TSCountMarcRecords(tsname)
 		logger.Debug.Println(nbMarcRecords)
 		d["myPackageMarcRecordsCount"] = nbMarcRecords
 
 		// how many ebooks have a PPN from the Sudoc Union Catalog
-		nbPPNs := models.PackageCountPPNs(packname)
+		nbPPNs := models.TSCountPPNs(tsname)
 		logger.Debug.Println(nbPPNs)
 		d["myPackagePPNsCount"] = nbPPNs
 	}
 
-	views.RenderTmpl(w, "epackage", d)
+	views.RenderTmpl(w, "targetservice", d)
 }

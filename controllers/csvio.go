@@ -42,10 +42,10 @@ type CSVRecord struct {
 }
 
 // getCsvConf loads the conf for parsing a particular package csv
-func getCsvConf(packname string) (CSVConf, error) {
+func getCsvConf(tsname string) (CSVConf, error) {
 
 	// open & read the json csv conf file
-	file, err := ioutil.ReadFile("./csv-conf/" + packname + ".json")
+	file, err := ioutil.ReadFile("./csv-conf/" + tsname + ".json")
 	if err != nil {
 		logger.Error.Println(err)
 		os.Exit(1)
@@ -62,13 +62,23 @@ func getCsvConf(packname string) (CSVConf, error) {
 }
 
 // csvIO takes a csv file to clean it, save copy & unmarshall content
-func csvIO(filename string, packname string, userM userMessages) ([]models.Ebook, userMessages, error) {
+func csvIO(filename string, tsname string, userM userMessages) ([]models.Ebook, models.TargetService, userMessages, error) {
 
-	// load the config for this package from the csv_conf file
-	csvConf, err := getCsvConf(packname)
+	// retrieve target service (i.e. ebook package) for this file
+	myTargetService, err := models.GetTargetService(tsname)
 	if err != nil {
 		logger.Error.Println(err)
-		return nil, nil, err
+	}
+	logger.Debug.Println(myTargetService)
+	// update date for TS publisher last harvest since
+	// we're harvesting books from a publisher provided csv file
+	myTargetService.TSPublisherLastHarvest = time.Now()
+
+	// load the config for this package from the csv_conf file
+	csvConf, err := getCsvConf(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+		return nil, myTargetService, nil, err
 	}
 
 	// clean the csv file
@@ -76,25 +86,25 @@ func csvIO(filename string, packname string, userM userMessages) ([]models.Ebook
 	if err != nil {
 		logger.Error.Println(err)
 		userM["err"] = err
-		return nil, userM, err
+		return nil, myTargetService, userM, err
 	}
 
 	// save cleaned copy of csv file
-	userM, csvSaveProcessedErr := csvSaveProcessed(csvData, packname, userM)
+	userM, csvSaveProcessedErr := csvSaveProcessed(csvData, tsname, userM)
 	if csvSaveProcessedErr != nil {
 		logger.Error.Println("couldn't save processed CSV", csvSaveProcessedErr)
 		userM["err"] = csvSaveProcessedErr
-		return nil, userM, csvSaveProcessedErr
+		return nil, myTargetService, userM, csvSaveProcessedErr
 	}
 
 	// unmarshall csv records into ebook structs
 	ebooks := []models.Ebook{}
 	for _, record := range csvData {
-		ebook := csvUnmarshall(record, packname)
+		ebook := csvUnmarshall(record, myTargetService)
 		ebooks = append(ebooks, ebook)
 	}
 
-	return ebooks, userM, nil
+	return ebooks, myTargetService, userM, nil
 }
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
@@ -213,7 +223,7 @@ func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file
-func csvSaveProcessed(csvData []CSVRecord, packname string, userM userMessages) (userMessages, error) {
+func csvSaveProcessed(csvData []CSVRecord, tsname string, userM userMessages) (userMessages, error) {
 
 	// change the []CSVRecord data into [][]string
 	// so we can use encoding/csv to save to a cleaned up csv file
@@ -238,7 +248,7 @@ func csvSaveProcessed(csvData []CSVRecord, packname string, userM userMessages) 
 
 	// create a new csv file
 	t := time.Now()
-	outputFilename := "./data/" + packname + "Processed" + t.Format("20060102150405") + ".csv"
+	outputFilename := "./data/" + tsname + "Processed" + t.Format("20060102150405") + ".csv"
 	fileOutput, err := os.Create(outputFilename)
 	if err != nil {
 		logger.Error.Println(err)
@@ -264,7 +274,7 @@ func csvSaveProcessed(csvData []CSVRecord, packname string, userM userMessages) 
 }
 
 // csvUnmarshall creates ebook object from csv record
-func csvUnmarshall(recordIn CSVRecord, packname string) models.Ebook {
+func csvUnmarshall(recordIn CSVRecord, myTargetService models.TargetService) models.Ebook {
 	ebk := models.Ebook{}
 	for _, aut := range recordIn.authors {
 		ebk.Authors = append(ebk.Authors, aut)
@@ -278,7 +288,7 @@ func csvUnmarshall(recordIn CSVRecord, packname string) models.Ebook {
 	ebk.Lang = recordIn.lang
 	ebk.PackageURL = recordIn.url
 	ebk.PublisherLastHarvest = time.Now()
-	ebk.TargetService = packname
+	ebk.TargetService = append(ebk.TargetService, myTargetService)
 
 	return ebk
 }

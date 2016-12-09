@@ -26,8 +26,8 @@ type XMLRecord struct {
 	Authors []string `xml:"authorlist>author"`
 }
 
-func xmlIO(filename string, packname string, userM userMessages) ([]models.Ebook, userMessages, error) {
-	logger.Debug.Println(packname)
+func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, userMessages, error) {
+	logger.Debug.Println(tsname)
 
 	// open the source XML file
 	file, err := os.Open(filename) // FIXME: should be filepath rather than filename
@@ -50,7 +50,7 @@ func xmlIO(filename string, packname string, userM userMessages) ([]models.Ebook
 	// unmarshall csv records into ebook structs
 	ebooks := []models.Ebook{}
 	for _, record := range xmlRecords {
-		ebook := xmlUnmarshall(record, packname)
+		ebook := xmlUnmarshall(record, tsname)
 		ebooks = append(ebooks, ebook)
 	}
 
@@ -61,7 +61,7 @@ func xmlIO(filename string, packname string, userM userMessages) ([]models.Ebook
 
 	// save a server copy of source xml file
 	t := time.Now()
-	dst := "./data/" + packname + "Processed" + t.Format("20060102150405") + ".xml"
+	dst := "./data/" + tsname + "Processed" + t.Format("20060102150405") + ".xml"
 	xmlSaveCopyErr := xmlSaveCopy(dst, filename)
 	if xmlSaveCopyErr != nil {
 		logger.Error.Println(xmlSaveCopyErr)
@@ -88,7 +88,7 @@ func ReadRecords(reader io.Reader) ([]XMLRecord, error) {
 }
 
 // create ebook object from xml record
-func xmlUnmarshall(recordIn XMLRecord, packname string) models.Ebook {
+func xmlUnmarshall(recordIn XMLRecord, tsname string) models.Ebook {
 	ebk := models.Ebook{}
 	for _, aut := range recordIn.Authors {
 		ebk.Authors = append(ebk.Authors, aut)
@@ -98,7 +98,7 @@ func xmlUnmarshall(recordIn XMLRecord, packname string) models.Ebook {
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.Title
 	ebk.SFXLastHarvest = time.Now()
-	ebk.TargetService = packname
+	//ebk.TargetService = tsname
 	ebk.SfxId = recordIn.SfxID
 
 	return ebk
