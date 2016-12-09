@@ -30,6 +30,14 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		nbPPNs := models.TSCountPPNs(tsname)
 		logger.Debug.Println(nbPPNs)
 		d["myPackagePPNsCount"] = nbPPNs
+
+		// get the ebooks
+		records, err := models.EbooksGetByPackageName(tsname)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+		logger.Debug.Println("TargetServiceHandler", records)
+		d["myRecords"] = records
 	}
 
 	views.RenderTmpl(w, "targetservice", d)

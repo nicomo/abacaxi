@@ -99,6 +99,23 @@ func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	return ebk, nil
 }
 
+//TODO: EbookExists returns bool. See https://godoc.org/gopkg.in/mgo.v2#Query.Count
+
+//TODO: EbookUpdate
+func EbookUpdate(ebk Ebook) (Ebook, error) {
+	return ebk, nil
+}
+
+//TODO: EbookSoftDelete
+func EbookSoftDelete(ebkId int) error {
+	return nil
+}
+
+//TODO: EbookDelete
+func EbookDelete(ebkId int) error {
+	return nil
+}
+
 // EbooksCreateOrUpdate checks if ebook exists in DB, using ISBN, then routes to either create or update
 func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 
@@ -133,27 +150,29 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 	return createdCounter, updatedCounter, nil
 }
 
-//TODO: EbookExists returns bool. See https://godoc.org/gopkg.in/mgo.v2#Query.Count
-
-//TODO: EbookUpdate
-func EbookUpdate(ebk Ebook) (Ebook, error) {
-	return ebk, nil
-}
-
-//TODO: EbookSoftDelete
-func EbookSoftDelete(ebkId int) error {
-	return nil
-}
-
-//TODO: EbookDelete
-func EbookDelete(ebkId int) error {
-	return nil
-}
-
-//TODO : EbooksGetByPackageName
+// EbooksGetByPackageName
 func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
-	result := []Ebook{}
+	var result []Ebook
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	// construct query
+	//qry := coll.Find()
+
+	// execute query
+	// TODO: iterate over slices of 100 ebooks
+	// maybe user channels?
+	iter := coll.Find(bson.M{"targetservice.tsname": tsname}).Limit(100).Iter()
+	err := iter.All(&result)
+	logger.Debug.Println("EbooksGetByPackageName", result)
+	if err != nil {
+		return result, err
+	}
+
 	return result, nil
 }
-
-//TODO: EbooksGetByTitle

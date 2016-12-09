@@ -7,5 +7,24 @@
 			<li>number of ebooks with Marc Records : {{ .myPackageMarcRecordsCount }} / {{ .myPackageEbooksCount }}</li>
 			<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
 		</ul>
+		<table>
+			<tr>
+				<th>Title</th>
+				<th>Publisher</th>
+				<th>Marc Records</th>
+				<th>PPNs</th>
+				<th>see more</th>
+			</tr>
+			{{ range .myRecords }}
+			<tr>
+				<td>{{ .Title }}</td>
+				<td>{{ .Publisher }} </td>
+				<td>{{ if .MarcRecords }} Y {{ else }} no {{ end }}</td>
+				<td>{{ if .Ppns }} Y {{ else }} no {{ end }}</td>
+				<td><a href="record/{{ .Id.Hex }}">see more</a></td>
+				
+			</tr>
+			{{ end }}
+		</table>
 	</body>
 {{end}}
