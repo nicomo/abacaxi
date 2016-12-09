@@ -37,7 +37,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		// get the ebook package name
 		tsname := r.PostFormValue("pack")
-		logger.Debug.Println(tsname)
 		userM["myPackage"] = tsname
 		file, handler, err := r.FormFile("uploadfile")
 		if err != nil {
@@ -84,7 +83,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 			views.RenderTmpl(w, "upload", userM)
 		} else if ext == ".xml" {
-			xmlRecords, userM, err := xmlIO(path, tsname, userM)
+			xmlRecords, myTS, userM, err := xmlIO(path, tsname, userM)
 			if err != nil {
 				logger.Error.Println(err)
 			}
@@ -94,6 +93,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			userM["createdCounter"] = strconv.Itoa(createdCounter)
 			userM["updatedCounter"] = strconv.Itoa(updatedCounter)
+
+			tsUpdateErr := models.TSUpdate(myTS)
+			if tsUpdateErr != nil {
+				logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, tsUpdateErr)
+			}
+
 			views.RenderTmpl(w, "upload", userM)
 		} else {
 			logger.Debug.Println("wrong file extension")

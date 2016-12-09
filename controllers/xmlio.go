@@ -26,8 +26,18 @@ type XMLRecord struct {
 	Authors []string `xml:"authorlist>author"`
 }
 
-func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, userMessages, error) {
+func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, models.TargetService, userMessages, error) {
 	logger.Debug.Println(tsname)
+
+	// retrieve target service (i.e. ebook package) for this file
+	myTargetService, err := models.GetTargetService(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+	logger.Debug.Println(myTargetService)
+	// update date for TS publisher last harvest since
+	// we're harvesting books from a publisher provided csv file
+	myTargetService.TSSFXLastHarvest = time.Now()
 
 	// open the source XML file
 	file, err := os.Open(filename) // FIXME: should be filepath rather than filename
@@ -50,7 +60,7 @@ func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	// unmarshall csv records into ebook structs
 	ebooks := []models.Ebook{}
 	for _, record := range xmlRecords {
-		ebook := xmlUnmarshall(record, tsname)
+		ebook := xmlUnmarshall(record, myTargetService)
 		ebooks = append(ebooks, ebook)
 	}
 
@@ -65,7 +75,7 @@ func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	xmlSaveCopyErr := xmlSaveCopy(dst, filename)
 	if xmlSaveCopyErr != nil {
 		logger.Error.Println(xmlSaveCopyErr)
-		return ebooks, userM, xmlSaveCopyErr
+		return ebooks, myTargetService, userM, xmlSaveCopyErr
 	}
 
 	// logging + user message with result of save copy
@@ -73,7 +83,7 @@ func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	logger.Info.Println(saveCopyMssg)
 	userM["saveCopyMssg"] = saveCopyMssg
 
-	return ebooks, userM, nil
+	return ebooks, myTargetService, userM, nil
 
 }
 
@@ -88,7 +98,7 @@ func ReadRecords(reader io.Reader) ([]XMLRecord, error) {
 }
 
 // create ebook object from xml record
-func xmlUnmarshall(recordIn XMLRecord, tsname string) models.Ebook {
+func xmlUnmarshall(recordIn XMLRecord, myTargetService models.TargetService) models.Ebook {
 	ebk := models.Ebook{}
 	for _, aut := range recordIn.Authors {
 		ebk.Authors = append(ebk.Authors, aut)
@@ -98,7 +108,7 @@ func xmlUnmarshall(recordIn XMLRecord, tsname string) models.Ebook {
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.Title
 	ebk.SFXLastHarvest = time.Now()
-	//ebk.TargetService = tsname
+	ebk.TargetService = append(ebk.TargetService, myTargetService)
 	ebk.SfxId = recordIn.SfxID
 
 	return ebk
@@ -110,7 +120,6 @@ func xmlSaveCopy(dst, src string) error {
 	in, err := os.Open(src)
 	if err != nil {
 		logger.Error.Println(err)
-		return err
 		os.Exit(1)
 	}
 	defer in.Close()

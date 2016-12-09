@@ -28,7 +28,7 @@ func GetTargetService(tsname string) (TargetService, error) {
 	defer mgoSession.Close()
 	coll := getTargetServiceColl()
 
-	qry := bson.M{"TSName": tsname}
+	qry := bson.M{"tsname": tsname}
 	err := coll.Find(qry).One(&ts)
 	if err != nil {
 		return ts, err
