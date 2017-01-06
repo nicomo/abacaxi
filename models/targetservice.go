@@ -11,10 +11,11 @@ import (
 
 type TargetService struct {
 	Id                     bson.ObjectId `bson:"_id,omitempty"`
-	TSName                 string
-	TSPublisherLastHarvest time.Time `bson:",omitempty"`
-	TSSFXLastHarvest       time.Time `bson:",omitempty"`
-	TSSudocLastHarvest     time.Time `bson:",omitempty"`
+	TSName                 string        `bson:",omitempty"`
+	TSDisplayName          string        `bson:",omitempty"`
+	TSPublisherLastHarvest time.Time     `bson:",omitempty"`
+	TSSFXLastHarvest       time.Time     `bson:",omitempty"`
+	TSSudocLastHarvest     time.Time     `bson:",omitempty"`
 	TSActive               bool
 }
 
@@ -35,6 +36,25 @@ func GetTargetService(tsname string) (TargetService, error) {
 	}
 
 	return ts, nil
+}
+
+// GetTargetServicesListing retrieves the full list of target services
+func GetTargetServicesListing() ([]TargetService, error) {
+
+	var TSListing []TargetService
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getTargetServiceColl()
+
+	err := coll.Find(bson.M{}).All(&TSListing)
+	if err != nil {
+		return TSListing, err
+	}
+
+	return TSListing, nil
+
 }
 
 // TODO: updateTargetService

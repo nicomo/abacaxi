@@ -23,17 +23,23 @@ func init() {
 	tmpl["home"] = template.Must(template.ParseFiles("templates/index.tmpl",
 		"templates/base.tmpl",
 		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
 	))
 	// targetservice page
 	tmpl["targetservice"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
 		"templates/head.tmpl",
 		"templates/package.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
 	))
 
 	// file uploaded
 	tmpl["upload"] = template.Must(template.ParseFiles("templates/base.tmpl",
 		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
 		"templates/upload.tmpl",
 	))
 

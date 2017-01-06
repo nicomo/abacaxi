@@ -39,11 +39,13 @@ func init() {
 
 }
 
+// getEbooksColl retrieves a pointer to the Ebooks mongo collection
 func getEbooksColl() *mgo.Collection {
 	ebksColl := mgoSession.DB(AuthDatabase).C("ebooks")
 	return ebksColl
 }
 
+// getTargetServiceColl retrieves a pointer to the Target Services (i.e. ebook commercial packages) mongo collection
 func getTargetServiceColl() *mgo.Collection {
 	tsColl := mgoSession.DB(AuthDatabase).C("targetservices")
 	return tsColl
