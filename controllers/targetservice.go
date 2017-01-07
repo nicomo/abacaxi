@@ -8,6 +8,8 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/views"
 )
 
+// TargetServiceHandler retrieves the ebooks linked to a Target Service
+//  and various other info, e.g. number of library records linked, etc.
 func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
@@ -15,6 +17,12 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	// package name is last part of the URL
 	tsname := r.URL.Path[len("/package/"):]
 	d["myPackage"] = tsname
+
+	myTS, err := models.GetTargetService(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+	d["IsTSActive"] = myTS.TSActive
 
 	count := models.TSCountEbooks(tsname)
 	d["myPackageEbooksCount"] = count
@@ -41,4 +49,30 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	views.RenderTmpl(w, "targetservice", d)
+}
+
+// TargetServiceNewGetHandler displays the form to register a new Target Service (i.e. ebook package)
+func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
+	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	d := make(map[string]interface{})
+
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+	views.RenderTmpl(w, "targetservicenewget", d)
+}
+
+// TargetServiceNewPostHandler manages the form to register a new Target Service (i.e. ebook package)
+func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
+	d := make(map[string]interface{})
+
+	err := models.TSCreate(r)
+	if err != nil {
+		d["err"] = err
+		logger.Error.Println(err)
+		views.RenderTmpl(w, "targetservicenewget", d)
+		return
+	}
+
+	http.Redirect(w, r, "/", 303)
+
 }

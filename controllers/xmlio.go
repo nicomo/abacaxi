@@ -26,6 +26,7 @@ type XMLRecord struct {
 	Authors []string `xml:"authorlist>author"`
 }
 
+// xmlIO takes an xml file to clean it, save copy & unmarshall content
 func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, models.TargetService, userMessages, error) {
 	logger.Debug.Println(tsname)
 
@@ -84,7 +85,6 @@ func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	userM["saveCopyMssg"] = saveCopyMssg
 
 	return ebooks, myTargetService, userM, nil
-
 }
 
 // ReadRecords reads the XML document

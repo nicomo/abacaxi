@@ -1,12 +1,13 @@
 {{define "body"}}
 	<body>
-		{{template "nav" .}}
 		<h1>&#127821; Hub de métadonnées</h1>
+		{{template "nav" .}}
 		<h2>Package : {{ .myPackage }}</h2>
 		<ul>
 			<li>{{ .myPackageEbooksCount }} ebooks</li>
 			<li>number of ebooks with Marc Records : {{ .myPackageMarcRecordsCount }} / {{ .myPackageEbooksCount }}</li>
 			<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
+			<li>Activated : {{ .IsTSActive }}</li>
 		</ul>
 		<table>
 			<tr>

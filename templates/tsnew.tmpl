@@ -1,0 +1,24 @@
+{{define "body"}}
+	<body>
+		<h1>&#127821; Hub de métadonnées</h1>
+		{{ template "nav" . }}
+		<h2>Create a new Target Service</h2>
+		<form action="http://localhost:8080/packagenew" method="post">
+			<label for="tsdisplayname">Display name: </label>
+			<input type="text" name="tsdisplayname"><br>
+			<label for="tsname">Unique name: </label>
+			<input type="text" name="tsname"><br>
+
+			<fieldset >
+				<legend>Activated</legend>
+				<label for="activated">Yes</label>
+				<input type="radio" name="tsactive" id="activated" value="true" checked="checked"><br>
+				<label for="deactivated">No</label>
+				<input type="radio" name="tsactive" id="deactivated" value="false"><br>
+			</fieldset>
+
+			<input type="submit" value="Submit">
+			
+		</form>
+	</body>
+{{end}}

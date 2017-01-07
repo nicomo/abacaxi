@@ -2,8 +2,10 @@
 package models
 
 import (
+	"net/http"
 	"time"
 
+	"github.com/gorilla/schema"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
@@ -11,12 +13,14 @@ import (
 
 type TargetService struct {
 	Id                     bson.ObjectId `bson:"_id,omitempty"`
-	TSName                 string        `bson:",omitempty"`
-	TSDisplayName          string        `bson:",omitempty"`
-	TSPublisherLastHarvest time.Time     `bson:",omitempty"`
-	TSSFXLastHarvest       time.Time     `bson:",omitempty"`
-	TSSudocLastHarvest     time.Time     `bson:",omitempty"`
-	TSActive               bool
+	TSName                 string        `bson:",omitempty" schema:"tsname"`
+	TSDisplayName          string        `bson:",omitempty" schema:"tsdisplayname"`
+	TSDateCreated          time.Time
+	TSDateUpdated          time.Time `bson:",omitempty"`
+	TSPublisherLastHarvest time.Time `bson:",omitempty"`
+	TSSFXLastHarvest       time.Time `bson:",omitempty"`
+	TSSudocLastHarvest     time.Time `bson:",omitempty"`
+	TSActive               bool      `schema:"tsactive"`
 }
 
 // getTargetService retrieves a target service
@@ -34,8 +38,8 @@ func GetTargetService(tsname string) (TargetService, error) {
 	if err != nil {
 		return ts, err
 	}
-
 	return ts, nil
+
 }
 
 // GetTargetServicesListing retrieves the full list of target services
@@ -56,8 +60,6 @@ func GetTargetServicesListing() ([]TargetService, error) {
 	return TSListing, nil
 
 }
-
-// TODO: updateTargetService
 
 // TSCountEbooks counts the number of ebooks for this package
 func TSCountEbooks(tsname string) int {
@@ -119,6 +121,47 @@ func TSCountPPNs(tsname string) int {
 	}
 
 	return count
+}
+
+//TSCreate registers a new target service, aka ebook package in mongo db
+func TSCreate(r *http.Request) error {
+
+	// init our Target Service struct
+	ts := new(TargetService)
+
+	// used by gorilla schema to parse html forms
+	decoder := schema.NewDecoder()
+
+	// we parse the form
+	parseErr := r.ParseForm()
+	logger.Info.Println(r.Form)
+	if parseErr != nil {
+		logger.Error.Println(parseErr)
+		return parseErr
+	}
+
+	// r.PostForm is a map of our POST form values
+	// we create a struct from form
+	// but ignore the fields which do not exist in the struct
+	decoder.IgnoreUnknownKeys(true)
+	errDecode := decoder.Decode(ts, r.PostForm)
+	if errDecode != nil {
+		return errDecode
+	}
+
+	ts.TSDateCreated = time.Now()
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getTargetServiceColl()
+
+	err := coll.Insert(&ts)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	return nil
 }
 
 // TSUpdate updates a target service

@@ -19,6 +19,7 @@ func init() {
 	if tmpl == nil {
 		tmpl = make(map[string]*template.Template)
 	}
+
 	// home page
 	tmpl["home"] = template.Must(template.ParseFiles("templates/index.tmpl",
 		"templates/base.tmpl",
@@ -26,6 +27,7 @@ func init() {
 		"templates/nav.tmpl",
 		"templates/tslisting.tmpl",
 	))
+
 	// targetservice page
 	tmpl["targetservice"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
@@ -33,6 +35,15 @@ func init() {
 		"templates/package.tmpl",
 		"templates/nav.tmpl",
 		"templates/tslisting.tmpl",
+	))
+
+	// form to create a new target service
+	tmpl["targetservicenewget"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
+		"templates/tsnew.tmpl",
 	))
 
 	// file uploaded
