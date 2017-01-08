@@ -2,10 +2,12 @@
 package models
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/schema"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
@@ -52,7 +54,7 @@ func GetTargetServicesListing() ([]TargetService, error) {
 	defer mgoSession.Close()
 	coll := getTargetServiceColl()
 
-	err := coll.Find(bson.M{}).All(&TSListing)
+	err := coll.Find(bson.M{}).Sort("tsname").All(&TSListing)
 	if err != nil {
 		return TSListing, err
 	}
@@ -159,6 +161,11 @@ func TSCreate(r *http.Request) error {
 	err := coll.Insert(&ts)
 	if err != nil {
 		logger.Error.Println(err)
+		if mgo.IsDup(err) { // this Target service already exists in DB
+			tsIsDupErr := errors.New("Target service " + ts.TSName + " already exists")
+			return tsIsDupErr
+		}
+		return err
 	}
 
 	return nil

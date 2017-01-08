@@ -67,7 +67,7 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := models.TSCreate(r)
 	if err != nil {
-		d["err"] = err
+		d["tsCreateErr"] = err
 		logger.Error.Println(err)
 		views.RenderTmpl(w, "targetservicenewget", d)
 		return

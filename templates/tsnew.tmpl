@@ -3,6 +3,12 @@
 		<h1>&#127821; Hub de métadonnées</h1>
 		{{ template "nav" . }}
 		<h2>Create a new Target Service</h2>
+
+		<div>{{ .tsCreateErr }}</div>
+
+
+
+
 		<form action="http://localhost:8080/packagenew" method="post">
 			<label for="tsdisplayname">Display name: </label>
 			<input type="text" name="tsdisplayname"><br>

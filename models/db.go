@@ -37,6 +37,23 @@ func init() {
 
 	mgoSession.SetMode(mgo.Monotonic, true)
 
+	// TODO: create the collections if they don't already exist, with proper indexes and such
+	// see https://godoc.org/labix.org/v2/mgo#Collection.Create
+	// we try to create the collection, and check the error if it already exists
+	tsColl := mgoSession.DB(AuthDatabase).C("targetservices")
+	tsIndex := mgo.Index{
+		Key:        []string{"tsname"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	tsCollIndexErr := tsColl.EnsureIndex(tsIndex)
+	if tsCollIndexErr != nil {
+		panic(tsCollIndexErr)
+	}
+
 }
 
 // getEbooksColl retrieves a pointer to the Ebooks mongo collection
