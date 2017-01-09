@@ -1,30 +1,49 @@
 {{define "body"}}
 	<body>
-		<h1>&#127821; Hub de métadonnées</h1>
-		{{ template "nav" . }}
-		<h2>Create a new Target Service</h2>
+		<div class="container">
 
-		<div>{{ .tsCreateErr }}</div>
+			<h1>&#127821; Hub de métadonnées</h1>
 
+			{{ template "nav" . }}
 
+			<h2>Create a new Target Service</h2>
 
+			<div>{{ .tsCreateErr }}</div>
 
-		<form action="http://localhost:8080/packagenew" method="post">
-			<label for="tsdisplayname">Display name: </label>
-			<input type="text" name="tsdisplayname"><br>
-			<label for="tsname">Unique name: </label>
-			<input type="text" name="tsname"><br>
+			<form class="form-horizontal" action="http://localhost:8080/packagenew" method="post">
+				<div class="form-group">
+					<label for="tsdisplayname" class="col-sm-2 control-label">Display name: </label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" name="tsdisplayname" placeholder="For inst. Springer Ebooks">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="tsname" class="col-sm-2 control-label">Unique name: </label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" name="tsname" placeholder="springer_ebooks">
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<fieldset >
+							<legend>Activate</legend>
+							<label for="activated" class="radio-inline">
+								<input type="radio" name="tsactive" id="activated" value="true" checked="checked">&nbsp;Yes
+							</label>
+							
+							<label for="deactivated" class="radio-inline">
+								<input type="radio" name="tsactive" id="deactivated" value="false">&nbsp;No
+							</label>
+						</fieldset>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<button type="submit" class="btn btn-default" value="Submit">Submit</button>
+					</div>
+				</div>
+			</form>
 
-			<fieldset >
-				<legend>Activated</legend>
-				<label for="activated">Yes</label>
-				<input type="radio" name="tsactive" id="activated" value="true" checked="checked"><br>
-				<label for="deactivated">No</label>
-				<input type="radio" name="tsactive" id="deactivated" value="false"><br>
-			</fieldset>
-
-			<input type="submit" value="Submit">
-			
-		</form>
+		</div>
 	</body>
 {{end}}

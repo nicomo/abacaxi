@@ -1,8 +1,16 @@
 {{define "nav"}}
-	<nav>
-		<ul>
-			<li><a href="/packagenew">Package New</a></li>
-			{{template "tslisting" .}}
-		</ul>
+	<nav class="navbar navbar-default">
+		<div class="container-fluid">
+			<ul class="nav navbar-nav">
+				<li><a href="/">Home</a></li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Target Services <span class="caret"></span></a>
+					<ul class="dropdown-menu">
+						<li><a href="/packagenew">Package New</a></li>
+						{{template "tslisting" .}}
+					</ul>
+				</li>
+			</ul>			
+		</div>
 	</nav>
 {{end}}

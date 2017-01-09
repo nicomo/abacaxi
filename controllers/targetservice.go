@@ -48,6 +48,10 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		d["myRecords"] = records
 	}
 
+	// list of TS appearing in menu
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+
 	views.RenderTmpl(w, "targetservice", d)
 }
 
