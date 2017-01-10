@@ -28,14 +28,13 @@ type XMLRecord struct {
 
 // xmlIO takes an xml file to clean it, save copy & unmarshall content
 func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, models.TargetService, userMessages, error) {
-	logger.Debug.Println(tsname)
 
 	// retrieve target service (i.e. ebook package) for this file
 	myTargetService, err := models.GetTargetService(tsname)
 	if err != nil {
 		logger.Error.Println(err)
 	}
-	logger.Debug.Println(myTargetService)
+
 	// update date for TS publisher last harvest since
 	// we're harvesting books from a publisher provided csv file
 	myTargetService.TSSFXLastHarvest = time.Now()

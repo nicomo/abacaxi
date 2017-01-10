@@ -66,6 +66,30 @@ func EbookCreate(ebk Ebook) error {
 	return nil
 }
 
+// EbookGetById retrieves an ebook given its mongodb id
+func EbookGetById(id string) (Ebook, error) {
+	ebk := Ebook{}
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	// cast id as ObjectId
+	objectId := bson.ObjectIdHex(id)
+
+	qry := bson.M{"_id": objectId}
+	err := coll.Find(qry).One(&ebk)
+	if err != nil {
+		return ebk, err
+	}
+
+	return ebk, nil
+
+}
+
 // EbookGetByIsbn retrieves an ebook
 func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	ebk := Ebook{}
@@ -99,7 +123,27 @@ func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	return ebk, nil
 }
 
-//TODO: EbookExists returns bool. See https://godoc.org/gopkg.in/mgo.v2#Query.Count
+// EbooksGetByPackageName
+func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
+	var result []Ebook
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	// TODO: iterate over slices of 100 ebooks
+	// maybe user channels?
+	iter := coll.Find(bson.M{"targetservice.tsname": tsname}).Limit(100).Iter()
+	err := iter.All(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
 
 //TODO: EbookUpdate
 func EbookUpdate(ebk Ebook) (Ebook, error) {
@@ -148,31 +192,4 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 		updatedCounter++
 	}
 	return createdCounter, updatedCounter, nil
-}
-
-// EbooksGetByPackageName
-func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
-	var result []Ebook
-
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-
-	// collection ebooks
-	coll := getEbooksColl()
-
-	// construct query
-	//qry := coll.Find()
-
-	// execute query
-	// TODO: iterate over slices of 100 ebooks
-	// maybe user channels?
-	iter := coll.Find(bson.M{"targetservice.tsname": tsname}).Limit(100).Iter()
-	err := iter.All(&result)
-	logger.Debug.Println("EbooksGetByPackageName", result)
-	if err != nil {
-		return result, err
-	}
-
-	return result, nil
 }

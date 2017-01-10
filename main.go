@@ -17,6 +17,7 @@ func main() {
 	router.HandleFunc("/package/{targetservice}", controllers.TargetServiceHandler)
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewGetHandler).Methods("GET")
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewPostHandler).Methods("POST")
+	router.HandleFunc("/ebook/{ebookId}", controllers.EbookHandler)
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(fmt.Sprintf("%s not found\n", r.URL)))

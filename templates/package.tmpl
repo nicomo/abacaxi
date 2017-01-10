@@ -11,7 +11,7 @@
 				<li>Activated : {{ .IsTSActive }}</li>
 			</ul>
 			<div class="panel panel-default">
-				<table class="table">
+				<table class="table table-striped">
 					<tr>
 						<th>Title</th>
 						<th>Publisher</th>
@@ -25,7 +25,7 @@
 						<td>{{ .Publisher }} </td>
 						<td>{{ if .MarcRecords }} Y {{ else }} no {{ end }}</td>
 						<td>{{ if .Ppns }} Y {{ else }} no {{ end }}</td>
-						<td><a href="record/{{ .Id.Hex }}">see more</a></td>
+						<td><a href="/ebook/{{ .Id.Hex }}">...</a></td>
 						
 					</tr>
 					{{ end }}

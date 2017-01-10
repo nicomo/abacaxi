@@ -31,12 +31,10 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 
 		// how many ebooks have marc records
 		nbMarcRecords := models.TSCountMarcRecords(tsname)
-		logger.Debug.Println(nbMarcRecords)
 		d["myPackageMarcRecordsCount"] = nbMarcRecords
 
 		// how many ebooks have a PPN from the Sudoc Union Catalog
 		nbPPNs := models.TSCountPPNs(tsname)
-		logger.Debug.Println(nbPPNs)
 		d["myPackagePPNsCount"] = nbPPNs
 
 		// get the ebooks
@@ -44,7 +42,6 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.Error.Println(err)
 		}
-		logger.Debug.Println("TargetServiceHandler", records)
 		d["myRecords"] = records
 	}
 

@@ -95,7 +95,6 @@ func TSCountMarcRecords(tsname string) int {
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
 	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "marcrecords": bson.M{"$ne": nil}})
-	logger.Debug.Println(qry)
 	count, err := qry.Count()
 
 	if err != nil {

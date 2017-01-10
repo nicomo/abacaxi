@@ -69,7 +69,7 @@ func csvIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	if err != nil {
 		logger.Error.Println(err)
 	}
-	logger.Debug.Println(myTargetService)
+
 	// update date for TS publisher last harvest since
 	// we're harvesting books from a publisher provided csv file
 	myTargetService.TSPublisherLastHarvest = time.Now()

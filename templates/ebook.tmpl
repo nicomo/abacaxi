@@ -1,0 +1,104 @@
+{{define "body"}}
+	<body>
+		<div class="container">
+
+			<h1>&#127821; Hub de métadonnées</h1>
+
+			{{ template "nav" . }}
+
+			<h2>Record #{{ .Ebook.Id.Hex }}</h2>
+			<p>
+				Date created: {{ .Ebook.DateCreated }}
+				{{ if .Ebook.DateUpdated}} | Last updated from source: {{ .Ebook.DateUpdated }} {{ end }}
+			</p>
+			<p>
+				{{ if .Ebook.Active }}<span class="label label-success">Active</span>{{ else }}<span class="label label-danger">Inactive</span>{{ end }}
+				{{ if .Ebook.Acquired }}<span class="label label-success">Acquired</span>{{ else }}<span class="label label-danger">Rented</span>{{ end}}
+			</p>
+			<p>
+				{{ if .Ebook.Ppns }}
+					<a class="btn btn-default" href="#" role="button">Get Sudoc Record</a>
+				{{ else }}
+					<a class="btn btn-default" href="#" role="button">Get PPNs</a>
+				{{ end }}
+			</p>
+			
+
+			<table class="table table-condensed table-hover">
+				<tbody>
+					<tr>
+						<th scope="row">Authors</th>
+						<td>
+						{{ range .Ebook.Authors }}
+							{{ . }}<br />
+						{{ end }}
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">Title</th>
+						<td>{{ .Ebook.Title }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Publisher</th>
+						<td>{{ if .Ebook.Publisher }} {{ .Ebook.Publisher }} {{ else }} - {{ end }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Pub. Date</th>
+						<td>{{ if .Ebook.Pubdate }} {{ .Ebook.Pubdate }} {{ else }} - {{ end }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Edition</th>
+						<td>{{ if .Ebook.Edition }} {{ .Ebook.Edition }} {{ else }} - {{ end }}</td>
+					</tr>
+					<tr>
+						<th scope="row">ISBNs</th>
+						<td>
+							{{ range .Ebook.Isbns }} 
+								{{ .Isbn }} {{ if .Electronic }} (e-isbn) {{ end }} {{ if .Primary }} &#11088; {{ end }}<br />
+							{{ end }}
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">PPNs</th>
+						<td>
+							{{ if .Ebook.Ppns }}
+								{{ range .Ebook.Ppns }} 
+									{{ .Ppn }} {{ if .Electronic }} (e-ppn) {{ end }} {{ if .Primary }} &#11088; {{ end }}<br />
+								{{ end }}
+							{{ else }}
+							 	-
+							{{ end}}
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">Target Services</th>
+						<td>
+							{{ range .Ebook.TargetService }}
+									{{ .TSDisplayName }}<br />
+							{{ end }}							
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">URLs</th>
+						<td>{{ if .Ebook.PackageURL }} <a href=".Ebook.PackageURL">{{ .Ebook.PackageURL }}</a> {{ end }}<br />
+							{{ if .Ebook.OpenURL }} <a href=".Ebook.OpenURL">{{ .Ebook.OpenURL }}</a> {{ end }}
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">Marc Records</th>
+						<td>
+							{{ if .Ebook.MarcRecords }}
+								{{ range .Ebook.MarcRecords }} 
+									{{ . }}<br />
+								{{ end }}
+							{{ else }}
+							 	-
+							{{ end}}
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+{{ end }}

@@ -28,6 +28,15 @@ func init() {
 		"templates/tslisting.tmpl",
 	))
 
+	// ebook page
+	tmpl["ebook"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/ebook.tmpl",
+		"templates/tslisting.tmpl",
+	))
+
 	// targetservice page
 	tmpl["targetservice"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",

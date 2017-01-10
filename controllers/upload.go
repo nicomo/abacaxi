@@ -101,6 +101,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 			views.RenderTmpl(w, "upload", userM)
 		} else {
+			//TODO : manage case wrong file extension : message to the user
 			logger.Debug.Println("wrong file extension")
 		}
 
