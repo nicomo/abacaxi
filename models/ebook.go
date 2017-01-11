@@ -134,8 +134,9 @@ func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
 	// collection ebooks
 	coll := getEbooksColl()
 
-	// TODO: iterate over slices of 100 ebooks
-	// maybe user channels?
+	// TODO: iterate over slices of 1000 ebooks
+	// maybe use channels?
+	// or else retrieve all then calculate result / 1000 and just manage display of chuncks of 1000 ebooks
 	iter := coll.Find(bson.M{"targetservice.tsname": tsname}).Limit(100).Iter()
 	err := iter.All(&result)
 	if err != nil {

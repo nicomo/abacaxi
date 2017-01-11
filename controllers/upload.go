@@ -30,6 +30,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+		//FIXME: why userM with specific struct? shouldn't it be d["blabla"] like all the other pages?
 		userM := make(userMessages)
 
 		// parsing multipart file

@@ -110,6 +110,10 @@ func xmlUnmarshall(recordIn XMLRecord, myTargetService models.TargetService) mod
 	ebk.TargetService = append(ebk.TargetService, myTargetService)
 	ebk.SfxId = recordIn.SfxID
 
+	if myTargetService.TSActive {
+		ebk.Active = true
+	}
+
 	return ebk
 }
 

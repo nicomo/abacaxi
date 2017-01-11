@@ -289,6 +289,9 @@ func csvUnmarshall(recordIn CSVRecord, myTargetService models.TargetService) mod
 	ebk.PackageURL = recordIn.url
 	ebk.PublisherLastHarvest = time.Now()
 	ebk.TargetService = append(ebk.TargetService, myTargetService)
+	if myTargetService.TSActive {
+		ebk.Active = true
+	}
 
 	return ebk
 }
