@@ -14,7 +14,6 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	d := make(map[string]interface{})
 
 	result, searchterms, err := models.Search(r)
-	logger.Debug.Println(result, err)
 	if err != nil {
 		logger.Error.Println(err)
 	}

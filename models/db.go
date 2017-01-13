@@ -58,7 +58,7 @@ func init() {
 	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
 	ebkColl := mgoSession.DB(AuthDatabase).C("ebooks")
 	ebkIndex := mgo.Index{
-		Key:        []string{"$text:title", "$text:publisher", "$text:isbns.isbn", "$text:ppns.ppn"},
+		Key:        []string{"$text:title", "$text:publisher", "$text:authors", "$text:isbns.isbn", "$text:ppns.ppn"},
 		Unique:     false,
 		DropDups:   false,
 		Background: true,
@@ -68,7 +68,6 @@ func init() {
 	ebkIndexErr := ebkColl.EnsureIndex(ebkIndex)
 	if ebkIndexErr != nil {
 		logger.Error.Println(ebkIndexErr)
-		//panic(ebkIndexErr)
 	}
 
 }
