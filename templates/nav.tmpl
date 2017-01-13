@@ -10,7 +10,14 @@
 						{{template "tslisting" .}}
 					</ul>
 				</li>
-			</ul>			
+			</ul>
+
+		      <form class="navbar-form navbar-right" action="http://localhost:8080/search" method="post">
+				<div class="form-group">
+					<input type="text" class="form-control" placeholder="Search" id="search_terms" name="search_terms" value="">
+				</div>
+				<button type="submit" id="send_button" class="btn btn-default" name="send" value="true">Search</button>
+			</form>
 		</div>
 	</nav>
 {{end}}

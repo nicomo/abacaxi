@@ -37,6 +37,15 @@ func init() {
 		"templates/tslisting.tmpl",
 	))
 
+	// searchresults page
+	tmpl["searchresults"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/searchresults.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
+	))
+
 	// targetservice page
 	tmpl["targetservice"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",

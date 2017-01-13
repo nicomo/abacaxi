@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/nicomo/EResourcesMetadataHub/logger"
+
 	"gopkg.in/mgo.v2"
 )
 
@@ -37,9 +39,7 @@ func init() {
 
 	mgoSession.SetMode(mgo.Monotonic, true)
 
-	// TODO: create the collections if they don't already exist, with proper indexes and such
-	// see https://godoc.org/labix.org/v2/mgo#Collection.Create
-	// we try to create the collection, and check the error if it already exists
+	// create the Target Services collection, with an index on names
 	tsColl := mgoSession.DB(AuthDatabase).C("targetservices")
 	tsIndex := mgo.Index{
 		Key:        []string{"tsname"},
@@ -52,6 +52,23 @@ func init() {
 	tsCollIndexErr := tsColl.EnsureIndex(tsIndex)
 	if tsCollIndexErr != nil {
 		panic(tsCollIndexErr)
+	}
+
+	// create the ebooks collection with a compound text index
+	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
+	ebkColl := mgoSession.DB(AuthDatabase).C("ebooks")
+	ebkIndex := mgo.Index{
+		Key:        []string{"$text:title", "$text:publisher", "$text:isbns.isbn", "$text:ppns.ppn"},
+		Unique:     false,
+		DropDups:   false,
+		Background: true,
+		Sparse:     false,
+	}
+
+	ebkIndexErr := ebkColl.EnsureIndex(ebkIndex)
+	if ebkIndexErr != nil {
+		logger.Error.Println(ebkIndexErr)
+		//panic(ebkIndexErr)
 	}
 
 }
