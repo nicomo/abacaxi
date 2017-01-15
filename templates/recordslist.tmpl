@@ -1,0 +1,25 @@
+{{ define "recordslist" }}
+	<div class="panel panel-default">
+		<table class="table table-striped">
+			<tr>
+				<th>Title</th>
+				<th>Authors</th>
+				<th>Taget Service</th>
+				<th>Marc Records</th>
+				<th>PPNs</th>
+				<th>see more</th>
+			</tr>
+			{{ range .myRecords }}
+			<tr>
+				<td>{{ .Title }}</td>
+				<td>{{ range .Authors }} {{ . }}<br /> {{ end }}</td>
+				<td>{{ range .TargetService }} {{ .TSDisplayName }}<br /> {{ end }}</td>
+				<td>{{ if .MarcRecords }} Y {{ else }} no {{ end }}</td>
+				<td>{{ if .Ppns }} Y {{ else }} no {{ end }}</td>
+				<td><a href="/ebook/{{ .Id.Hex }}">...</a></td>
+				
+			</tr>
+			{{ end }}
+		</table>				
+	</div>
+{{ end }}

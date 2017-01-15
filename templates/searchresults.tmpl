@@ -2,31 +2,9 @@
 	<body>
 		<div class="container">
 			<h1>&#127821; Hub de métadonnées</h1>
-			{{template "nav" .}}
+			{{ template "nav" . }}
 			<h2>Results for: {{ .searchterms }}</h2>
-
-			<div class="panel panel-default">
-				<table class="table table-striped">
-					<tr>
-						<th>Title</th>
-						<th>Publisher</th>
-						<th>Marc Records</th>
-						<th>PPNs</th>
-						<th>see more</th>
-					</tr>
-					{{ range .myRecords }}
-					<tr>
-						<td>{{ .Title }}</td>
-						<td>{{ .Publisher }} </td>
-						<td>{{ if .MarcRecords }} Y {{ else }} no {{ end }}</td>
-						<td>{{ if .Ppns }} Y {{ else }} no {{ end }}</td>
-						<td><a href="/ebook/{{ .Id.Hex }}">...</a></td>
-						
-					</tr>
-					{{ end }}
-				</table>				
-			</div>
-
+			{{ template "recordslist" . }}
 		</div>
 	</body>
 {{end}}

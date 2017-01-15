@@ -41,6 +41,7 @@ func init() {
 	tmpl["searchresults"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
 		"templates/head.tmpl",
+		"templates/recordslist.tmpl",
 		"templates/searchresults.tmpl",
 		"templates/nav.tmpl",
 		"templates/tslisting.tmpl",
@@ -51,6 +52,7 @@ func init() {
 		"templates/base.tmpl",
 		"templates/head.tmpl",
 		"templates/package.tmpl",
+		"templates/recordslist.tmpl",
 		"templates/nav.tmpl",
 		"templates/tslisting.tmpl",
 	))

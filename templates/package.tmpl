@@ -10,27 +10,8 @@
 				<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
 				<li>Activated : {{ .IsTSActive }}</li>
 			</ul>
-			<div class="panel panel-default">
-				<table class="table table-striped">
-					<tr>
-						<th>Title</th>
-						<th>Publisher</th>
-						<th>Marc Records</th>
-						<th>PPNs</th>
-						<th>see more</th>
-					</tr>
-					{{ range .myRecords }}
-					<tr>
-						<td>{{ .Title }}</td>
-						<td>{{ .Publisher }} </td>
-						<td>{{ if .MarcRecords }} Y {{ else }} no {{ end }}</td>
-						<td>{{ if .Ppns }} Y {{ else }} no {{ end }}</td>
-						<td><a href="/ebook/{{ .Id.Hex }}">...</a></td>
-						
-					</tr>
-					{{ end }}
-				</table>				
-			</div>
+
+			{{ template "recordslist" . }}
 
 		</div>
 	</body>

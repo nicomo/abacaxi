@@ -19,7 +19,7 @@
 				{{ if .Ebook.Ppns }}
 					<a class="btn btn-default" href="#" role="button">Get Sudoc Record</a>
 				{{ else }}
-					<a class="btn btn-default" href="#" role="button">Get PPNs</a>
+					<a class="btn btn-default" href="/getppn/{{ .Ebook.Id.Hex }}" role="button">Get PPNs</a>
 				{{ end }}
 			</p>
 			

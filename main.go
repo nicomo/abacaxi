@@ -14,6 +14,7 @@ func main() {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	router.HandleFunc("/", controllers.HomeHandler)
 	router.HandleFunc("/ebook/{ebookId}", controllers.EbookHandler)
+	router.HandleFunc("/getppn/{ebookid}", controllers.GetPPNHandler)
 	router.HandleFunc("/search", controllers.SearchHandler)
 	router.HandleFunc("/package/{targetservice}", controllers.TargetServiceHandler)
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewGetHandler).Methods("GET")
