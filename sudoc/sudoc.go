@@ -3,6 +3,7 @@ package sudoc
 
 import (
 	"encoding/xml"
+	"errors"
 	"io/ioutil"
 	"net/http"
 
@@ -33,8 +34,6 @@ func FetchPPN(isbn2ppnURL string) ([]string, error) {
 
 	logger.Debug.Printf("%s", b)
 
-	// json decode will store decoded data here
-	//var data map[string]interface{}
 	var data SudocData
 
 	if err := xml.Unmarshal(b, &data); err != nil {
@@ -42,6 +41,13 @@ func FetchPPN(isbn2ppnURL string) ([]string, error) {
 	}
 
 	logger.Debug.Println(data)
+
+	if data.Err != "" {
+		dataErr := errors.New(data.Err)
+		return result, dataErr
+	}
+
+	result = data.PPNs
 
 	return result, nil
 

@@ -146,8 +146,28 @@ func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
 	return result, nil
 }
 
-//TODO: EbookUpdate
+// EbookUpdate saves an ebk struct to DB
 func EbookUpdate(ebk Ebook) (Ebook, error) {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getEbooksColl()
+
+	// let's add the time and save
+	ebk.DateUpdated = time.Now()
+
+	logger.Debug.Printf("EbookUpdate: %v", ebk)
+
+	// we select on the ebook's id
+	selector := bson.M{"_id": ebk.Id}
+	logger.Debug.Println(selector)
+
+	err := coll.Update(selector, &ebk)
+	if err != nil {
+		logger.Error.Printf("Couldn't update ebook: %v", err)
+		return ebk, err
+	}
+
 	return ebk, nil
 }
 
@@ -193,4 +213,14 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 		updatedCounter++
 	}
 	return createdCounter, updatedCounter, nil
+}
+
+// PPNCreate creates the PPN structs to be embedded in an ebook struct
+func PPNCreate(ppns []string, electronic bool, primary bool) []PPN {
+	myPPNs := make([]PPN, 0)
+	for _, v := range ppns {
+		p := PPN{Ppn: v, Electronic: electronic, Primary: primary}
+		myPPNs = append(myPPNs, p)
+	}
+	return myPPNs
 }
