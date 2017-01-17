@@ -8,8 +8,8 @@
 
 			<h2>Record #{{ .Ebook.Id.Hex }}</h2>
 			<p>
-				Date created: {{ .Ebook.DateCreated }}
-				{{ if .Ebook.DateUpdated}} | Last updated from source: {{ .Ebook.DateUpdated }} {{ end }}
+				Date created: {{ .formattedDateCreated }}
+				{{ if .FormattedDateUpdated}} | Last updated from source: {{ .FormattedDateUpdated }} {{ end }}
 			</p>
 			<p>
 				{{ if .Ebook.Active }}<span class="label label-success">Active</span>{{ else }}<span class="label label-danger">Inactive</span>{{ end }}

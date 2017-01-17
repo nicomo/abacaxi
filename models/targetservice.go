@@ -113,8 +113,9 @@ func TSCountPPNs(tsname string) int {
 	// collection ebooks
 	coll := getEbooksColl()
 
-	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "ppns": false})
+	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
+	// db.ebooks.find({"targetservice.tsname":"cyberlibris","ppns":{$exists: true} })
+	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "ppns": bson.M{"$exists": true}})
 	count, err := qry.Count()
 
 	if err != nil {
