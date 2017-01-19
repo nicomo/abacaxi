@@ -129,11 +129,11 @@ func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(err)
 			continue
 		}
-		logger.Debug.Println(record)
-
-		// TODO: if the local record already has a mark record, update using delete / insert
 
 		if record != "" {
+
+			// if the local record already has a mark record, update using delete / insert
+			myEbook.MarcRecords = nil
 			myEbook.MarcRecords = append(myEbook.MarcRecords, record)
 
 			// actually save updated ebook struct to DB
@@ -149,4 +149,9 @@ func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	// redirect to book detail page
+	// TODO: transmit either error or success message to user
+	urlStr := "/ebook/" + ebookId
+	http.Redirect(w, r, urlStr, 303)
 }
