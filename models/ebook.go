@@ -2,7 +2,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -206,8 +205,12 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 			continue
 		}
 
-		// TODO: we've found the record, let's update.it
-		fmt.Println(existingRecord)
+		// we did find the record, let's update it
+		record.Id = existingRecord.Id
+		updatedRecord, err := EbookUpdate(record)
+		if err != nil {
+			logger.Error.Println(err)
+		}
 		updatedCounter++
 	}
 	return createdCounter, updatedCounter, nil
