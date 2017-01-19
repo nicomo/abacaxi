@@ -8,16 +8,16 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/sudoc"
 )
 
-// GetPPNHandler manages the consuming of a web service to retrieve a Sudoc ID
+// SudocIsbn2PpnHandler manages the consuming of a web service to retrieve a Sudoc ID
 //  There's a "priority" isbn, we try to get a marc record number for this one first
 // using the other isbns only if we can't
-func GetPPNHandler(w http.ResponseWriter, r *http.Request) {
+func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 
 	// data to be display in UI will be stored in this map
 	d := make(map[string]interface{})
 
 	// record ID is last part of the URL
-	ebookId := r.URL.Path[len("/getppn/"):]
+	ebookId := r.URL.Path[len("/sudocisbn2ppn/"):]
 
 	myEbook, err := models.EbookGetById(ebookId)
 	if err != nil {

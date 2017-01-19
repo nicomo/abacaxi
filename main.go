@@ -14,11 +14,11 @@ func main() {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	router.HandleFunc("/", controllers.HomeHandler)
 	router.HandleFunc("/ebook/{ebookId}", controllers.EbookHandler)
-	router.HandleFunc("/getppn/{ebookid}", controllers.GetPPNHandler)
 	router.HandleFunc("/search", controllers.SearchHandler)
 	router.HandleFunc("/package/{targetservice}", controllers.TargetServiceHandler)
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewGetHandler).Methods("GET")
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewPostHandler).Methods("POST")
+	router.HandleFunc("/sudocisbn2ppn/{ebookid}", controllers.SudocIsbn2PpnHandler)
 	router.HandleFunc("/upload", controllers.UploadHandler)
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
