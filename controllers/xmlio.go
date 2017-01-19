@@ -102,8 +102,8 @@ func xmlUnmarshall(recordIn XMLRecord, myTargetService models.TargetService) mod
 	for _, aut := range recordIn.Authors {
 		ebk.Authors = append(ebk.Authors, aut)
 	}
-	Isbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), false, false} // print isbn, not electronic, not primary
-	Eisbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Eisbn, "-", "", -1), " "), true, true} // eisbn, electronic, primary
+	Isbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), false}  // print isbn, not electronic
+	Eisbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Eisbn, "-", "", -1), " "), true} // eisbn, electronic
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.Title
 	ebk.SFXLastHarvest = time.Now()

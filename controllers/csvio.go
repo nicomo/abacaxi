@@ -280,8 +280,8 @@ func csvUnmarshall(recordIn CSVRecord, myTargetService models.TargetService) mod
 		ebk.Authors = append(ebk.Authors, aut)
 	}
 	ebk.Publisher = recordIn.publisher
-	Isbn := models.Isbn{recordIn.isbn, false, false} // print isbn, not electronic, not primary
-	Eisbn := models.Isbn{recordIn.eisbn, true, true} // eisbn, electronic, primary
+	Isbn := models.Isbn{recordIn.isbn, false}  // print isbn, not electronic
+	Eisbn := models.Isbn{recordIn.eisbn, true} // eisbn, electronic
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.title
 	ebk.Pubdate = recordIn.pubdate

@@ -2,7 +2,7 @@
 	<body>
 		<div class="container">
 
-			<h1>&#127821; Hub de métadonnées</h1>
+			<h1>&#127821; Metadata Hub</h1>
 
 			{{ template "nav" . }}
 
@@ -55,7 +55,7 @@
 						<th scope="row">ISBNs</th>
 						<td>
 							{{ range .Ebook.Isbns }} 
-								{{ .Isbn }} {{ if .Electronic }} (e-isbn) {{ end }} {{ if .Primary }} &#11088; {{ end }}<br />
+								{{ .Isbn }} {{ if .Electronic }} (e-isbn) &#11088; {{ end }}<br />
 							{{ end }}
 						</td>
 					</tr>
@@ -64,7 +64,7 @@
 						<td>
 							{{ if .Ebook.Ppns }}
 								{{ range .Ebook.Ppns }} 
-									{{ .Ppn }} {{ if .Electronic }} (e-ppn) {{ end }} {{ if .Primary }} &#11088; {{ end }}<br />
+									{{ .Ppn }} {{ if .Electronic }} (e-ppn) &#11088; {{ end }}<br />
 								{{ end }}
 							{{ else }}
 							 	-

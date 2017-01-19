@@ -82,8 +82,14 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 				logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, tsUpdateErr)
 			}
 
+			// list of TS appearing in menu
+			TSListing, _ := models.GetTargetServicesListing()
+			userM["TSListing"] = TSListing
+
 			views.RenderTmpl(w, "upload", userM)
+
 		} else if ext == ".xml" {
+
 			xmlRecords, myTS, userM, err := xmlIO(path, tsname, userM)
 			if err != nil {
 				logger.Error.Println(err)
@@ -100,8 +106,14 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 				logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, tsUpdateErr)
 			}
 
+			// list of TS appearing in menu
+			TSListing, _ := models.GetTargetServicesListing()
+			userM["TSListing"] = TSListing
+
 			views.RenderTmpl(w, "upload", userM)
+
 		} else {
+
 			//TODO : manage case wrong file extension : message to the user
 			logger.Debug.Println("wrong file extension")
 		}

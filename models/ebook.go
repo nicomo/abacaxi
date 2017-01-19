@@ -38,13 +38,11 @@ type Ebook struct {
 type Isbn struct {
 	Isbn       string
 	Electronic bool
-	Primary    bool
 }
 
 type PPN struct {
 	Ppn        string
 	Electronic bool
-	Primary    bool
 }
 
 // EbookCreate saves a single ebook to mongo DB
@@ -216,10 +214,10 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 }
 
 // PPNCreate creates the PPN structs to be embedded in an ebook struct
-func PPNCreate(ppns []string, electronic bool, primary bool) []PPN {
+func PPNCreate(ppns []string, electronic bool) []PPN {
 	myPPNs := make([]PPN, 0)
 	for _, v := range ppns {
-		p := PPN{Ppn: v, Electronic: electronic, Primary: primary}
+		p := PPN{Ppn: v, Electronic: electronic}
 		myPPNs = append(myPPNs, p)
 	}
 	return myPPNs

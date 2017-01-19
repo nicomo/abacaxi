@@ -32,7 +32,7 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug.Println(myEbook.Isbns)
 
 	for _, v := range myEbook.Isbns {
-		if v.Primary {
+		if v.Electronic {
 			priorityURL = "http://www.sudoc.fr/services/isbn2ppn/" + v.Isbn
 		} else {
 			allIsbns = append(allIsbns, v.Isbn)
@@ -59,7 +59,7 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(sudocErr)
 			d["sudocErr"] = sudocErr
 		}
-		myPPN := models.PPNCreate(priorityPPN, true, true)
+		myPPN := models.PPNCreate(priorityPPN, true)
 		myEbook.Ppns = myPPN
 		logger.Debug.Printf("%v", myEbook)
 
@@ -76,7 +76,7 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(allSudocErr)
 			d["allSudocErr"] = allSudocErr
 		}
-		myPPNs := models.PPNCreate(allPPN, false, false)
+		myPPNs := models.PPNCreate(allPPN, false)
 		myEbook.Ppns = myPPNs
 		logger.Debug.Printf("%v", myEbook)
 
