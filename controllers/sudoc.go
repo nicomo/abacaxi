@@ -69,8 +69,9 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 		if ebkUpdateErr != nil {
 			logger.Error.Println(ebkUpdateErr)
 		}
+	}
 
-	} else {
+	if len(myEbook.Ppns) == 0 {
 		allPPN, allSudocErr := sudoc.FetchPPN(allIsbnsURL)
 		if allSudocErr != nil {
 			logger.Error.Println(allSudocErr)
@@ -93,4 +94,59 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 	urlStr := "/ebook/" + ebookId
 	http.Redirect(w, r, urlStr, 303)
 
+}
+
+func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
+
+	// record ID is last part of the URL
+	ebookId := r.URL.Path[len("/sudocgetrecord/"):]
+
+	myEbook, err := models.EbookGetById(ebookId)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	// we put the "electronic" ppns 1st in the map, then the others
+	// we sort the map
+	// we fetch the record, and stop as soon as we get one
+	var sortedPPNs []string
+	for _, v := range myEbook.Ppns {
+		if v.Electronic {
+			sortedPPNs = append(sortedPPNs, "http://www.sudoc.fr/"+v.Ppn+".abes")
+		}
+	}
+	for _, v := range myEbook.Ppns {
+		if v.Electronic == false {
+			sortedPPNs = append(sortedPPNs, "http://www.sudoc.fr/"+v.Ppn+".abes")
+		}
+	}
+
+	logger.Debug.Println(sortedPPNs)
+
+	for _, v := range sortedPPNs {
+		record, err := sudoc.SudocGetRecord(v)
+		if err != nil {
+			logger.Error.Println(err)
+			continue
+		}
+		logger.Debug.Println(record)
+
+		// TODO: if the local record already has a mark record, update using delete / insert
+
+		if record != "" {
+			myEbook.MarcRecords = append(myEbook.MarcRecords, record)
+
+			// actually save updated ebook struct to DB
+			var ebkUpdateErr error
+			myEbook, ebkUpdateErr = models.EbookUpdate(myEbook)
+			if ebkUpdateErr != nil {
+				logger.Error.Println(ebkUpdateErr)
+			}
+			logger.Debug.Println(myEbook)
+
+			if len(myEbook.MarcRecords) > 0 {
+				break
+			}
+		}
+	}
 }

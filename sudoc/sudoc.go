@@ -4,6 +4,7 @@ package sudoc
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -49,6 +50,26 @@ func FetchPPN(isbn2ppnURL string) ([]string, error) {
 
 	result = data.PPNs
 
+	return result, nil
+
+}
+
+func SudocGetRecord(recordURL string) (string, error) {
+	var result string
+
+	resp, err := http.Get(recordURL)
+	if err != nil {
+		logger.Error.Printf("fetch: reading %s %v\n", recordURL, err)
+		return result, err
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		logger.Error.Printf("fetch: reading %s %v\n", recordURL, err)
+		return result, err
+	}
+	result = fmt.Sprintf("%s", b)
 	return result, nil
 
 }

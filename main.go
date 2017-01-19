@@ -18,6 +18,7 @@ func main() {
 	router.HandleFunc("/package/{targetservice}", controllers.TargetServiceHandler)
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewGetHandler).Methods("GET")
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewPostHandler).Methods("POST")
+	router.HandleFunc("/sudocgetrecord/{ebookid}", controllers.SudocGetRecordHandler)
 	router.HandleFunc("/sudocisbn2ppn/{ebookid}", controllers.SudocIsbn2PpnHandler)
 	router.HandleFunc("/upload", controllers.UploadHandler)
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
