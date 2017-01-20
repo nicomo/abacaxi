@@ -114,8 +114,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 
-			//TODO : manage case wrong file extension : message to the user
-			logger.Debug.Println("wrong file extension")
+			// TODO : transmit either error or success message to user
+			// manage case wrong file extension : message to the user with redirect to home
+			logger.Error.Println("wrong file extension")
+			// redirect to home
+			http.Redirect(w, r, "/", 303)
 		}
 
 	}

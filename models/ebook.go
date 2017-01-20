@@ -63,6 +63,29 @@ func EbookCreate(ebk Ebook) error {
 	return nil
 }
 
+// EbookDelete deletes a single ebook from DB
+func EbookDelete(id string) error {
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	// cast id as ObjectId
+	objectId := bson.ObjectIdHex(id)
+
+	// delete record
+	qry := bson.M{"_id": objectId}
+	err := coll.Remove(qry)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // EbookGetById retrieves an ebook given its mongodb id
 func EbookGetById(id string) (Ebook, error) {
 	ebk := Ebook{}
@@ -84,7 +107,6 @@ func EbookGetById(id string) (Ebook, error) {
 	}
 
 	return ebk, nil
-
 }
 
 // EbookGetByIsbn retrieves an ebook
@@ -120,6 +142,28 @@ func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	return ebk, nil
 }
 
+// EbookUpdate saves an ebk struct to DB
+func EbookUpdate(ebk Ebook) (Ebook, error) {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getEbooksColl()
+
+	// let's add the time and save
+	ebk.DateUpdated = time.Now()
+
+	// we select on the ebook's id
+	selector := bson.M{"_id": ebk.Id}
+
+	err := coll.Update(selector, &ebk)
+	if err != nil {
+		logger.Error.Printf("Couldn't update ebook: %v", err)
+		return ebk, err
+	}
+
+	return ebk, nil
+}
+
 // EbooksGetByPackageName
 func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
 	var result []Ebook
@@ -141,41 +185,6 @@ func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
 	}
 
 	return result, nil
-}
-
-// EbookUpdate saves an ebk struct to DB
-func EbookUpdate(ebk Ebook) (Ebook, error) {
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-	coll := getEbooksColl()
-
-	// let's add the time and save
-	ebk.DateUpdated = time.Now()
-
-	logger.Debug.Printf("EbookUpdate: %v", ebk)
-
-	// we select on the ebook's id
-	selector := bson.M{"_id": ebk.Id}
-	logger.Debug.Println(selector)
-
-	err := coll.Update(selector, &ebk)
-	if err != nil {
-		logger.Error.Printf("Couldn't update ebook: %v", err)
-		return ebk, err
-	}
-
-	return ebk, nil
-}
-
-//TODO: EbookSoftDelete
-func EbookSoftDelete(ebkId int) error {
-	return nil
-}
-
-//TODO: EbookDelete
-func EbookDelete(ebkId int) error {
-	return nil
 }
 
 // EbooksCreateOrUpdate checks if ebook exists in DB, using ISBN, then routes to either create or update
@@ -207,9 +216,9 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 
 		// we did find the record, let's update it
 		record.Id = existingRecord.Id
-		updatedRecord, err := EbookUpdate(record)
-		if err != nil {
-			logger.Error.Println(err)
+		_, updateErr := EbookUpdate(record)
+		if updateErr != nil {
+			logger.Error.Println(updateErr)
 		}
 		updatedCounter++
 	}

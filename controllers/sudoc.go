@@ -29,8 +29,6 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 	var allIsbns []string
 	allIsbnsURL := "http://www.sudoc.fr/services/isbn2ppn/"
 
-	logger.Debug.Println(myEbook.Isbns)
-
 	for _, v := range myEbook.Isbns {
 		if v.Electronic {
 			priorityURL = "http://www.sudoc.fr/services/isbn2ppn/" + v.Isbn
@@ -46,9 +44,6 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 		allIsbnsURL = allIsbnsURL + v
 	}
 
-	logger.Debug.Println("priorityURL..." + priorityURL)
-	logger.Debug.Println("allIsbnsURL..." + allIsbnsURL)
-
 	// retrieve PPN from sudoc web service :
 	// preferred isbns 1st if there's one
 	// other isbns if preferred gets no result (error received)
@@ -61,7 +56,6 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		myPPN := models.PPNCreate(priorityPPN, true)
 		myEbook.Ppns = myPPN
-		logger.Debug.Printf("%v", myEbook)
 
 		// actually save updated ebook struct to DB
 		var ebkUpdateErr error
@@ -79,7 +73,6 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		myPPNs := models.PPNCreate(allPPN, false)
 		myEbook.Ppns = myPPNs
-		logger.Debug.Printf("%v", myEbook)
 
 		// actually save updated ebook struct to DB
 		var ebkUpdateErr error
@@ -121,8 +114,6 @@ func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	logger.Debug.Println(sortedPPNs)
-
 	for _, v := range sortedPPNs {
 		record, err := sudoc.SudocGetRecord(v)
 		if err != nil {
@@ -142,7 +133,6 @@ func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
 			if ebkUpdateErr != nil {
 				logger.Error.Println(ebkUpdateErr)
 			}
-			logger.Debug.Println(myEbook)
 
 			if len(myEbook.MarcRecords) > 0 {
 				break

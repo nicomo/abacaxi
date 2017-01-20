@@ -33,15 +33,11 @@ func FetchPPN(isbn2ppnURL string) ([]string, error) {
 		panic(err)
 	}
 
-	logger.Debug.Printf("%s", b)
-
 	var data SudocData
 
 	if err := xml.Unmarshal(b, &data); err != nil {
 		logger.Error.Println(err)
 	}
-
-	logger.Debug.Println(data)
 
 	if data.Err != "" {
 		dataErr := errors.New(data.Err)
