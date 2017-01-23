@@ -38,7 +38,7 @@ func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	}
 
 	// update date for TS publisher last harvest since
-	// we're harvesting books from a publisher provIDed csv file
+	// we're harvesting books from a publisher provided csv file
 	myTargetService.TSSFXLastHarvest = time.Now()
 
 	// open the source XML file

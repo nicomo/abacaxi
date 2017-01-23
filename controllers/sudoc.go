@@ -54,7 +54,7 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(result.Err)
 			d["sudocErr"] = result.Err
 		}
-		myPPN := models.PPNCreate(result.PPNs, true)
+		myPPN := models.EbookPPNCreate(result.PPNs, true)
 		myEbook.Ppns = myPPN
 
 		// actually save updated ebook struct to DB
@@ -71,7 +71,7 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(result.Err)
 			d["allSudocErr"] = result.Err
 		}
-		myPPNs := models.PPNCreate(result.PPNs, false)
+		myPPNs := models.EbookPPNCreate(result.PPNs, false)
 		myEbook.Ppns = myPPNs
 
 		// actually save updated ebook struct to DB
@@ -91,25 +91,17 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 // SudocI2PTSNewHandler retrieves PPNs for all ebooks linked to a Target Service that don't currently have one
 func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
 
-	// package name is last part of the URL
-	//tsname := r.URL.Path[len("/sudoci2p-ts-new/"):]
+	// Target Service name is last part of the URL
+	tsname := r.URL.Path[len("/sudoci2p-ts-new/"):]
 	//d["myPackage"] = tsname
 
-	testEbks := []string{
-		"http://www.sudoc.fr/services/isbn2ppn/9782869783836",
-		"http://www.sudoc.fr/services/isbn2ppn/9782844506931",
-		"http://www.sudoc.fr/services/isbn2ppn/9782760522213",
-		"http://www.sudoc.fr/services/isbn2ppn/9782806226129",
-		"http://www.sudoc.fr/services/isbn2ppn/9782100555727",
-		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn1",
-		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn2",
-		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn3",
-		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn4",
-		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn5",
+	records, err := models.EbooksGetNoPPNByTSName(tsname)
+	if err != nil {
+		logger.Error.Println(err)
 	}
 
 	// set up the pipeline
-	in := sudoc.GenChannel(testEbks)
+	in := sudoc.GenChannel(records)
 
 	// fan out to 2 workers
 	c1 := sudoc.CrawlPPN(in)

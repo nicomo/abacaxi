@@ -147,6 +147,16 @@ func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	return ebk, nil
 }
 
+// EbookPPNCreate creates the PPN structs to be embedded in an ebook struct
+func EbookPPNCreate(ppns []string, electronic bool) []PPN {
+	myPPNs := make([]PPN, 0)
+	for _, v := range ppns {
+		p := PPN{Ppn: v, Electronic: electronic}
+		myPPNs = append(myPPNs, p)
+	}
+	return myPPNs
+}
+
 // EbookUpdate saves an ebk struct to DB
 func EbookUpdate(ebk Ebook) (Ebook, error) {
 	// Request a socket connection from the session to process our query.
@@ -167,30 +177,6 @@ func EbookUpdate(ebk Ebook) (Ebook, error) {
 	}
 
 	return ebk, nil
-}
-
-// EbooksGetByTSName retrieves the ebooks which have a given target service
-// i.e. belong to a given package
-func EbooksGetByTSName(tsname string) ([]Ebook, error) {
-	var result []Ebook
-
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-
-	// collection ebooks
-	coll := getEbooksColl()
-
-	// FIXME: iterate over slices of 1000 ebooks
-	// maybe use channels?
-	// or else retrieve all then calculate result / 1000 and just manage display of chuncks of 1000 ebooks
-	iter := coll.Find(bson.M{"targetservice.tsname": tsname}).Limit(1000).Iter()
-	err := iter.All(&result)
-	if err != nil {
-		return result, err
-	}
-
-	return result, nil
 }
 
 // EbooksCreateOrUpdate checks if ebook exists in DB, using ISBN, then routes to either create or update
@@ -231,12 +217,48 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 	return createdCounter, updatedCounter, nil
 }
 
-// PPNCreate creates the PPN structs to be embedded in an ebook struct
-func PPNCreate(ppns []string, electronic bool) []PPN {
-	myPPNs := make([]PPN, 0)
-	for _, v := range ppns {
-		p := PPN{Ppn: v, Electronic: electronic}
-		myPPNs = append(myPPNs, p)
+// EbooksGetByTSName retrieves the ebooks which have a given target service
+// i.e. belong to a given package
+func EbooksGetByTSName(tsname string) ([]Ebook, error) {
+	var result []Ebook
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	// FIXME: iterate over slices of 1000 ebooks
+	// maybe use channels?
+	// or else retrieve all then calculate result / 1000 and just manage display of chuncks of 1000 ebooks
+	iter := coll.Find(bson.M{"targetservice.tsname": tsname}).Limit(1000).Iter()
+	err := iter.All(&result)
+	if err != nil {
+		return result, err
 	}
-	return myPPNs
+
+	return result, nil
+}
+
+// EbooksGetNoPPNByTSName retrieves all ebooks with conditions : no PPN, given TS
+// used to prepare query to sudoc isbn2ppn web service
+func EbooksGetNoPPNByTSName(tsname string) ([]Ebook, error) {
+	var result []Ebook
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
+	err := coll.Find(bson.M{"targetservice.tsname": tsname, "ppns": bson.M{"$exists": false}}).All(&result)
+	if err != nil {
+		logger.Error.Println(err)
+		return result, err
+	}
+
+	return result, nil
 }

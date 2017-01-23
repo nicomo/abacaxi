@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
+	"github.com/nicomo/EResourcesMetadataHub/models"
 )
 
 // PPNData is used to parse xml response
@@ -78,29 +79,45 @@ func GetRecord(recordURL string) (string, error) {
 	return result, nil
 }
 
-// GenChannel creates the initial channel in the Fan in/out process to crawl isbn2PPN web service
-func GenChannel(urls []string) <-chan string {
-	out := make(chan string)
+// GenChannel creates the initial channel in the Fan out / Fan in process to crawl isbn2PPN web service
+func GenChannel(ebks []models.Ebook) <-chan models.Ebook {
+	out := make(chan models.Ebook)
 	go func() {
-		for _, s := range urls {
-			out <- s
+		for _, ebk := range ebks {
+			out <- ebk
 		}
 		close(out)
 	}()
 	return out
 }
 
-// CrawlPPN takes a channel with a url as string, pass it on to FetchPPN, retrieves the result
-func CrawlPPN(in <-chan string) <-chan string {
+// CrawlPPN takes a channel with an Ebook, pass it on to FetchPPN, retrieves the result
+func CrawlPPN(in <-chan models.Ebook) <-chan string {
 	out := make(chan string)
 	go func() {
-		for s := range in {
-			result := FetchPPN(s)
+		for ebk := range in {
+			i2purl := "http://www.sudoc.fr/services/isbn2ppn/"
+
+			// get isbns into i2purl
+			// FIXME: this should be in a separate function, & is common with controllers/sudoc.go SudocI2PHandler
+			// TODO: manage "electronic" isbns first
+			for i := 0; i < len(ebk.Isbns); i++ {
+				if i == len(ebk.Isbns)-1 {
+					i2purl = i2purl + ebk.Isbns[i].Isbn
+					continue
+				}
+				i2purl = i2purl + ebk.Isbns[i].Isbn + ","
+			}
+
+			// get PPN for i2purl
+			result := FetchPPN(i2purl)
 			if result.Err != nil {
-				out <- "error for " + s + "\n"
+				out <- "error for " + i2purl + "\n"
 				continue
 			}
-			out <- "ok for: " + s + "\n"
+			out <- "ok for: " + i2purl + "\n"
+
+			// as a curtesy to http://www.abes.fr
 			time.Sleep(time.Millisecond * 250)
 		}
 		close(out)
@@ -135,5 +152,4 @@ func MergePPN(cs ...<-chan string) <-chan string {
 	}()
 
 	return out
-
 }

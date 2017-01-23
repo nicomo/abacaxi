@@ -71,7 +71,7 @@ func csvIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	}
 
 	// update date for TS publisher last harvest since
-	// we're harvesting books from a publisher provIDed csv file
+	// we're harvesting books from a publisher provided csv file
 	myTargetService.TSPublisherLastHarvest = time.Now()
 
 	// load the config for this package from the csv_conf file
@@ -98,6 +98,7 @@ func csvIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	}
 
 	// unmarshall csv records into ebook structs
+	//FIXME: creation of isbns is not correct, with results like [{ false} {9781607807582 true}]
 	ebooks := []models.Ebook{}
 	for _, record := range csvData {
 		ebook := csvUnmarshall(record, myTargetService)
@@ -146,7 +147,7 @@ func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord
 
 		// if row not if the expected length, move on
 		if len(record) != reader.FieldsPerRecord {
-			logger.Info.Printf("parsing line %d failed: invalID length of %d, expected 10\n", line, len(record))
+			logger.Info.Printf("parsing line %d failed: invalid length of %d, expected 10\n", line, len(record))
 			rejectedLines = append(rejectedLines, line)
 		}
 
