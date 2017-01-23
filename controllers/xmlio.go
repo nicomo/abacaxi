@@ -12,15 +12,17 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/models"
 )
 
+// XMLRecords holds a slice of XMLRecords for parsing
 type XMLRecords struct {
 	XMLName xml.Name    `xml:"institutional_holdings"`
 	Records []XMLRecord `xml:"item"`
 }
 
+// XMLRecord single XML record for parsing
 type XMLRecord struct {
 	XMLName xml.Name `xml:"item"`
 	Title   string   `xml:"title"`
-	SfxID   string   `xml:"sfx_id"`
+	SFXID   string   `xml:"SFX_id"`
 	Isbn    string   `xml:"isbn"`
 	Eisbn   string   `xml:"eisbn"`
 	Authors []string `xml:"authorlist>author"`
@@ -36,7 +38,7 @@ func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 	}
 
 	// update date for TS publisher last harvest since
-	// we're harvesting books from a publisher provided csv file
+	// we're harvesting books from a publisher provIDed csv file
 	myTargetService.TSSFXLastHarvest = time.Now()
 
 	// open the source XML file
@@ -108,7 +110,7 @@ func xmlUnmarshall(recordIn XMLRecord, myTargetService models.TargetService) mod
 	ebk.Title = recordIn.Title
 	ebk.SFXLastHarvest = time.Now()
 	ebk.TargetService = append(ebk.TargetService, myTargetService)
-	ebk.SfxId = recordIn.SfxID
+	ebk.SFXID = recordIn.SFXID
 
 	if myTargetService.TSActive {
 		ebk.Active = true

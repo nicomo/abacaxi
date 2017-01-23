@@ -16,7 +16,7 @@
 				<td>{{ range .TargetService }} {{ .TSDisplayName }}<br /> {{ end }}</td>
 				<td>{{ if .MarcRecords }} Y {{ else }} no {{ end }}</td>
 				<td>{{ if .Ppns }} Y {{ else }} no {{ end }}</td>
-				<td><a href="/ebook/{{ .Id.Hex }}">...</a></td>
+				<td><a href="/ebook/{{ .ID.Hex }}">...</a></td>
 				
 			</tr>
 			{{ end }}

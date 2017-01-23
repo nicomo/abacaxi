@@ -2,7 +2,6 @@
 package models
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -11,10 +10,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var (
-	ErrSearchEmpty = errors.New("You cannot search an empty string")
-)
-
+// Search parses the search form in nav to retrieve ebooks
 func Search(r *http.Request) ([]Ebook, string, error) {
 
 	var results []Ebook

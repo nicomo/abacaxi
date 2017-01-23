@@ -9,7 +9,7 @@ import (
 // global vars
 var (
 	tmpl                    map[string]*template.Template // we bundle our templates in a single map of templates
-	ErrTemplateDoesNotExist = errors.New("The template does not exist.")
+	ErrTemplateDoesNotExist = errors.New("The template does not exist")
 )
 
 // load templates on init

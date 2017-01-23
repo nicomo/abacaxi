@@ -1,4 +1,4 @@
-// Package Sudoc consumes the web services available at http://documentation.abes.fr/sudoc/manuels/administration/aidewebservices/index.html
+// Package sudoc consumes the web services available at http://documentation.abes.fr/sudoc/manuels/administration/aIDewebservices/index.html
 package sudoc
 
 import (
@@ -7,18 +7,26 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
 
-type SudocData struct {
+// PPNData is used to parse xml response
+type PPNData struct {
 	Err  string   `xml:"error"`
 	PPNs []string `xml:"query>result>ppn"`
 }
 
-func FetchPPN(isbn2ppnURL string) ([]string, error) {
+// PPNDataResult is the type returned
+type PPNDataResult struct {
+	Err  error
+	PPNs []string
+}
 
-	result := make([]string, 0)
+// FetchPPN retrieves ebook ppns from the sudoc web service
+func FetchPPN(isbn2ppnURL string) PPNDataResult {
 
 	resp, err := http.Get(isbn2ppnURL)
 	if err != nil {
@@ -33,24 +41,25 @@ func FetchPPN(isbn2ppnURL string) ([]string, error) {
 		panic(err)
 	}
 
-	var data SudocData
+	var data PPNData
+	var result PPNDataResult
 
 	if err := xml.Unmarshal(b, &data); err != nil {
 		logger.Error.Println(err)
 	}
 
 	if data.Err != "" {
-		dataErr := errors.New(data.Err)
-		return result, dataErr
+		result.Err = errors.New(data.Err)
+		return result
 	}
 
-	result = data.PPNs
+	result.PPNs = data.PPNs
 
-	return result, nil
-
+	return result
 }
 
-func SudocGetRecord(recordURL string) (string, error) {
+// GetRecord returns a marc record for a given PPN (i.e. sudoc ID for the record)
+func GetRecord(recordURL string) (string, error) {
 	var result string
 
 	resp, err := http.Get(recordURL)
@@ -67,5 +76,64 @@ func SudocGetRecord(recordURL string) (string, error) {
 	}
 	result = fmt.Sprintf("%s", b)
 	return result, nil
+}
+
+// GenChannel creates the initial channel in the Fan in/out process to crawl isbn2PPN web service
+func GenChannel(urls []string) <-chan string {
+	out := make(chan string)
+	go func() {
+		for _, s := range urls {
+			out <- s
+		}
+		close(out)
+	}()
+	return out
+}
+
+// CrawlPPN takes a channel with a url as string, pass it on to FetchPPN, retrieves the result
+func CrawlPPN(in <-chan string) <-chan string {
+	out := make(chan string)
+	go func() {
+		for s := range in {
+			result := FetchPPN(s)
+			if result.Err != nil {
+				out <- "error for " + s + "\n"
+				continue
+			}
+			out <- "ok for: " + s + "\n"
+			time.Sleep(time.Millisecond * 250)
+		}
+		close(out)
+	}()
+	return out
+}
+
+// MergePPN fans in results from crawlPPN
+func MergePPN(cs ...<-chan string) <-chan string {
+	var wg sync.WaitGroup
+	out := make(chan string)
+
+	// copies values from c to out until c is closed, then calls done
+	output := func(c <-chan string) {
+		for s := range c {
+			out <- s
+		}
+		wg.Done()
+	}
+
+	// number of inbound channels
+	wg.Add(len(cs))
+
+	// for each inbound channel, call output
+	for _, c := range cs {
+		go output(c)
+	}
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	return out
 
 }

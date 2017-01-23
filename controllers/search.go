@@ -8,6 +8,7 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/views"
 )
 
+// SearchHandler manages http requests throught the nav bar search form
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// results & messages to display in UI to be stored in this map

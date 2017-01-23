@@ -13,8 +13,11 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
 
+// TargetService represents an SFX Target Service,
+// i.e. a package with its provider
+// e.g. SPRINGER MATH EBOOKS
 type TargetService struct {
-	Id                     bson.ObjectId `bson:"_id,omitempty"`
+	ID                     bson.ObjectId `bson:"_id,omitempty"`
 	TSName                 string        `bson:",omitempty" schema:"tsname"`
 	TSDisplayName          string        `bson:",omitempty" schema:"tsdisplayname"`
 	TSDateCreated          time.Time
@@ -25,7 +28,7 @@ type TargetService struct {
 	TSActive               bool      `schema:"tsactive"`
 }
 
-// getTargetService retrieves a target service
+// GetTargetService retrieves a target service
 func GetTargetService(tsname string) (TargetService, error) {
 
 	ts := TargetService{}
@@ -179,7 +182,7 @@ func TSUpdate(ts TargetService) error {
 	coll := getTargetServiceColl()
 
 	// execute query
-	err := coll.Update(bson.M{"_id": ts.Id}, ts)
+	err := coll.Update(bson.M{"_id": ts.ID}, ts)
 	if err != nil {
 		return err
 	}

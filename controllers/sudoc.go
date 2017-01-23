@@ -8,18 +8,18 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/sudoc"
 )
 
-// SudocIsbn2PpnHandler manages the consuming of a web service to retrieve a Sudoc ID
+// SudocI2PHandler manages the consuming of a web service to retrieve a Sudoc ID
 //  There's a "priority" isbn, we try to get a marc record number for this one first
 // using the other isbns only if we can't
-func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
+func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 
 	// data to be display in UI will be stored in this map
 	d := make(map[string]interface{})
 
 	// record ID is last part of the URL
-	ebookId := r.URL.Path[len("/sudocisbn2ppn/"):]
+	ebookID := r.URL.Path[len("/sudoci2p/"):]
 
-	myEbook, err := models.EbookGetById(ebookId)
+	myEbook, err := models.EbookGetByID(ebookID)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -49,12 +49,12 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 	// other isbns if preferred gets no result (error received)
 	// FIXME: logic is wrong, too much repetitions between priority isbn and other isbns
 	if priorityURL != "" {
-		priorityPPN, sudocErr := sudoc.FetchPPN(priorityURL)
-		if sudocErr != nil {
-			logger.Error.Println(sudocErr)
-			d["sudocErr"] = sudocErr
+		result := sudoc.FetchPPN(priorityURL)
+		if result.Err != nil {
+			logger.Error.Println(result.Err)
+			d["sudocErr"] = result.Err
 		}
-		myPPN := models.PPNCreate(priorityPPN, true)
+		myPPN := models.PPNCreate(result.PPNs, true)
 		myEbook.Ppns = myPPN
 
 		// actually save updated ebook struct to DB
@@ -66,12 +66,12 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(myEbook.Ppns) == 0 {
-		allPPN, allSudocErr := sudoc.FetchPPN(allIsbnsURL)
-		if allSudocErr != nil {
-			logger.Error.Println(allSudocErr)
-			d["allSudocErr"] = allSudocErr
+		result := sudoc.FetchPPN(allIsbnsURL)
+		if result.Err != nil {
+			logger.Error.Println(result.Err)
+			d["allSudocErr"] = result.Err
 		}
-		myPPNs := models.PPNCreate(allPPN, false)
+		myPPNs := models.PPNCreate(result.PPNs, false)
 		myEbook.Ppns = myPPNs
 
 		// actually save updated ebook struct to DB
@@ -84,17 +84,51 @@ func SudocIsbn2PpnHandler(w http.ResponseWriter, r *http.Request) {
 
 	// redirect to book detail page
 	// TODO: transmit either error or success message to user
-	urlStr := "/ebook/" + ebookId
+	urlStr := "/ebook/" + ebookID
 	http.Redirect(w, r, urlStr, 303)
+}
+
+// SudocI2PTSNewHandler retrieves PPNs for all ebooks linked to a Target Service that don't currently have one
+func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
+
+	// package name is last part of the URL
+	//tsname := r.URL.Path[len("/sudoci2p-ts-new/"):]
+	//d["myPackage"] = tsname
+
+	testEbks := []string{
+		"http://www.sudoc.fr/services/isbn2ppn/9782869783836",
+		"http://www.sudoc.fr/services/isbn2ppn/9782844506931",
+		"http://www.sudoc.fr/services/isbn2ppn/9782760522213",
+		"http://www.sudoc.fr/services/isbn2ppn/9782806226129",
+		"http://www.sudoc.fr/services/isbn2ppn/9782100555727",
+		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn1",
+		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn2",
+		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn3",
+		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn4",
+		"http://www.sudoc.fr/services/isbn2ppn/fakeisbn5",
+	}
+
+	// set up the pipeline
+	in := sudoc.GenChannel(testEbks)
+
+	// fan out to 2 workers
+	c1 := sudoc.CrawlPPN(in)
+	c2 := sudoc.CrawlPPN(in)
+
+	// fan in results
+	for n := range sudoc.MergePPN(c1, c2) {
+		logger.Debug.Println(n)
+	}
 
 }
 
-func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
+// GetRecordHandler manages http request to use sudoc web service to retrieve marc records
+func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 	// record ID is last part of the URL
-	ebookId := r.URL.Path[len("/sudocgetrecord/"):]
+	ebookID := r.URL.Path[len("/sudocgetrecord/"):]
 
-	myEbook, err := models.EbookGetById(ebookId)
+	myEbook, err := models.EbookGetByID(ebookID)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -115,7 +149,7 @@ func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, v := range sortedPPNs {
-		record, err := sudoc.SudocGetRecord(v)
+		record, err := sudoc.GetRecord(v)
 		if err != nil {
 			logger.Error.Println(err)
 			continue
@@ -142,6 +176,6 @@ func SudocGetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 	// redirect to book detail page
 	// TODO: transmit either error or success message to user
-	urlStr := "/ebook/" + ebookId
+	urlStr := "/ebook/" + ebookID
 	http.Redirect(w, r, urlStr, 303)
 }

@@ -6,7 +6,7 @@
 
 			{{ template "nav" . }}
 
-			<h2>Record #{{ .Ebook.Id.Hex }}</h2>
+			<h2>Record #{{ .Ebook.ID.Hex }}</h2>
 			<p>
 				Date created: {{ .formattedDateCreated }}
 				{{ if .FormattedDateUpdated}} | Last updated from source: {{ .FormattedDateUpdated }} {{ end }}
@@ -17,11 +17,11 @@
 			</p>
 			<p>
 				{{ if .Ebook.Ppns }}
-					<a class="btn btn-default" href="/sudocgetrecord/{{ .Ebook.Id.Hex }}" role="button">Get Sudoc Record</a>
+					<a class="btn btn-default" href="/sudocgetrecord/{{ .Ebook.ID.Hex }}" role="button">Get Sudoc Record</a>
 				{{ else }}
-					<a class="btn btn-default" href="/sudocisbn2ppn/{{ .Ebook.Id.Hex }}" role="button">Get PPNs</a>
+					<a class="btn btn-default" href="/sudocisbn2ppn/{{ .Ebook.ID.Hex }}" role="button">Get PPNs</a>
 				{{ end }}
-					<a class="btn btn-danger" href="/ebook/delete/{{ .Ebook.Id.Hex }}" role="button">Delete</a>
+					<a class="btn btn-danger" href="/ebook/delete/{{ .Ebook.ID.Hex }}" role="button">Delete</a>
 			</p>
 			
 

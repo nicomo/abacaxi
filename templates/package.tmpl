@@ -10,6 +10,10 @@
 				<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
 				<li>Activated : {{ .IsTSActive }}</li>
 			</ul>
+			<p>
+				<a class="btn btn-default" href="/sudoci2p-ts-new/{{ .myPackage }}" role="button">Get New PPNs</a>
+			</p>
+
 
 			{{ template "recordslist" . }}
 

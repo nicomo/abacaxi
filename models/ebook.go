@@ -9,12 +9,13 @@ import (
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 )
 
+// Ebook is what it says on the tin : struct for an ebook
 type Ebook struct {
-	Id                   bson.ObjectId `bson:"_id,omitempty"`
+	ID                   bson.ObjectId `bson:"_id,omitempty"`
 	DateCreated          time.Time
 	DateUpdated          time.Time `bson:",omitempty"`
 	Active               bool
-	SfxId                string          `bson:",omitempty"`
+	SFXID                string          `bson:",omitempty"`
 	SFXLastHarvest       time.Time       `bson:",omitempty"`
 	PublisherLastHarvest time.Time       `bson:",omitempty"`
 	SudocLastHarvest     time.Time       `bson:",omitempty"`
@@ -34,11 +35,15 @@ type Ebook struct {
 	Deleted              bool
 }
 
+// Isbn embeded in an ebook
 type Isbn struct {
 	Isbn       string
 	Electronic bool
 }
 
+// PPN embeded in an ebook
+// a Pica Publication  Number is a unique number in the French Sudoc Union catalog
+// see http://www.sudoc.abes.fr
 type PPN struct {
 	Ppn        string
 	Electronic bool
@@ -64,7 +69,7 @@ func EbookCreate(ebk Ebook) error {
 }
 
 // EbookDelete deletes a single ebook from DB
-func EbookDelete(id string) error {
+func EbookDelete(ID string) error {
 
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
@@ -73,11 +78,11 @@ func EbookDelete(id string) error {
 	// collection ebooks
 	coll := getEbooksColl()
 
-	// cast id as ObjectId
-	objectId := bson.ObjectIdHex(id)
+	// cast ID as ObjectID
+	objectID := bson.ObjectIdHex(ID)
 
 	// delete record
-	qry := bson.M{"_id": objectId}
+	qry := bson.M{"_id": objectID}
 	err := coll.Remove(qry)
 	if err != nil {
 		return err
@@ -86,8 +91,8 @@ func EbookDelete(id string) error {
 	return nil
 }
 
-// EbookGetById retrieves an ebook given its mongodb id
-func EbookGetById(id string) (Ebook, error) {
+// EbookGetByID retrieves an ebook given its mongodb ID
+func EbookGetByID(ID string) (Ebook, error) {
 	ebk := Ebook{}
 
 	// Request a socket connection from the session to process our query.
@@ -97,10 +102,10 @@ func EbookGetById(id string) (Ebook, error) {
 	// collection ebooks
 	coll := getEbooksColl()
 
-	// cast id as ObjectId
-	objectId := bson.ObjectIdHex(id)
+	// cast ID as ObjectID
+	objectID := bson.ObjectIdHex(ID)
 
-	qry := bson.M{"_id": objectId}
+	qry := bson.M{"_id": objectID}
 	err := coll.Find(qry).One(&ebk)
 	if err != nil {
 		return ebk, err
@@ -109,7 +114,7 @@ func EbookGetById(id string) (Ebook, error) {
 	return ebk, nil
 }
 
-// EbookGetByIsbn retrieves an ebook
+// EbookGetByIsbns retrieves an ebook given a set of isbns
 func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	ebk := Ebook{}
 
@@ -152,8 +157,8 @@ func EbookUpdate(ebk Ebook) (Ebook, error) {
 	// let's add the time and save
 	ebk.DateUpdated = time.Now()
 
-	// we select on the ebook's id
-	selector := bson.M{"_id": ebk.Id}
+	// we select on the ebook's ID
+	selector := bson.M{"_id": ebk.ID}
 
 	err := coll.Update(selector, &ebk)
 	if err != nil {
@@ -164,8 +169,9 @@ func EbookUpdate(ebk Ebook) (Ebook, error) {
 	return ebk, nil
 }
 
-// EbooksGetByPackageName
-func EbooksGetByPackageName(tsname string) ([]Ebook, error) {
+// EbooksGetByTSName retrieves the ebooks which have a given target service
+// i.e. belong to a given package
+func EbooksGetByTSName(tsname string) ([]Ebook, error) {
 	var result []Ebook
 
 	// Request a socket connection from the session to process our query.
@@ -214,8 +220,8 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 			continue
 		}
 
-		// we did find the record, let's update it
-		record.Id = existingRecord.Id
+		// we dID find the record, let's update it
+		record.ID = existingRecord.ID
 		_, updateErr := EbookUpdate(record)
 		if updateErr != nil {
 			logger.Error.Println(updateErr)

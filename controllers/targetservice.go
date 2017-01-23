@@ -38,7 +38,7 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		d["myPackagePPNsCount"] = nbPPNs
 
 		// get the ebooks
-		records, err := models.EbooksGetByPackageName(tsname)
+		records, err := models.EbooksGetByTSName(tsname)
 		if err != nil {
 			logger.Error.Println(err)
 		}

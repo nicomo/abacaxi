@@ -15,9 +15,9 @@ func EbookHandler(w http.ResponseWriter, r *http.Request) {
 	d := make(map[string]interface{})
 
 	// record ID is last part of the URL
-	ebookId := r.URL.Path[len("/ebook/"):]
+	ebookID := r.URL.Path[len("/ebook/"):]
 
-	myEbook, err := models.EbookGetById(ebookId)
+	myEbook, err := models.EbookGetByID(ebookID)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -40,16 +40,16 @@ func EbookHandler(w http.ResponseWriter, r *http.Request) {
 // EbookDeleteHandler handles deleting a single ebook
 func EbookDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// record ID is last part of the URL
-	ebookId := r.URL.Path[len("/ebook/delete/"):]
+	ebookID := r.URL.Path[len("/ebook/delete/"):]
 
-	err := models.EbookDelete(ebookId)
+	err := models.EbookDelete(ebookID)
 	if err != nil {
 		logger.Error.Println(err)
 
 		// TODO: transmit either error or success message to user
 
 		// redirect to home
-		redirectURL := "/ebook/" + ebookId
+		redirectURL := "/ebook/" + ebookID
 		http.Redirect(w, r, redirectURL, 303)
 	}
 
