@@ -133,8 +133,8 @@ func GenI2PURL(ebk models.Ebook) string {
 }
 
 // CrawlPPN takes a channel with an Ebook, pass it on to FetchPPN, retrieves the result
-func CrawlPPN(in <-chan models.Ebook) <-chan string {
-	out := make(chan string)
+func CrawlPPN(in <-chan models.Ebook) <-chan int {
+	out := make(chan int)
 	go func() {
 		for ebk := range in {
 			// generate the url for the web service
@@ -143,10 +143,23 @@ func CrawlPPN(in <-chan models.Ebook) <-chan string {
 			// get PPN for i2purl
 			result := FetchPPN(i2purl)
 			if result.Err != nil {
-				out <- "error for " + i2purl + "\n"
+				logger.Error.Println(result.Err)
+				out <- 0
 				continue
 			}
-			out <- "ok for: " + i2purl + "\n"
+
+			// add ppn result in ebk struct
+			ebk.Ppns = result.PPNs
+
+			// update record in DB
+			_, err := models.EbookUpdate(ebk)
+			if err != nil {
+				logger.Error.Println(err)
+				out <- 0
+				continue
+			}
+			// everything OK, notify result channel
+			out <- 1
 
 			// as a curtesy to http://www.abes.fr
 			time.Sleep(time.Millisecond * 250)
@@ -157,12 +170,12 @@ func CrawlPPN(in <-chan models.Ebook) <-chan string {
 }
 
 // MergePPN fans in results from crawlPPN
-func MergePPN(cs ...<-chan string) <-chan string {
+func MergePPN(cs ...<-chan int) <-chan int {
 	var wg sync.WaitGroup
-	out := make(chan string)
+	out := make(chan int)
 
 	// copies values from c to out until c is closed, then calls done
-	output := func(c <-chan string) {
+	output := func(c <-chan int) {
 		for s := range c {
 			out <- s
 		}

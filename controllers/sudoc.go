@@ -68,13 +68,19 @@ func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
 	c2 := sudoc.CrawlPPN(in)
 
 	// fan in results
+	ppnCounter := 0
 	for n := range sudoc.MergePPN(c1, c2) {
-		logger.Debug.Println(n)
+		ppnCounter += n
 	}
+
+	// redirect to Target Service page
+	// TODO: transmit either error or success message to user
+	urlStr := "/package/" + tsname
+	http.Redirect(w, r, urlStr, 303)
 
 }
 
-// GetRecordHandler manages http request to use sudoc web service to retrieve marc records
+// GetRecordHandler manages http request to use sudoc web service to retrieve marc record for 1 given ebook
 func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 	// record ID is last part of the URL
