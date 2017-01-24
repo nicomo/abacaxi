@@ -14,7 +14,7 @@ import (
 func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 
 	// data to be display in UI will be stored in this map
-	d := make(map[string]interface{})
+	// d := make(map[string]interface{})
 
 	// record ID is last part of the URL
 	ebookID := r.URL.Path[len("/sudoci2p/"):]
@@ -24,62 +24,22 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error.Println(err)
 	}
 
-	// 2 URLs, 1 for the preferred isbn, 1 for the other isbns
-	var priorityURL string
-	var allIsbns []string
-	allIsbnsURL := "http://www.sudoc.fr/services/isbn2ppn/"
+	// generate the web service url for this record
+	i2purl := sudoc.GenI2PURL(myEbook)
 
-	for _, v := range myEbook.Isbns {
-		if v.Electronic {
-			priorityURL = "http://www.sudoc.fr/services/isbn2ppn/" + v.Isbn
-		} else {
-			allIsbns = append(allIsbns, v.Isbn)
-		}
+	// get PPN for i2purl
+	result := sudoc.FetchPPN(i2purl)
+	if result.Err != nil {
+		logger.Error.Println(result.Err)
 	}
 
-	for i, v := range allIsbns {
-		if i < len(allIsbns)-1 {
-			allIsbnsURL = allIsbnsURL + v + ","
-		}
-		allIsbnsURL = allIsbnsURL + v
-	}
+	myEbook.Ppns = result.PPNs
 
-	// retrieve PPN from sudoc web service :
-	// preferred isbns 1st if there's one
-	// other isbns if preferred gets no result (error received)
-	// FIXME: logic is wrong, too much repetitions between priority isbn and other isbns
-	if priorityURL != "" {
-		result := sudoc.FetchPPN(priorityURL)
-		if result.Err != nil {
-			logger.Error.Println(result.Err)
-			d["sudocErr"] = result.Err
-		}
-		myPPN := models.EbookPPNCreate(result.PPNs, true)
-		myEbook.Ppns = myPPN
-
-		// actually save updated ebook struct to DB
-		var ebkUpdateErr error
-		myEbook, ebkUpdateErr = models.EbookUpdate(myEbook)
-		if ebkUpdateErr != nil {
-			logger.Error.Println(ebkUpdateErr)
-		}
-	}
-
-	if len(myEbook.Ppns) == 0 {
-		result := sudoc.FetchPPN(allIsbnsURL)
-		if result.Err != nil {
-			logger.Error.Println(result.Err)
-			d["allSudocErr"] = result.Err
-		}
-		myPPNs := models.EbookPPNCreate(result.PPNs, false)
-		myEbook.Ppns = myPPNs
-
-		// actually save updated ebook struct to DB
-		var ebkUpdateErr error
-		myEbook, ebkUpdateErr = models.EbookUpdate(myEbook)
-		if ebkUpdateErr != nil {
-			logger.Error.Println(ebkUpdateErr)
-		}
+	// actually save updated ebook struct to DB
+	var ebkUpdateErr error
+	myEbook, ebkUpdateErr = models.EbookUpdate(myEbook)
+	if ebkUpdateErr != nil {
+		logger.Error.Println(ebkUpdateErr)
 	}
 
 	// redirect to book detail page
@@ -125,23 +85,10 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error.Println(err)
 	}
 
-	// we put the "electronic" ppns 1st in the map, then the others
-	// we sort the map
-	// we fetch the record, and stop as soon as we get one
-	var sortedPPNs []string
+	// ranging over the PPNs in a given local record
+	// we fetch the sudoc marc record, and stop as soon as we get one
 	for _, v := range myEbook.Ppns {
-		if v.Electronic {
-			sortedPPNs = append(sortedPPNs, "http://www.sudoc.fr/"+v.Ppn+".abes")
-		}
-	}
-	for _, v := range myEbook.Ppns {
-		if v.Electronic == false {
-			sortedPPNs = append(sortedPPNs, "http://www.sudoc.fr/"+v.Ppn+".abes")
-		}
-	}
-
-	for _, v := range sortedPPNs {
-		record, err := sudoc.GetRecord(v)
+		record, err := sudoc.GetRecord("http://www.sudoc.fr/" + v + ".abes")
 		if err != nil {
 			logger.Error.Println(err)
 			continue
@@ -149,7 +96,7 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 		if record != "" {
 
-			// if the local record already has a mark record, update using delete / insert
+			// if the local record already has a mark record, update using delete / insert on the struct
 			myEbook.MarcRecords = nil
 			myEbook.MarcRecords = append(myEbook.MarcRecords, record)
 

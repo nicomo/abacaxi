@@ -91,23 +91,54 @@ func GenChannel(ebks []models.Ebook) <-chan models.Ebook {
 	return out
 }
 
+// GenI2PURL generates an url to be consumed by the isbn2ppn web service
+// we place the "electronic" isbns first, then the other isbns
+//FIXME: add error management
+func GenI2PURL(ebk models.Ebook) string {
+
+	i2purl := "http://www.sudoc.fr/services/isbn2ppn/"
+	m := make(map[int]string)
+	var se, s []string
+
+	// 2 slices : on for electronic isbns, one for others
+	for _, v := range ebk.Isbns {
+		if v.Electronic {
+			se = append(se, v.Isbn)
+			continue
+		}
+		s = append(s, v.Isbn)
+	}
+
+	// we put the electronic isbns in the map first
+	for i := 0; i < len(se); i++ {
+		m[i] = se[i]
+	}
+
+	// then the others
+	for i := 0; i < len(s); i++ {
+		m[len(se)+i] = s[i]
+	}
+
+	// we generate a single url string from the map
+	// with e-isbns first
+	for i := 0; i < len(m); i++ {
+		if i == len(m)-1 {
+			i2purl = i2purl + m[i]
+			continue
+		}
+		i2purl = i2purl + m[i] + ","
+	}
+
+	return i2purl
+}
+
 // CrawlPPN takes a channel with an Ebook, pass it on to FetchPPN, retrieves the result
 func CrawlPPN(in <-chan models.Ebook) <-chan string {
 	out := make(chan string)
 	go func() {
 		for ebk := range in {
-			i2purl := "http://www.sudoc.fr/services/isbn2ppn/"
-
-			// get isbns into i2purl
-			// FIXME: this should be in a separate function, & is common with controllers/sudoc.go SudocI2PHandler
-			// TODO: manage "electronic" isbns first
-			for i := 0; i < len(ebk.Isbns); i++ {
-				if i == len(ebk.Isbns)-1 {
-					i2purl = i2purl + ebk.Isbns[i].Isbn
-					continue
-				}
-				i2purl = i2purl + ebk.Isbns[i].Isbn + ","
-			}
+			// generate the url for the web service
+			i2purl := GenI2PURL(ebk)
 
 			// get PPN for i2purl
 			result := FetchPPN(i2purl)

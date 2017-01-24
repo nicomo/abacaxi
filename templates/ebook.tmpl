@@ -19,7 +19,7 @@
 				{{ if .Ebook.Ppns }}
 					<a class="btn btn-default" href="/sudocgetrecord/{{ .Ebook.ID.Hex }}" role="button">Get Sudoc Record</a>
 				{{ else }}
-					<a class="btn btn-default" href="/sudocisbn2ppn/{{ .Ebook.ID.Hex }}" role="button">Get PPNs</a>
+					<a class="btn btn-default" href="/sudoci2p/{{ .Ebook.ID.Hex }}" role="button">Get PPNs</a>
 				{{ end }}
 					<a class="btn btn-danger" href="/ebook/delete/{{ .Ebook.ID.Hex }}" role="button">Delete</a>
 			</p>
@@ -62,10 +62,9 @@
 					</tr>
 					<tr>
 						<th scope="row">PPNs</th>
-						<td>
-							{{ if .Ebook.Ppns }}
-								{{ range .Ebook.Ppns }} 
-									{{ .Ppn }} {{ if .Electronic }} (e-ppn) &#11088; {{ end }}<br />
+						<td>{{ if .Ebook.Ppns }} 
+								{{  range .Ebook.Ppns }}
+									{{ . }}<br />
 								{{ end }}
 							{{ else }}
 							 	-

@@ -30,7 +30,7 @@ type Ebook struct {
 	PackageURL           string          `bson:",omitempty"`
 	Acquired             bool            `bson:",omitempty"`
 	Isbns                []Isbn          `bson:",omitempty"`
-	Ppns                 []PPN           `bson:",omitempty"`
+	Ppns                 []string        `bson:",omitempty"`
 	MarcRecords          []string        `bson:",omitempty"`
 	Deleted              bool
 }
@@ -38,14 +38,6 @@ type Ebook struct {
 // Isbn embeded in an ebook
 type Isbn struct {
 	Isbn       string
-	Electronic bool
-}
-
-// PPN embeded in an ebook
-// a Pica Publication  Number is a unique number in the French Sudoc Union catalog
-// see http://www.sudoc.abes.fr
-type PPN struct {
-	Ppn        string
 	Electronic bool
 }
 
@@ -145,16 +137,6 @@ func EbookGetByIsbns(isbns []string) (Ebook, error) {
 	}
 
 	return ebk, nil
-}
-
-// EbookPPNCreate creates the PPN structs to be embedded in an ebook struct
-func EbookPPNCreate(ppns []string, electronic bool) []PPN {
-	myPPNs := make([]PPN, 0)
-	for _, v := range ppns {
-		p := PPN{Ppn: v, Electronic: electronic}
-		myPPNs = append(myPPNs, p)
-	}
-	return myPPNs
 }
 
 // EbookUpdate saves an ebk struct to DB
