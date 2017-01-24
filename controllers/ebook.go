@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
-	"github.com/nicomo/EResourcesMetadataHub/models"
-	"github.com/nicomo/EResourcesMetadataHub/views"
+	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/models"
+	"github.com/nicomo/abacaxi/views"
 )
 
 // EbookHandler displays a single record

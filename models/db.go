@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
+	"github.com/nicomo/abacaxi/logger"
 
 	"gopkg.in/mgo.v2"
 )

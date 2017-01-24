@@ -11,8 +11,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
-	"github.com/nicomo/EResourcesMetadataHub/models"
+	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/models"
 )
 
 // CSVConf indicates the column (index) in the csv file

@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
-	"github.com/nicomo/EResourcesMetadataHub/models"
+	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/models"
 )
 
 // PPNData is used to parse xml response

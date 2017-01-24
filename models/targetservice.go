@@ -10,7 +10,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
+	"github.com/nicomo/abacaxi/logger"
 )
 
 // TargetService represents an SFX Target Service,

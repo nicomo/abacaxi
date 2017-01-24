@@ -3,9 +3,9 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
-	"github.com/nicomo/EResourcesMetadataHub/models"
-	"github.com/nicomo/EResourcesMetadataHub/views"
+	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/models"
+	"github.com/nicomo/abacaxi/views"
 )
 
 // SearchHandler manages http requests throught the nav bar search form

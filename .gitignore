@@ -27,5 +27,5 @@ _testmain.go
 # specific files
 controllers/csvio/ERMetadataHub_log.txt
 ERMetadataHub_log.txt
-EResourcesMetadataHub
+abacaxi
 testfile_cyberlibris_15.csv

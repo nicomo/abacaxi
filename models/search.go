@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/nicomo/EResourcesMetadataHub/logger"
+	"github.com/nicomo/abacaxi/logger"
 
 	"gopkg.in/mgo.v2/bson"
 )

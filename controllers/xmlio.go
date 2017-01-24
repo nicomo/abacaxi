@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
-	"github.com/nicomo/EResourcesMetadataHub/models"
+	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/models"
 )
 
 // XMLRecords holds a slice of XMLRecords for parsing

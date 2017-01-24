@@ -3,11 +3,9 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/nicomo/EResourcesMetadataHub/models"
-	"github.com/nicomo/EResourcesMetadataHub/views"
+	"github.com/nicomo/abacaxi/models"
+	"github.com/nicomo/abacaxi/views"
 )
-
-type userMessages map[string]interface{}
 
 // HomeHandler manages http requests on the home page
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

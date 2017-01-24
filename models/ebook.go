@@ -6,7 +6,7 @@ import (
 
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/nicomo/EResourcesMetadataHub/logger"
+	"github.com/nicomo/abacaxi/logger"
 )
 
 // Ebook is what it says on the tin : struct for an ebook

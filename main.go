@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/nicomo/EResourcesMetadataHub/controllers"
+	"github.com/nicomo/abacaxi/controllers"
 )
 
 func main() {
