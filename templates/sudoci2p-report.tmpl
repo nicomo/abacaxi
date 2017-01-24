@@ -1,0 +1,14 @@
+{{define "body"}}
+	<body>
+		<div class="container">
+			{{template "nav" .}}
+			<h1>&#127821; Metadata Hub</h1>
+			<h2>Isbn2PPN Report for {{ .myPackage }}</h2>
+			<p>{{ .i2pType }}</p>
+			<ul>
+				<li>{{ .RecordsCount }}</li>
+				<li>{{ .getPPNResultCount }}</li>
+			</ul>
+		</div>
+	</body>
+{{end}}

@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/nicomo/EResourcesMetadataHub/logger"
 	"github.com/nicomo/EResourcesMetadataHub/models"
 	"github.com/nicomo/EResourcesMetadataHub/sudoc"
+	"github.com/nicomo/EResourcesMetadataHub/views"
 )
 
 // SudocI2PHandler manages the consuming of a web service to retrieve a Sudoc ID
@@ -50,10 +52,13 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 
 // SudocI2PTSNewHandler retrieves PPNs for all ebooks linked to a Target Service that don't currently have one
 func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
+	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	d := make(map[string]interface{})
+	d["i2pType"] = "Get Sudoc PPN Record IDs for records currently without one"
 
 	// Target Service name is last part of the URL
 	tsname := r.URL.Path[len("/sudoci2p-ts-new/"):]
-	//d["myPackage"] = tsname
+	d["myPackage"] = tsname
 
 	records, err := models.EbooksGetNoPPNByTSName(tsname)
 	if err != nil {
@@ -73,10 +78,16 @@ func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
 		ppnCounter += n
 	}
 
-	// redirect to Target Service page
-	// TODO: transmit either error or success message to user
-	urlStr := "/package/" + tsname
-	http.Redirect(w, r, urlStr, 303)
+	// let's do a little reporting to the user
+	logger.Info.Printf("Number of records : %d - number of records receiving PPNs : %d", len(records), ppnCounter)
+	d["RecordsCount"] = fmt.Sprintf("Number of records sent : %d", len(records))
+	d["getPPNResultCount"] = fmt.Sprintf("Number of records receiving PPNs : %d", ppnCounter)
+
+	// list of TS appearing in menu
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+
+	views.RenderTmpl(w, "sudoci2p-report", d)
 
 }
 
