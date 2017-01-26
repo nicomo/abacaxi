@@ -20,6 +20,7 @@ func main() {
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewGetHandler).Methods("GET")
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewPostHandler).Methods("POST")
 	router.HandleFunc("/sudocgetrecord/{ebookID}", controllers.GetRecordHandler)
+	router.HandleFunc("/sudocgetrecords/{targetservice}", controllers.GetRecordsTSHandler)
 	router.HandleFunc("/sudoci2p/{ebookID}", controllers.SudocI2PHandler)
 	router.HandleFunc("/sudoci2p-ts-new/{targetservice}", controllers.SudocI2PTSNewHandler)
 	router.HandleFunc("/upload", controllers.UploadHandler)

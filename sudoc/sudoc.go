@@ -61,6 +61,7 @@ func FetchPPN(isbn2ppnURL string) PPNDataResult {
 
 // GetRecord returns a marc record for a given PPN (i.e. sudoc ID for the record)
 func GetRecord(recordURL string) (string, error) {
+
 	var result string
 
 	resp, err := http.Get(recordURL)
@@ -132,7 +133,7 @@ func GenI2PURL(ebk models.Ebook) string {
 	return i2purl
 }
 
-// CrawlPPN takes a channel with an Ebook, pass it on to FetchPPN, retrieves the result
+// CrawlPPN takes a channel with an Ebook, passes it on to FetchPPN, retrieves the result
 func CrawlPPN(in <-chan models.Ebook) <-chan int {
 	out := make(chan int)
 	go func() {
@@ -152,6 +153,7 @@ func CrawlPPN(in <-chan models.Ebook) <-chan int {
 			ebk.Ppns = result.PPNs
 
 			// update record in DB
+			// NOTE: would be better to get back to controller and controller calls models.EbookUpdate
 			_, err := models.EbookUpdate(ebk)
 			if err != nil {
 				logger.Error.Println(err)
@@ -169,8 +171,50 @@ func CrawlPPN(in <-chan models.Ebook) <-chan int {
 	return out
 }
 
-// MergePPN fans in results from crawlPPN
-func MergePPN(cs ...<-chan int) <-chan int {
+// CrawlRecords takes a channel with an ebook, passes it on to FetchRecord, retrieves the result
+func CrawlRecords(in <-chan models.Ebook) <-chan int {
+	out := make(chan int)
+	go func() {
+		for ebk := range in {
+			for i := 0; i < len(ebk.Ppns); i++ {
+				// generate the URL for the web service
+				crurl := "http://www.sudoc.fr/" + ebk.Ppns[i] + ".abes"
+
+				// get record for this PPN
+				result, err := GetRecord(crurl)
+				if err != nil {
+					logger.Error.Println(err)
+					continue
+				}
+
+				// add record to ebook struct
+				ebk.RecordUnimarc = result
+				break
+			}
+
+			// update record in DB
+			_, err := models.EbookUpdate(ebk)
+			if err != nil {
+				logger.Error.Println(err)
+				out <- 0
+				continue
+			}
+
+			// everything OK, notify result channel
+			out <- 1
+
+			// as a curtesy to http://www.abes.fr
+			time.Sleep(time.Millisecond * 250)
+
+		}
+		close(out)
+	}()
+
+	return out
+}
+
+// MergeResults fans in results from crawlPPN
+func MergeResults(cs ...<-chan int) <-chan int {
 	var wg sync.WaitGroup
 	out := make(chan int)
 

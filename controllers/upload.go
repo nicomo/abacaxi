@@ -30,7 +30,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		// our messages (errors, confirmation, etc) to the user & the template will be store in this map
-		//FIXME: why userM with specific struct? shouldn't it be d["blabla"] like all the other pages?
+		//FIXME: either userMessages struct of d[string] interface{} as used in other funcs, but not both...
 		userM := make(userMessages)
 
 		// parsing multipart file
@@ -47,6 +47,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// create new file with same name
+		// FIXME: returns an error if dir /data does not exist
+		// either create it in git, harcoded, or in the program here
 		path := "./data/" + handler.Filename
 		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {

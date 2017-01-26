@@ -31,7 +31,8 @@ type Ebook struct {
 	Acquired             bool            `bson:",omitempty"`
 	Isbns                []Isbn          `bson:",omitempty"`
 	Ppns                 []string        `bson:",omitempty"`
-	MarcRecords          []string        `bson:",omitempty"`
+	RecordUnimarc        string          `bson:",omitempty"`
+	RecordMarc21         string          `bson:",omitempty"`
 	Deleted              bool
 }
 
@@ -243,4 +244,27 @@ func EbooksGetNoPPNByTSName(tsname string) ([]Ebook, error) {
 	}
 
 	return result, nil
+}
+
+// EbooksGetWithPPNByTSName retrieves all ebooks with condition : has PPN, given TS
+// used to prepare query to sudoc get record web service
+func EbooksGetWithPPNByTSName(tsname string) ([]Ebook, error) {
+	var result []Ebook
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
+	err := coll.Find(bson.M{"targetservice.tsname": tsname, "ppns": bson.M{"$exists": true}}).All(&result)
+	if err != nil {
+		logger.Error.Println(err)
+		return result, err
+	}
+
+	return result, nil
+
 }

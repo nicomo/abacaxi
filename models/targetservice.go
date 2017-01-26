@@ -87,8 +87,8 @@ func TSCountEbooks(tsname string) int {
 	return count
 }
 
-// TSCountMarcRecords counts how many records for this package have proper MARC Records
-func TSCountMarcRecords(tsname string) int {
+// TSCountRecordsUnimarc counts how many records for this package have proper MARC Records
+func TSCountRecordsUnimarc(tsname string) int {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
@@ -97,7 +97,7 @@ func TSCountMarcRecords(tsname string) int {
 	coll := getEbooksColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "marcrecords": bson.M{"$ne": nil}})
+	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "recordunimarc": bson.M{"$ne": nil}})
 	count, err := qry.Count()
 
 	if err != nil {

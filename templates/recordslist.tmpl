@@ -5,8 +5,8 @@
 				<th>Title</th>
 				<th>Authors</th>
 				<th>Taget Service</th>
-				<th>Marc Records</th>
-				<th>PPNs</th>
+				<th>PPN</th>
+				<th>Unimarc Record</th>
 				<th>see more</th>
 			</tr>
 			{{ range .myRecords }}
@@ -14,8 +14,8 @@
 				<td>{{ .Title }}</td>
 				<td>{{ range .Authors }} {{ . }}<br /> {{ end }}</td>
 				<td>{{ range .TargetService }} {{ .TSDisplayName }}<br /> {{ end }}</td>
-				<td>{{ if .MarcRecords }} Y {{ else }} no {{ end }}</td>
-				<td>{{ if .Ppns }} Y {{ else }} no {{ end }}</td>
+				<td>{{ if .Ppns }} Y {{ else }} N {{ end }}</td>
+				<td>{{ if .RecordUnimarc }} Y {{ else }} N {{ end }}</td>
 				<td><a href="/ebook/{{ .ID.Hex }}">...</a></td>
 				
 			</tr>

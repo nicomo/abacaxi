@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/nicomo/abacaxi/logger"
@@ -63,6 +62,8 @@ func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
 	records, err := models.EbooksGetNoPPNByTSName(tsname)
 	if err != nil {
 		logger.Error.Println(err)
+		d["sudoci2pError"] = err
+		views.RenderTmpl(w, "sudoci2p-report", d)
 	}
 
 	// set up the pipeline
@@ -74,21 +75,20 @@ func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
 
 	// fan in results
 	ppnCounter := 0
-	for n := range sudoc.MergePPN(c1, c2) {
+	for n := range sudoc.MergeResults(c1, c2) {
 		ppnCounter += n
 	}
 
 	// let's do a little reporting to the user
 	logger.Info.Printf("Number of records : %d - number of records receiving PPNs : %d", len(records), ppnCounter)
-	d["RecordsCount"] = fmt.Sprintf("Number of records sent : %d", len(records))
-	d["getPPNResultCount"] = fmt.Sprintf("Number of records receiving PPNs : %d", ppnCounter)
+	d["RecordsCount"] = len(records)
+	d["getPPNResultCount"] = ppnCounter
 
 	// list of TS appearing in menu
 	TSListing, _ := models.GetTargetServicesListing()
 	d["TSListing"] = TSListing
 
 	views.RenderTmpl(w, "sudoci2p-report", d)
-
 }
 
 // GetRecordHandler manages http request to use sudoc web service to retrieve marc record for 1 given ebook
@@ -113,9 +113,7 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 		if record != "" {
 
-			// if the local record already has a mark record, update using delete / insert on the struct
-			myEbook.MarcRecords = nil
-			myEbook.MarcRecords = append(myEbook.MarcRecords, record)
+			myEbook.RecordUnimarc = record
 
 			// actually save updated ebook struct to DB
 			var ebkUpdateErr error
@@ -124,7 +122,7 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 				logger.Error.Println(ebkUpdateErr)
 			}
 
-			if len(myEbook.MarcRecords) > 0 {
+			if len(myEbook.RecordUnimarc) > 0 {
 				break
 			}
 		}
@@ -134,4 +132,46 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: transmit either error or success message to user
 	urlStr := "/ebook/" + ebookID
 	http.Redirect(w, r, urlStr, 303)
+}
+
+// GetRecordsTSHandler retrieves Unimarc Records from Sudoc for all local records using a given target service
+func GetRecordsTSHandler(w http.ResponseWriter, r *http.Request) {
+
+	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	d := make(map[string]interface{})
+
+	// Target Service name is last part of the URL
+	tsname := r.URL.Path[len("/sudocgetrecords/"):]
+	d["myPackage"] = tsname
+
+	records, err := models.EbooksGetWithPPNByTSName(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+		d["sudocGetRecordsError"] = err
+		views.RenderTmpl(w, "sudocgetrecords-report", d)
+	}
+
+	// set up the pipeline
+	in := sudoc.GenChannel(records)
+
+	// fan out to 2 workers
+	c1 := sudoc.CrawlRecords(in)
+	c2 := sudoc.CrawlRecords(in)
+
+	// fan in results
+	recordsCounter := 0
+	for n := range sudoc.MergeResults(c1, c2) {
+		recordsCounter += n
+	}
+
+	// let's do a little reporting to the user
+	logger.Info.Printf("Number of local records sent : %d - number of unimarc records received  : %d", len(records), recordsCounter)
+	d["RecordsCount"] = len(records)
+	d["getRecordsResultCount"] = recordsCounter
+
+	// list of TS appearing in menu
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+
+	views.RenderTmpl(w, "sudocgetrecords-report", d)
 }

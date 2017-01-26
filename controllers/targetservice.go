@@ -30,8 +30,8 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	if count > 0 { // no need to query for actual ebooks otherwise
 
 		// how many ebooks have marc records
-		nbMarcRecords := models.TSCountMarcRecords(tsname)
-		d["myPackageMarcRecordsCount"] = nbMarcRecords
+		nbRecordsUnimarc := models.TSCountRecordsUnimarc(tsname)
+		d["myPackageRecordsUnimarcCount"] = nbRecordsUnimarc
 
 		// how many ebooks have a PPN from the Sudoc Union Catalog
 		nbPPNs := models.TSCountPPNs(tsname)

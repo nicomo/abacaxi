@@ -11,7 +11,7 @@ import (
 
 const (
 	mongoDBHosts = "localhost:27017"
-	authDatabase = "metadatahub"
+	authDatabase = "abacaxidb"
 )
 
 var mgoSession *mgo.Session

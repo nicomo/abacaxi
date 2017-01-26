@@ -86,12 +86,10 @@
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">Marc Records</th>
+						<th scope="row">Unimarc Record</th>
 						<td>
-							{{ if .Ebook.MarcRecords }}
-								{{ range .Ebook.MarcRecords }} 
-									{{ . }}<br />
-								{{ end }}
+							{{ if .Ebook.RecordUnimarc }}
+								{{ .Ebook.RecordUnimarc}}<br />
 							{{ else }}
 							 	-
 							{{ end}}
