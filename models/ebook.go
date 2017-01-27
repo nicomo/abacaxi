@@ -36,7 +36,7 @@ type Ebook struct {
 	Deleted              bool
 }
 
-// Isbn embeded in an ebook
+// Isbn embedded in an ebook
 type Isbn struct {
 	Isbn       string
 	Electronic bool

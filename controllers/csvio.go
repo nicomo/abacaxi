@@ -109,6 +109,7 @@ func csvIO(filename string, tsname string, userM userMessages) ([]models.Ebook, 
 }
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
+// FIXME: cyclomatic complexity 20 of function csvClean() is high (> 15) (gocyclo)
 func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord, userMessages, error) {
 
 	// open csv file
@@ -224,6 +225,7 @@ func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file
+// NOTE: this saves persistent data and should thus probably be in models.
 func csvSaveProcessed(csvData []CSVRecord, tsname string, userM userMessages) (userMessages, error) {
 
 	// change the []CSVRecord data into [][]string

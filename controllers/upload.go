@@ -47,8 +47,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// create new file with same name
-		// FIXME: returns an error if dir /data does not exist
-		// either create it in git, harcoded, or in the program here
+		// FIXME: returns an error if dir /data does not exist, should use os.MkdirAll
+		// see models/download.go:16
 		path := "./data/" + handler.Filename
 		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {

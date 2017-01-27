@@ -17,7 +17,10 @@
 			</p>
 			<p>
 				{{ if .Ebook.Ppns }}
-					<a class="btn btn-default" href="/sudocgetrecord/{{ .Ebook.ID.Hex }}" role="button">Get Sudoc Record</a>
+					<a class="btn btn-default" href="/sudocgetrecord/{{ .Ebook.ID.Hex }}" role="button">Get Unimarc Record</a>
+					{{ if .Ebook.RecordUnimarc }} 
+						<a class="btn btn-default" href="/download/{{ .Ebook.ID.Hex }}.xml" role="button">Download Unimarc</a>
+					{{ end }}
 				{{ else }}
 					<a class="btn btn-default" href="/sudoci2p/{{ .Ebook.ID.Hex }}" role="button">Get PPNs</a>
 				{{ end }}
@@ -81,8 +84,8 @@
 					</tr>
 					<tr>
 						<th scope="row">URLs</th>
-						<td>{{ if .Ebook.PackageURL }} <a href=".Ebook.PackageURL">{{ .Ebook.PackageURL }}</a> {{ end }}<br />
-							{{ if .Ebook.OpenURL }} <a href=".Ebook.OpenURL">{{ .Ebook.OpenURL }}</a> {{ end }}
+						<td>{{ if .Ebook.PackageURL }} <a href="{{ .Ebook.PackageURL }}">{{ .Ebook.PackageURL }}</a> {{ end }}<br />
+							{{ if .Ebook.OpenURL }} <a href="{{ .Ebook.OpenURL }}">{{ .Ebook.OpenURL }}</a> {{ end }}
 						</td>
 					</tr>
 					<tr>
