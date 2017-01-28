@@ -8,7 +8,7 @@
 				<li>{{ .myPackageEbooksCount }} ebooks</li>
 				<li>number of ebooks with Marc Records : {{ .myPackageRecordsUnimarcCount }} / {{ .myPackageEbooksCount }}</li>
 				<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
-				<li>Activated : {{ .IsTSActive }}</li>
+				<li>{{ if .IsTSActive }}<span class="label label-success">Active</span>{{ else }}<span class="label label-danger">Inactive</span>{{ end }}</li>
 			</ul>
 			<p>
 				<a class="btn btn-default" href="/sudoci2p-ts-new/{{ .myPackage }}" role="button">Get New PPNs</a>

@@ -8,26 +8,30 @@
 
 			<h2>Record #{{ .Ebook.ID.Hex }}</h2>
 			<p>
-				Date created: {{ .formattedDateCreated }}
-				{{ if .FormattedDateUpdated}} | Last updated from source: {{ .FormattedDateUpdated }} {{ end }}
+				Created: {{ .formattedDateCreated }}
+				{{ if .formattedDateUpdated }} / Updated from source: {{ .formattedDateUpdated }} {{ end }}
 			</p>
 			<p>
 				{{ if .Ebook.Active }}<span class="label label-success">Active</span>{{ else }}<span class="label label-danger">Inactive</span>{{ end }}
 				{{ if .Ebook.Acquired }}<span class="label label-success">Acquired</span>{{ else }}<span class="label label-danger">Rented</span>{{ end}}
 			</p>
 			<p>
-				{{ if .Ebook.Ppns }}
-					<a class="btn btn-default" href="/sudocgetrecord/{{ .Ebook.ID.Hex }}" role="button">Get Unimarc Record</a>
-					{{ if .Ebook.RecordUnimarc }} 
-						<a class="btn btn-default" href="/download/{{ .Ebook.ID.Hex }}.xml" role="button">Download Unimarc</a>
+			<div class="btn-group" role="group" aria-label="unimarc button">
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Unimarc (sudoc) <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu">
+					<li><a href="/sudoci2p/{{ .Ebook.ID.Hex }}">Get Sudoc PPNs</a></li>
+					{{ if .Ebook.Ppns }}
+						<li><a href="/sudocgetrecord/{{ .Ebook.ID.Hex }}">Get Sudoc Unimarc</a></li>
+						{{ if .Ebook.RecordUnimarc }} 
+							<li><a href="/download/{{ .Ebook.ID.Hex }}.xml">Download Unimarc</a></li>
+						{{ end }}
 					{{ end }}
-				{{ else }}
-					<a class="btn btn-default" href="/sudoci2p/{{ .Ebook.ID.Hex }}" role="button">Get PPNs</a>
-				{{ end }}
-					<a class="btn btn-danger" href="/ebook/delete/{{ .Ebook.ID.Hex }}" role="button">Delete</a>
+				</ul>
+			</div>
+			<a class="btn btn-danger" href="/ebook/delete/{{ .Ebook.ID.Hex }}" role="button">Delete</a>
 			</p>
-			
-
 			<table class="table table-condensed table-hover">
 				<tbody>
 					<tr>

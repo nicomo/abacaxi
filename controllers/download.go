@@ -24,7 +24,6 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	param := vars["param"]
 	matchXML, _ := regexp.MatchString(".xml$", param)
 	if matchXML {
-		logger.Debug.Println(matchXML, param)
 		ebkID := param[:len(param)-4]
 		logger.Debug.Println(ebkID)
 

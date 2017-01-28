@@ -24,7 +24,8 @@ func EbookHandler(w http.ResponseWriter, r *http.Request) {
 
 	// format the dates
 	d["formattedDateCreated"] = myEbook.DateCreated.Format(time.RFC822)
-	if myEbook.DateUpdated.IsZero() {
+
+	if !myEbook.DateUpdated.IsZero() {
 		d["formattedDateUpdated"] = myEbook.DateUpdated.Format(time.RFC822)
 	}
 

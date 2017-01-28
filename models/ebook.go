@@ -189,8 +189,19 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 			continue
 		}
 
-		// we dID find the record, let's update it
+		// we did find the record
+		// protect the fields in DB that exist but don't exist in updated struct,
+		// i.e. created date, ppn, recordunimarc...
+		//NOTE: probably better ways to do this, see omitempty in struct definition?
 		record.ID = existingRecord.ID
+		record.DateCreated = existingRecord.DateCreated
+		record.Ppns = existingRecord.Ppns
+		record.RecordUnimarc = existingRecord.RecordUnimarc
+		record.SFXLastHarvest = existingRecord.SFXLastHarvest
+		record.SFXID = existingRecord.SFXID
+		record.RecordMarc21 = existingRecord.RecordMarc21
+
+		// save to DB
 		_, updateErr := EbookUpdate(record)
 		if updateErr != nil {
 			logger.Error.Println(updateErr)

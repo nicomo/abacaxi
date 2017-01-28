@@ -1,8 +1,8 @@
 {{define "body"}}
 	<body>
 		<div class="container">
-			{{template "nav" .}}
 			<h1>&#127821; Metadata Hub</h1>
+			{{template "nav" .}}
 			<h2>Sudoc get Unimarc records report for {{ .myPackage }}</h2>
 			{{ if .sudocGetRecordsError }}
 				{{ .sudocGetRecordsError }}
