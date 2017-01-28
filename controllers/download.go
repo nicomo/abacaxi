@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
@@ -25,7 +26,6 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	matchXML, _ := regexp.MatchString(".xml$", param)
 	if matchXML {
 		ebkID := param[:len(param)-4]
-		logger.Debug.Println(ebkID)
 
 		myEbook, err := models.EbookGetByID(ebkID)
 		if err != nil {
@@ -34,11 +34,12 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		createFileErr := models.CreateUnimarcFile(myEbook, param)
+		fileSize, createFileErr := models.CreateUnimarcFile(myEbook, param)
 		if createFileErr != nil {
 			logger.Error.Println(createFileErr)
 		}
 
+		//TODO: abstract in own func (1)
 		timeout := time.Duration(5) * time.Second
 		transport := &http.Transport{
 			ResponseHeaderTimeout: timeout,
@@ -49,6 +50,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			Transport: transport,
 		}
 
+		// FIXME: url should not be hardcoded
 		resp, err := client.Get("http://localhost:8080/static/downloads/" + param)
 		if err != nil {
 			fmt.Println(err)
@@ -59,10 +61,23 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 		w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
 
-		//stream the body to the client without fully loading it into memory
-		io.Copy(w, resp.Body)
+		//stream the body, which is a Reader, to the client without fully loading it into memory
+		written, err := io.Copy(w, resp.Body)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+
+		// make sure download went OK, then delete file on server
+		if fileSize == written {
+			// FIXME: url should not be hardcoded
+			fDeleteError := os.Remove("./static/downloads/" + param)
+			if fDeleteError != nil {
+				logger.Error.Println(fDeleteError)
+			}
+		}
 
 	} else {
 		logger.Debug.Println(matchXML, param)
+		//TODO : download for multiple records (2)
 	}
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // CreateUnimarcFile creates the file to be exported
-func CreateUnimarcFile(ebk Ebook, fname string) error {
+func CreateUnimarcFile(ebk Ebook, fname string) (int64, error) {
 
 	// create dirs if they don't exist
 	path := filepath.Join("static", "downloads")
@@ -22,7 +22,7 @@ func CreateUnimarcFile(ebk Ebook, fname string) error {
 	f, err := os.Create(filepath.Join(path, fname))
 	if err != nil {
 		logger.Error.Println(err)
-		return err
+		return 0, err
 	}
 	defer f.Close()
 
@@ -31,15 +31,23 @@ func CreateUnimarcFile(ebk Ebook, fname string) error {
 	_, writeHeaderErr := w.WriteString("<?xml version=\"1.0\"?>\n")
 	if writeHeaderErr != nil {
 		logger.Error.Println(writeHeaderErr)
-		return writeHeaderErr
+		return 0, writeHeaderErr
 	}
 	_, writeRecordErr := w.WriteString(ebk.RecordUnimarc)
 	if writeRecordErr != nil {
 		logger.Error.Println(writeRecordErr)
-		return writeRecordErr
+		return 0, writeRecordErr
 	}
 
 	w.Flush() // flush the buffer
 
-	return nil
+	// get & return the size of the written file
+	fi, fileInfoErr := f.Stat()
+	if fileInfoErr != nil {
+		logger.Error.Println("couldn't get file info: ", fileInfoErr)
+		return 0, fileInfoErr
+	}
+	fs := fi.Size()
+
+	return fs, nil
 }

@@ -25,8 +25,6 @@ func main() {
 	router.HandleFunc("/sudoci2p/{ebookID}", controllers.SudocI2PHandler)
 	router.HandleFunc("/sudoci2p-ts-new/{targetservice}", controllers.SudocI2PTSNewHandler)
 	router.HandleFunc("/upload", controllers.UploadHandler)
-
-	// TODO: customize 404
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(fmt.Sprintf("%s not found\n", r.URL)))
