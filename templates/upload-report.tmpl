@@ -1,0 +1,18 @@
+{{define "body"}}
+	<body>
+		<div class="container">
+			<h1>&#127821; Metadata Hub</h1>
+			{{template "nav" .}}
+			<h2>Upload Report {{ .myPackage }}</h2>
+			<ul>
+				<li>{{ .parsedLog }}</li>
+				<li>{{ .saveCopyMssg }}</li>
+				{{ if .rejectedLinesLog }}
+				<li>{{ .rejectedLinesLog }}</li>
+				{{ end }}
+				<li>records created: {{ .createdCounter }}</li>
+				<li>records updated: {{ .updatedCounter }}</li>
+			</ul>
+		</div>
+	</body>
+{{end}}

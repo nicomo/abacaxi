@@ -3,28 +3,7 @@
 		<div class="container">
 			<h1>&#127821; Metadata Hub</h1>
 			{{ template "nav" . }}
-			<h2>Upload a source file (xlm from SFX or csv from publisher)</h2>
-			<form class="form-horizontal" enctype="multipart/form-data" action="http://localhost:8080/upload" method="post">
-
-				<div class="form-group">
-					<fieldset>
-						<legend>Target Service (package)</legend>
-						{{ range .TSListing }}
-							<label class="radio-inline" for="{{ .TSName }}">
-								<input  type="radio" name="pack" value="{{ .TSName }}"> {{ .TSDisplayName }}
-							</label>
-						{{ end }}
-					</fieldset>
-				</div>
-			
-				<div class="form-group">
-					<input type="file" name="uploadfile" />
-					<input type="hIDden" name="token" value="{{.}}"/>							
-				</div>
-
-				<button type="submit" class="btn btn-default" value="upload" >Upload</button>
-
-			</form>
+			<p>TODO: add general stats about the system, # of local records, (uni)marc records, etc.</p>
 		</div>
 	</body>
 {{end}}
