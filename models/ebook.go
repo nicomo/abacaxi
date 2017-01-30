@@ -162,6 +162,66 @@ func EbookUpdate(ebk Ebook) (Ebook, error) {
 	return ebk, nil
 }
 
+// EbooksCount counts the number of ebooks in DB
+func EbooksCount() int {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	//  query ebooks
+	qry := coll.Find(nil)
+	count, err := qry.Count()
+
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	return count
+}
+
+// EbooksCountPPNs retrieves the number of record that have a PPN field
+func EbooksCountPPNs() int {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	//  query ebooks
+	qry := coll.Find(bson.M{"ppns": bson.M{"$exists": true}})
+	count, err := qry.Count()
+
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	return count
+}
+
+// EbooksCountUnimarc retrieves the number of record that have a RecordUnimarc field
+func EbooksCountUnimarc() int {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	//  query ebooks
+	qry := coll.Find(bson.M{"recordunimarc": bson.M{"$exists": true}})
+	count, err := qry.Count()
+
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	return count
+}
+
 // EbooksCreateOrUpdate checks if ebook exists in DB, using ISBN, then routes to either create or update
 func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 

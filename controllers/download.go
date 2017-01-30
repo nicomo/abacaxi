@@ -47,7 +47,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(createFileErr)
 		}
 
-		//TODO: abstract in own func (1)
+		//TODO: abstract in own func (2)
 		timeout := time.Duration(5) * time.Second
 		transport := &http.Transport{
 			ResponseHeaderTimeout: timeout,
@@ -109,7 +109,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 		// TODO: zip the downloadable file if size too big: > 1*10^6 (i.e. 1Mo)
 
-		//TODO: abstract in own func (1)
+		//TODO: abstract in own func (2)
 		timeout := time.Duration(5) * time.Second
 		transport := &http.Transport{
 			ResponseHeaderTimeout: timeout,
