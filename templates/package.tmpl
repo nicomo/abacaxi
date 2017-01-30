@@ -11,10 +11,20 @@
 				<li>{{ if .IsTSActive }}<span class="label label-success">Active</span>{{ else }}<span class="label label-danger">Inactive</span>{{ end }}</li>
 			</ul>
 			<p>
-				<a class="btn btn-default" href="/sudoci2p-ts-new/{{ .myPackage }}" role="button">Get New PPNs</a>
-				{{ if .myPackagePPNsCount }} 
-					<a class="btn btn-default" href="/sudocgetrecords/{{ .myPackage }}" role="button">Get Unimarc Records</a>
-				{{ end }}
+				<div class="btn-group" role="group" aria-label="unimarc button">
+					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Unimarc (sudoc) <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						<li><a href="/sudoci2p-ts-new/{{ .myPackage }}">Get Sudoc PPNs</a></li>
+						{{ if .myPackagePPNsCount }} 
+							<li><a href="/sudocgetrecords/{{ .myPackage }}">Get Sudoc Unimarc Records</a></li>
+							{{ if .myPackageRecordsUnimarcCount }} 
+								<li><a href="/download/{{ .myPackage }}.zip">Download Unimarc Records</a></li>
+							{{ end }}
+						{{ end }}
+					</ul>
+				</div>				
 			</p>
 
 

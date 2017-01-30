@@ -16,21 +16,21 @@
 				{{ if .Ebook.Acquired }}<span class="label label-success">Acquired</span>{{ else }}<span class="label label-danger">Rented</span>{{ end}}
 			</p>
 			<p>
-			<div class="btn-group" role="group" aria-label="unimarc button">
-				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				Unimarc (sudoc) <span class="caret"></span>
-				</button>
-				<ul class="dropdown-menu">
-					<li><a href="/sudoci2p/{{ .Ebook.ID.Hex }}">Get Sudoc PPNs</a></li>
-					{{ if .Ebook.Ppns }}
-						<li><a href="/sudocgetrecord/{{ .Ebook.ID.Hex }}">Get Sudoc Unimarc</a></li>
-						{{ if .Ebook.RecordUnimarc }} 
-							<li><a href="/download/{{ .Ebook.ID.Hex }}.xml">Download Unimarc</a></li>
+				<div class="btn-group" role="group" aria-label="unimarc button">
+					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Unimarc (sudoc) <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						<li><a href="/sudoci2p/{{ .Ebook.ID.Hex }}">Get Sudoc PPNs</a></li>
+						{{ if .Ebook.Ppns }}
+							<li><a href="/sudocgetrecord/{{ .Ebook.ID.Hex }}">Get Sudoc Unimarc</a></li>
+							{{ if .Ebook.RecordUnimarc }} 
+								<li><a href="/download/{{ .Ebook.ID.Hex }}.xml">Download Unimarc</a></li>
+							{{ end }}
 						{{ end }}
-					{{ end }}
-				</ul>
-			</div>
-			<a class="btn btn-danger" href="/ebook/delete/{{ .Ebook.ID.Hex }}" role="button">Delete</a>
+					</ul>
+				</div>
+				<a class="btn btn-danger" href="/ebook/delete/{{ .Ebook.ID.Hex }}" role="button">Delete</a>
 			</p>
 			<table class="table table-condensed table-hover">
 				<tbody>

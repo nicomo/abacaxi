@@ -9,7 +9,7 @@ import (
 )
 
 // CreateUnimarcFile creates the file to be exported
-func CreateUnimarcFile(ebk Ebook, fname string) (int64, error) {
+func CreateUnimarcFile(ebks []Ebook, fname string) (int64, error) {
 
 	// create dirs if they don't exist
 	path := filepath.Join("static", "downloads")
@@ -33,10 +33,14 @@ func CreateUnimarcFile(ebk Ebook, fname string) (int64, error) {
 		logger.Error.Println(writeHeaderErr)
 		return 0, writeHeaderErr
 	}
-	_, writeRecordErr := w.WriteString(ebk.RecordUnimarc)
-	if writeRecordErr != nil {
-		logger.Error.Println(writeRecordErr)
-		return 0, writeRecordErr
+
+	// write each marc record in turn
+	for _, ebk := range ebks {
+		_, writeRecordErr := w.WriteString(ebk.RecordUnimarc)
+		if writeRecordErr != nil {
+			logger.Error.Println(writeRecordErr)
+			return 0, writeRecordErr
+		}
 	}
 
 	w.Flush() // flush the buffer

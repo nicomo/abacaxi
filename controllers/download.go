@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,6 +25,8 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	param := vars["param"]
 	matchXML, _ := regexp.MatchString(".xml$", param)
+	matchZIP, _ := regexp.MatchString(".zip$", param)
+
 	if matchXML {
 		ebkID := param[:len(param)-4]
 
@@ -34,7 +37,12 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		fileSize, createFileErr := models.CreateUnimarcFile(myEbook, param)
+		// CreateUnimarcFile requires []Ebook
+		ebks := make([]models.Ebook, 1)
+		ebks = append(ebks, myEbook)
+
+		// create the downloadable file
+		fileSize, createFileErr := models.CreateUnimarcFile(ebks, param)
 		if createFileErr != nil {
 			logger.Error.Println(createFileErr)
 		}
@@ -76,8 +84,73 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-	} else {
-		logger.Debug.Println(matchXML, param)
-		//TODO : download for multiple records (2)
+	}
+
+	// download for multiple records
+	if matchZIP {
+		logger.Debug.Println(matchZIP, param)
+
+		// the name of the target service is in the filename
+		tsname := param[:len(param)-4]
+
+		// get the relevant ebooks
+		ebks, err := models.EbooksGetWithUnimarcByTSName(tsname)
+		if err != nil {
+			logger.Error.Println(err)
+			//TODO: exit cleanly with user message on error
+			panic(err)
+		}
+
+		// create the downloadable file
+		fileSize, createFileErr := models.CreateUnimarcFile(ebks, tsname+".xml")
+		if createFileErr != nil {
+			logger.Error.Println(createFileErr)
+		}
+
+		// TODO: zip the downloadable file if size too big: > 1*10^6 (i.e. 1Mo)
+
+		//TODO: abstract in own func (1)
+		timeout := time.Duration(5) * time.Second
+		transport := &http.Transport{
+			ResponseHeaderTimeout: timeout,
+			DisableKeepAlives:     true,
+		}
+
+		client := &http.Client{
+			Transport: transport,
+		}
+
+		// FIXME: url should not be hardcoded
+		resp, err := client.Get("http://localhost:8080/static/downloads/" + tsname + ".xml")
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer resp.Body.Close()
+
+		w.Header().Set("Content-Disposition", "attachment; filename="+tsname+".xml")
+		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
+
+		//stream the body, which is a Reader, to the client without fully loading it into memory
+		written, err := io.Copy(w, resp.Body)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+
+		// make sure download went OK, then delete file on server
+		if fileSize == written {
+			logger.Debug.Printf("filesize: %d - written: %d", fileSize, written)
+			// FIXME: url should not be hardcoded
+			fDeleteError := os.Remove("./static/downloads/" + tsname + ".xml")
+			if fDeleteError != nil {
+				logger.Error.Println(fDeleteError)
+			}
+		}
+	}
+
+	if !matchXML && !matchZIP {
+		err := errors.New("Couldn't get a known file extension")
+		logger.Error.Println(err)
+		panic(err)
 	}
 }

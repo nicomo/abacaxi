@@ -278,5 +278,25 @@ func EbooksGetWithPPNByTSName(tsname string) ([]Ebook, error) {
 	}
 
 	return result, nil
+}
 
+// EbooksGetWithUnimarcByTSName retrieves all ebooks with condition : has Unimarc Record, given TS
+func EbooksGetWithUnimarcByTSName(tsname string) ([]Ebook, error) {
+	var result []Ebook
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getEbooksColl()
+
+	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
+	err := coll.Find(bson.M{"targetservice.tsname": tsname, "recordunimarc": bson.M{"$exists": true}}).All(&result)
+	if err != nil {
+		logger.Error.Println(err)
+		return result, err
+	}
+
+	return result, nil
 }
