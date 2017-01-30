@@ -53,7 +53,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(pathErr)
 		}
 
-		fpath := path + handler.Filename
+		fpath := path + "/" + handler.Filename
 		f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			logger.Error.Println(err)
@@ -66,11 +66,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		// if xml pass on to xmlio, if csv, pass on to csvio, if neither, abort
 		ext := filepath.Ext(handler.Filename)
-		fmt.Println(ext)
 		if ext == ".csv" {
 			// pass on the name of the package and the name of the file to csvio package
 
-			csvRecords, myTS, userM, err := csvIO(path, tsname, userM)
+			csvRecords, myTS, userM, err := csvIO(fpath, tsname, userM)
 			if err != nil {
 				logger.Error.Println(err)
 			}

@@ -144,6 +144,7 @@ func csvClean(filename string, csvConf CSVConf, userM userMessages) ([]CSVRecord
 				break
 			}
 			logger.Error.Println(err)
+			panic(err)
 		}
 
 		// if row not if the expected length, move on
