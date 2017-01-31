@@ -24,6 +24,8 @@ func main() {
 	router.HandleFunc("/sudocgetrecords/{targetservice}", controllers.GetRecordsTSHandler)
 	router.HandleFunc("/sudoci2p/{ebookID}", controllers.SudocI2PHandler)
 	router.HandleFunc("/sudoci2p-ts-new/{targetservice}", controllers.SudocI2PTSNewHandler)
+	router.HandleFunc("/ebook/toggleacquired/{ebookID}", controllers.EbookToggleAcquiredHandler)
+	router.HandleFunc("/ebook/toggleactive/{ebookID}", controllers.EbookToggleActiveHandler)
 	router.HandleFunc("/upload", controllers.UploadGetHandler).Methods("GET")
 	router.HandleFunc("/upload", controllers.UploadPostHandler).Methods("POST")
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

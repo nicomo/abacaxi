@@ -57,3 +57,51 @@ func EbookDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// redirect to home
 	http.Redirect(w, r, "/", 303)
 }
+
+//EbookToggleAcquiredHandler toggles the boolean value "acquired" for an ebook
+func EbookToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
+
+	// record ID is last part of the URL
+	ebookID := r.URL.Path[len("/ebook/toggleacquired/"):]
+
+	myEbook, err := models.EbookGetByID(ebookID)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	if myEbook.Acquired {
+		myEbook.Acquired = false
+	} else {
+		myEbook.Acquired = true
+	}
+
+	myEbook, err = models.EbookUpdate(myEbook)
+
+	// refresh ebook page
+	urlStr := "/ebook/" + ebookID
+	http.Redirect(w, r, urlStr, 303)
+}
+
+// EbookToggleActiveHandler toggles the boolean value "active" for an ebook
+func EbookToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
+
+	// record ID is last part of the URL
+	ebookID := r.URL.Path[len("/ebook/toggleactive/"):]
+
+	myEbook, err := models.EbookGetByID(ebookID)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	if myEbook.Active {
+		myEbook.Active = false
+	} else {
+		myEbook.Active = true
+	}
+
+	myEbook, err = models.EbookUpdate(myEbook)
+
+	// refresh ebook page
+	urlStr := "/ebook/" + ebookID
+	http.Redirect(w, r, urlStr, 303)
+}

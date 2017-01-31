@@ -12,9 +12,16 @@
 				{{ if .formattedDateUpdated }} / Updated from source: {{ .formattedDateUpdated }} {{ end }}
 			</p>
 			<p>
-				<!-- TODO: make active / inactive button toggle (1) -->
-				{{ if .Ebook.Active }}<span class="label label-success">Active</span>{{ else }}<span class="label label-danger">Inactive</span>{{ end }}
-				{{ if .Ebook.Acquired }}<span class="label label-success">Acquired</span>{{ else }}<span class="label label-danger">Rented</span>{{ end}}
+				{{ if .Ebook.Active }}
+					<a href="/ebook/toggleactive/{{ .Ebook.ID.Hex }}"><span class="label label-success">Active</span></a>
+				{{ else }}
+					<a href="/ebook/toggleactive/{{ .Ebook.ID.Hex }}"><span class="label label-danger">Inactive</span></a>
+				{{ end }}
+				{{ if .Ebook.Acquired }}
+					<a href="/ebook/toggleacquired/{{ .Ebook.ID.Hex }}"><span class="label label-success">Acquired</span></a>
+				{{ else }}
+					<a href="/ebook/toggleacquired/{{ .Ebook.ID.Hex }}"><span class="label label-danger">Rented</span></a>
+				{{ end}}
 			</p>
 			<p>
 				<div class="btn-group" role="group" aria-label="unimarc button">
