@@ -76,3 +76,54 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", 303)
 }
+
+// TargetServiceToggleActiveHandler changes the boolean "active" for a TS *and* records who are linked to *only* this TS
+func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
+
+	// package name is last part of the URL
+	tsname := r.URL.Path[len("/package/toggleactive/"):]
+
+	// retrieve Target Service Struct
+	myTS, err := models.GetTargetService(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	// retrieve records with thats TS
+	records, err := models.EbooksGetByTSName(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	// change "active" bool in those records
+	// and save each to DB
+	for _, v := range records {
+		if myTS.TSActive {
+			v.Active = false
+		} else {
+			v.Active = true
+		}
+		_, vUpdateErr := models.EbookUpdate(v)
+		if vUpdateErr != nil {
+			logger.Error.Printf("can't update record %v: %v", v.ID, vUpdateErr)
+		}
+	}
+
+	// change "active" bool in TS struct
+	if myTS.TSActive {
+		myTS.TSActive = false
+	} else {
+		myTS.TSActive = true
+	}
+
+	// save TS to DB
+	tsUpdateErr := models.TSUpdate(myTS)
+	if tsUpdateErr != nil {
+		logger.Error.Println(tsUpdateErr)
+	}
+
+	// refresh TS page
+	urlStr := "/package/" + tsname
+	http.Redirect(w, r, urlStr, 303)
+
+}
