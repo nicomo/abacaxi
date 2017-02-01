@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"os"
@@ -12,18 +13,27 @@ import (
 	"github.com/nicomo/abacaxi/views"
 )
 
+var (
+	ctx    context.Context
+	cancel context.CancelFunc
+)
+
 // UploadGetHandler manages upload of a source file
 func UploadGetHandler(w http.ResponseWriter, r *http.Request) {
-	// you just arrived here, I'll give you a token & show the form
-
-	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	// our messages (errors, confirmation, etc) to the user & the template will be stored in this map
 	d := make(map[string]interface{})
+
+	// check if we have messages coming in the Request context
+	if userM, ok := fromContextUserM(r.Context()); ok {
+		for k, v := range userM {
+			d[k] = v
+		}
+	}
 
 	TSListing, _ := models.GetTargetServicesListing()
 	d["TSListing"] = TSListing
 	views.RenderTmpl(w, "upload", d)
 
-	logger.Debug.Println("...UploadHandler GET...")
 }
 
 // UploadPostHandler receives source file, checks extension
@@ -32,7 +42,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	//FIXME: either userMessages struct of d[string] interface{} as used in other funcs, but not both...
-	userM := make(userMessages)
+	userM := make(UserMessages)
 
 	// parsing multipart file
 	r.ParseMultipartForm(32 << 20)
@@ -120,10 +130,17 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 
-		// TODO : transmit either error or success message to user
-		// manage case wrong file extension : message to the user with redirect to home
+		// manage case wrong file extension : message to the user
 		logger.Error.Println("wrong file extension")
-		// redirect to home
-		http.Redirect(w, r, "/", 303)
+		userM["wrongExt"] = "wrong file extension"
+
+		// insert the user messages in the http.Request Context before redirecting
+		ctx, cancel = context.WithCancel(context.Background())
+		defer cancel()
+		ctx = newContextUserM(ctx, userM)
+
+		// redirect to upload get page
+		UploadGetHandler(w, r.WithContext(ctx))
+
 	}
 }

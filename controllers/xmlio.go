@@ -29,7 +29,7 @@ type XMLRecord struct {
 }
 
 // xmlIO takes an xml file to clean it, save copy & unmarshall content
-func xmlIO(filename string, tsname string, userM userMessages) ([]models.Ebook, models.TargetService, userMessages, error) {
+func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, models.TargetService, UserMessages, error) {
 
 	// retrieve target service (i.e. ebook package) for this file
 	myTargetService, err := models.GetTargetService(tsname)

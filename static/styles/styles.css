@@ -1,0 +1,9 @@
+/*
+ * Only a few local style changes / additions to bootstrap
+ * The style is managed by bootstrap generally
+*/
+
+p.bg-danger{
+	padding : 1em;
+	border-radius: 4px;
+}

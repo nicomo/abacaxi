@@ -4,6 +4,9 @@
 			<h1>&#127821; Metadata Hub</h1>
 			{{ template "nav" . }}
 			<h2>Upload a source file (xlm from SFX or csv from publisher)</h2>
+			{{ if .wrongExt }}
+				<p class="bg-danger">{{ .wrongExt }}</p>
+			{{ end }}
 			<form class="form-horizontal" enctype="multipart/form-data" action="http://localhost:8080/upload" method="post">
 
 				<div class="form-group">

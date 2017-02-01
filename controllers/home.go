@@ -7,10 +7,9 @@ import (
 	"github.com/nicomo/abacaxi/views"
 )
 
-type userMessages map[string]interface{}
-
 // HomeHandler manages http requests on the home page
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
+
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 
