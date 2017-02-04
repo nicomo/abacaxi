@@ -3,10 +3,8 @@ package models
 
 import (
 	"errors"
-	"net/http"
 	"time"
 
-	"github.com/gorilla/schema"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
@@ -26,6 +24,21 @@ type TargetService struct {
 	TSSFXLastHarvest       time.Time `bson:",omitempty"`
 	TSSudocLastHarvest     time.Time `bson:",omitempty"`
 	TSActive               bool      `schema:"tsactive"`
+	TSCsvConf              TSCSVConf `bson:",omitempty"`
+}
+
+// TSCSVConf indicates the # of fields + column (index) of the various pieces of info in the csv file
+type TSCSVConf struct {
+	Authors   []int
+	Edition   int
+	Eisbn     int
+	Isbn      int
+	Lang      int
+	Nfields   int
+	Publisher int
+	Pubdate   int
+	Title     int
+	URL       int
 }
 
 // GetTargetService retrieves a target service
@@ -128,30 +141,7 @@ func TSCountPPNs(tsname string) int {
 }
 
 //TSCreate registers a new target service, aka ebook package in mongo db
-func TSCreate(r *http.Request) error {
-
-	// init our Target Service struct
-	ts := new(TargetService)
-
-	// used by gorilla schema to parse html forms
-	decoder := schema.NewDecoder()
-
-	// we parse the form
-	parseErr := r.ParseForm()
-	logger.Info.Println(r.Form)
-	if parseErr != nil {
-		logger.Error.Println(parseErr)
-		return parseErr
-	}
-
-	// r.PostForm is a map of our POST form values
-	// we create a struct from form
-	// but ignore the fields which do not exist in the struct
-	decoder.IgnoreUnknownKeys(true)
-	errDecode := decoder.Decode(ts, r.PostForm)
-	if errDecode != nil {
-		return errDecode
-	}
+func TSCreate(ts *TargetService) error {
 
 	ts.TSDateCreated = time.Now()
 

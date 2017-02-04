@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -14,20 +12,6 @@ import (
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 )
-
-// CSVConf indicates the column (index) in the csv file
-// where the various pieces of info are located
-type CSVConf struct {
-	Nfields    int   `json:"nfields"`
-	Ititle     int   `json:"ititle"`
-	Iauthors   []int `json:"iauthors"`
-	Ipublisher int   `json:"ipublisher"`
-	Isbn       int   `json:"isbn"`
-	Eisbn      int   `json:"eisbn"`
-	Ipubdate   int   `json:"ipubdate"`
-	Iurl       int   `json:"iurl"`
-	Ilang      int   `json:"ilang"`
-}
 
 // CSVRecord store one line from the csv file
 type CSVRecord struct {
@@ -39,26 +23,6 @@ type CSVRecord struct {
 	publisher string
 	url       string
 	lang      string
-}
-
-// getCsvConf loads the conf for parsing a particular package csv
-func getCsvConf(tsname string) (CSVConf, error) {
-
-	// open & read the json csv conf file
-	file, err := ioutil.ReadFile("./csv-conf/" + tsname + ".json")
-	if err != nil {
-		logger.Error.Println(err)
-		os.Exit(1)
-	}
-
-	// unmarshal json into a CSVConf
-	csvConf := CSVConf{}
-	jsonUnmarshalErr := json.Unmarshal(file, &csvConf)
-	if jsonUnmarshalErr != nil {
-		logger.Error.Println(jsonUnmarshalErr)
-	}
-
-	return csvConf, nil
 }
 
 // csvIO takes a csv file to clean it, save copy & unmarshall content
@@ -74,15 +38,8 @@ func csvIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 	// we're harvesting books from a publisher provided csv file
 	myTargetService.TSPublisherLastHarvest = time.Now()
 
-	// load the config for this package from the csv_conf file
-	csvConf, err := getCsvConf(tsname)
-	if err != nil {
-		logger.Error.Println(err)
-		return nil, myTargetService, nil, err
-	}
-
 	// clean the csv file
-	csvData, userM, err := csvClean(filename, csvConf, userM)
+	csvData, userM, err := csvClean(filename, myTargetService.TSCsvConf, userM)
 	if err != nil {
 		logger.Error.Println(err)
 		userM["err"] = err
@@ -110,7 +67,7 @@ func csvIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 
 // csvClean takes a csv file, checks for length, some mandated fields, etc. and cleans it up
 // FIXME: cyclomatic complexity 20 of function csvClean() is high (> 15) (gocyclo)
-func csvClean(filename string, csvConf CSVConf, userM UserMessages) ([]CSVRecord, UserMessages, error) {
+func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]CSVRecord, UserMessages, error) {
 
 	// open csv file
 	csvFile, err := os.Open(filename)
@@ -168,28 +125,29 @@ func csvClean(filename string, csvConf CSVConf, userM UserMessages) ([]CSVRecord
 				break
 			} else { // value not empty, save in struct
 				switch i {
-				case csvConf.Ipublisher:
+				// csvConf is indexed from 1, 0 being the nil value
+				case csvConf.Publisher - 1:
 					csvRecord.publisher = value
-				case csvConf.Ititle:
+				case csvConf.Title - 1:
 					csvRecord.title = value
-				case csvConf.Isbn:
+				case csvConf.Isbn - 1:
 					// clean isbn, remove spaces & dashes
 					csvRecord.isbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
 					isbnCount++
-				case csvConf.Eisbn:
+				case csvConf.Eisbn - 1:
 					csvRecord.eisbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
 					eisbnCount++
-				case csvConf.Ipubdate:
+				case csvConf.Pubdate - 1:
 					csvRecord.pubdate = value
-				case csvConf.Iurl:
+				case csvConf.URL - 1:
 					csvRecord.url = value
-				case csvConf.Ilang:
+				case csvConf.Lang - 1:
 					csvRecord.lang = value
 				}
 
 				// authors are in a slice
-				for j := 0; j < len(csvConf.Iauthors); j++ {
-					if i == csvConf.Iauthors[j] {
+				for j := 0; j < len(csvConf.Authors); j++ {
+					if i == csvConf.Authors[j] {
 						authors = append(authors, value)
 					}
 				}

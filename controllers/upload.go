@@ -13,11 +13,6 @@ import (
 	"github.com/nicomo/abacaxi/views"
 )
 
-var (
-	ctx    context.Context
-	cancel context.CancelFunc
-)
-
 // UploadGetHandler manages upload of a source file
 func UploadGetHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be stored in this map
@@ -47,7 +42,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	// parsing multipart file
 	r.ParseMultipartForm(32 << 20)
 
-	// get the ebook package name
+	// get the Target Service name
 	tsname := r.PostFormValue("pack")
 	userM["myPackage"] = tsname
 	file, handler, err := r.FormFile("uploadfile")

@@ -253,7 +253,7 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 		// protect the fields in DB that exist but don't exist in updated struct,
 		// i.e. created date, ppn, recordunimarc...
 		// NOTE: probably better ways to do this, see omitempty in struct definition?
-		// FIXME: bug list of protected files is used for both xml and csv upload, but it should be diff.
+		// BUG: bug list of protected files is used for both xml and csv upload, but it should be diff.
 		record.ID = existingRecord.ID
 		record.DateCreated = existingRecord.DateCreated
 		record.Ppns = existingRecord.Ppns

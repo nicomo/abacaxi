@@ -10,6 +10,11 @@ type key int
 
 const userMessagesKey key = 99
 
+var (
+	ctx    context.Context
+	cancel context.CancelFunc
+)
+
 // newContextUserM returns a new Context carrying userMessages
 func newContextUserM(ctx context.Context, userM UserMessages) context.Context {
 	return context.WithValue(ctx, userMessagesKey, userM)

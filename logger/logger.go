@@ -22,7 +22,7 @@ func init() {
 	if logfileErr != nil {
 		log.Fatalln("Failed to open error log file: ", logfileErr)
 	}
-	Debug = log.New(os.Stdout, "DEBUG: ", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	Debug = log.New(os.Stdout, "DEBUGING: ", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 	Info = log.New(io.MultiWriter(logfile, os.Stderr), "INFO: ", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 	Error = log.New(io.MultiWriter(logfile, os.Stderr), "ERROR: ", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 }
