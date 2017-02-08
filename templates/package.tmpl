@@ -8,6 +8,13 @@
 				<li>{{ .myPackageEbooksCount }} ebooks</li>
 				<li>number of ebooks with Marc Records : {{ .myPackageRecordsUnimarcCount }} / {{ .myPackageEbooksCount }}</li>
 				<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
+				<li>{{ if .myPackageCSVConf }}
+						CSV Configuration : {{ .myPackageCSVConf }} 
+						[<a href="/package/csvconfupdate/{{ .myPackage }}">Update</a>]
+					{{ else }}
+						<a href="/package/csvconfcreate/{{ .myPackage }}">Add CSV Configuration</a>
+					{{ end }}
+				</li>
 				<li>
 					{{ if .IsTSActive }}
 						<a href="/package/toggleactive/{{ .myPackage }}"><span class="label label-success">Active</span></a>

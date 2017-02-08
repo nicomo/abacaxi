@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 	"net/url"
+	"reflect"
+	"sort"
 	"strconv"
 
 	"github.com/gorilla/schema"
@@ -10,6 +12,53 @@ import (
 	"github.com/nicomo/abacaxi/models"
 	"github.com/nicomo/abacaxi/views"
 )
+
+// csvConfConvert swaps keys and values of the TSCSVConf struct
+func csvConfConvert(c models.TSCSVConf) map[int]string {
+
+	sc := make(map[int]string)
+
+	s := reflect.ValueOf(c)
+	typeOfc := s.Type()
+
+	for i := 0; i < s.NumField(); i++ {
+		f := s.Field(i)
+		typ := f.Kind().String()
+		switch typ {
+		case "slice": // authors
+			for _, v := range f.Interface().([]int) {
+				sc[v] = typeOfc.Field(i).Name
+			}
+		case "int":
+			myi := f.Interface().(int)
+			if myi == 0 {
+				continue
+			}
+			sc[myi] = typeOfc.Field(i).Name
+		}
+	}
+	return sc
+}
+
+// csvConf2String returns the csvConf as a string to be displayed in UI
+func csvConf2String(c map[int]string) string {
+
+	var csvConfString string
+
+	// To store the keys in slice in sorted order
+	var keys []int
+	for k := range c {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+
+	// To perform the opertion you want
+	for _, k := range keys {
+		csvConfString += c[k] + "; "
+	}
+
+	return csvConfString
+}
 
 // TargetServiceHandler retrieves the ebooks linked to a Target Service
 //  and various other info, e.g. number of library records linked, etc.
@@ -21,12 +70,21 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	tsname := r.URL.Path[len("/package/"):]
 	d["myPackage"] = tsname
 
+	// get the TS Struct from DB
 	myTS, err := models.GetTargetService(tsname)
 	if err != nil {
 		logger.Error.Println(err)
 	}
 	d["IsTSActive"] = myTS.TSActive
 
+	// if there is one, get the csv conf in a string for display
+	convertedCsvConf := csvConfConvert(myTS.TSCsvConf)
+	// we do have a csv configuration for this TS
+	if len(convertedCsvConf) > 0 {
+		d["myPackageCSVConf"] = csvConf2String(convertedCsvConf)
+	}
+
+	// any ebooks records have this TS?
 	count := models.TSCountEbooks(tsname)
 	d["myPackageEbooksCount"] = count
 
@@ -59,8 +117,6 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 // extracting the values to create a new csv configuration struct
 func TargetServiceNewCSVConf(form url.Values) (models.TSCSVConf, bool) {
 	conf := models.TSCSVConf{}
-
-	logger.Debug.Println(form)
 
 	nfields := 0
 	var authors []int
@@ -188,8 +244,6 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	if errDecode != nil {
 		logger.Error.Println(errDecode)
 	}
-
-	logger.Debug.Println(ts)
 
 	// parse the csv conf part of the form manually
 	csvConf, ok := TargetServiceNewCSVConf(r.Form)
