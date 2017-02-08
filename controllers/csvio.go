@@ -82,7 +82,7 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 	var csvData []CSVRecord
 
 	// package csv has n fields, separator is ;
-	reader.FieldsPerRecord = csvConf.Nfields
+	reader.FieldsPerRecord = csvConfGetNFields(csvConf)
 	reader.Comma = ';'
 
 	// counters to keep track of records parsed, for logging
@@ -176,7 +176,7 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 	userM["parsedLog"] = parsedLog
 
 	// log lines rejected
-	rejectedLinesLog := fmt.Sprintln("rejected lines", rejectedLines)
+	rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
 	logger.Info.Println(rejectedLinesLog)
 	userM["rejectedLinesLog"] = rejectedLinesLog
 

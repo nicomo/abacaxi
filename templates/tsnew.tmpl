@@ -8,7 +8,9 @@
 
 			<h2>Create a new Target Service</h2>
 
-			<div>{{ .tsCreateErr }}</div>
+			{{ if .tsCreateErr }}
+				<p class="bg-danger">{{ .tsCreateErr }}</p>
+			{{ end }}
 
 			<form class="form-horizontal" action="http://localhost:8080/packagenew" method="post">
 				<div class="form-group">

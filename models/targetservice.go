@@ -34,7 +34,6 @@ type TSCSVConf struct {
 	Eisbn     int
 	Isbn      int
 	Lang      int
-	Nfields   int
 	Publisher int
 	Pubdate   int
 	Title     int
@@ -159,7 +158,7 @@ func TSCreate(ts *TargetService) error {
 		}
 		return err
 	}
-
+	logger.Info.Printf("Created a new Target Service: %s", ts.TSName)
 	return nil
 }
 

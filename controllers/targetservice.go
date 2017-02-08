@@ -40,6 +40,12 @@ func csvConfConvert(c models.TSCSVConf) map[int]string {
 	return sc
 }
 
+// csvConfGetNFields returns the number of fields used in a particular TSCVConf struct
+func csvConfGetNFields(c models.TSCSVConf) int {
+	m := csvConfConvert(c)
+	return len(m)
+}
+
 // csvConf2String returns the csvConf as a string to be displayed in UI
 func csvConf2String(c map[int]string) string {
 
@@ -204,8 +210,6 @@ func TargetServiceNewCSVConf(form url.Values) (models.TSCSVConf, bool) {
 		return conf, false
 	}
 
-	conf.Nfields = nfields
-
 	return conf, true
 }
 
@@ -231,7 +235,6 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// we parse the form
 	parseErr := r.ParseForm()
-	logger.Info.Println(r.Form)
 	if parseErr != nil {
 		logger.Error.Println(parseErr)
 	}
@@ -248,7 +251,7 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	// parse the csv conf part of the form manually
 	csvConf, ok := TargetServiceNewCSVConf(r.Form)
 	if !ok {
-		logger.Info.Println("no csv conf for TS %s", ts.TSName)
+		logger.Info.Printf("no csv conf created for TS %s", ts.TSName)
 	} else {
 		ts.TSCsvConf = csvConf
 	}
