@@ -140,7 +140,9 @@ func TSCountPPNs(tsname string) int {
 }
 
 //TSCreate registers a new target service, aka ebook package in mongo db
-func TSCreate(ts *TargetService) error {
+//NOTE: should review the code generally to see when to really use pointers rather than values
+// here : should pbly be a value, since we neither change nor return the struct
+func TSCreate(ts TargetService) error {
 
 	ts.TSDateCreated = time.Now()
 
@@ -164,6 +166,9 @@ func TSCreate(ts *TargetService) error {
 
 // TSUpdate updates a target service
 func TSUpdate(ts TargetService) error {
+
+	ts.TSDateUpdated = time.Now()
+
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()

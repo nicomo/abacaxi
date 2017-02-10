@@ -6,36 +6,18 @@
 
 			{{ template "nav" . }}
 
-			<h2>Create a new Target Service</h2>
+			<h2>Update {{ .myTS.TSDisplayName }}</h2>
 
-			{{ if .tsCreateErr }}
-				<p class="bg-danger">{{ .tsCreateErr }}</p>
+			{{ if .tsUpdateErr }}
+				<p class="bg-danger">{{ .tsUpdateErr }}</p>
 			{{ end }}
 
-			<form class="form-horizontal" action="/packagenew" method="post">
+			<form class="form-horizontal" action="/package/update/{{ .myTS.TSName }}" method="post">
+				<input type="hidden" name="tsname" value="{{ .myTS.TSName }}">
 				<div class="form-group">
 					<label for="tsdisplayname" class="col-sm-2 control-label">Display name: </label>
 					<div class="col-sm-10">
-						<input type="text" class="form-control" name="tsdisplayname" placeholder="For inst. Springer Ebooks">
-					</div>
-				</div>
-				<div class="form-group">
-					<label for="tsname" class="col-sm-2 control-label">Unique name: </label>
-					<div class="col-sm-10">
-						<input type="text" class="form-control" name="tsname" placeholder="springer_ebooks - cannot be changed">
-					</div>
-				</div>
-
-				<div class="form-group">
-					<label for="activate" class="col-sm-2 control-label">Activate: </label>
-					<div class="col-sm-10">
-						<label for="activated" class="radio-inline">
-							<input type="radio" name="tsactive" id="activated" value="true" checked="checked">&nbsp;Yes
-						</label>
-						
-						<label for="deactivated" class="radio-inline">
-							<input type="radio" name="tsactive" id="deactivated" value="false">&nbsp;No
-						</label>
+						<input type="text" class="form-control" name="tsdisplayname" value="{{ .myTS.TSDisplayName }}">
 					</div>
 				</div>
 				<div class="form-group">

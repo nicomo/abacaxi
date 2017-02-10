@@ -19,6 +19,8 @@ func main() {
 	router.HandleFunc("/search", controllers.SearchHandler)
 	router.HandleFunc("/package/{targetservice}", controllers.TargetServiceHandler)
 	router.HandleFunc("/package/toggleactive/{targetservice}", controllers.TargetServiceToggleActiveHandler)
+	router.HandleFunc("/package/update/{targetservice}", controllers.TargetServiceUpdateGetHandler).Methods("GET")
+	router.HandleFunc("/package/update/{targetservice}", controllers.TargetServiceUpdatePostHandler).Methods("POST")
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewGetHandler).Methods("GET")
 	router.HandleFunc("/packagenew", controllers.TargetServiceNewPostHandler).Methods("POST")
 	router.HandleFunc("/sudocgetrecord/{ebookID}", controllers.GetRecordHandler)

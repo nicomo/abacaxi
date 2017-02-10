@@ -10,7 +10,7 @@
 				<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
 				<li>{{ if .myPackageCSVConf }}
 						CSV Configuration : {{ .myPackageCSVConf }} 
-						[<a href="/package/csvconfupdate/{{ .myPackage }}">Update</a>]
+						[<a href="/package/update/{{ .myPackage }}">Update</a>]
 					{{ else }}
 						<a href="/package/csvconfcreate/{{ .myPackage }}">Add CSV Configuration</a>
 					{{ end }}

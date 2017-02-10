@@ -82,6 +82,15 @@ func init() {
 		"templates/tsnew.tmpl",
 	))
 
+	// form to update target service
+	tmpl["tsupdate"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
+		"templates/tsupdate.tmpl",
+	))
+
 	// upload page
 	tmpl["upload"] = template.Must(template.ParseFiles("templates/upload.tmpl",
 		"templates/base.tmpl",

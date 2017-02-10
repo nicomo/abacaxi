@@ -13,6 +13,42 @@ import (
 	"github.com/nicomo/abacaxi/views"
 )
 
+// createTSStructFromForm creates a TS struct from a form
+func createTSStructFromForm(r *http.Request) (models.TargetService, error) {
+	// init our Target Service struct
+	ts := models.TargetService{}
+
+	// used by gorilla schema to parse html forms
+	decoder := schema.NewDecoder()
+
+	// we parse the form
+	parseErr := r.ParseForm()
+	if parseErr != nil {
+		logger.Error.Println(parseErr)
+		return ts, parseErr
+	}
+
+	// r.PostForm is a map of our POST form values
+	// we create a struct from form
+	// but ignore the fields which do not exist in the struct
+	decoder.IgnoreUnknownKeys(true)
+	errDecode := decoder.Decode(&ts, r.PostForm)
+	if errDecode != nil {
+		logger.Error.Println(errDecode)
+		return ts, errDecode
+	}
+
+	// parse the csv conf part of the form manually
+	csvConf, ok := TargetServiceNewCSVConf(r.Form)
+	if !ok {
+		logger.Info.Printf("no csv conf created for TS %s", ts.TSName)
+	} else {
+		ts.TSCsvConf = csvConf
+	}
+
+	return ts, nil
+}
+
 // csvConfConvert swaps keys and values of the TSCSVConf struct
 func csvConfConvert(c models.TSCSVConf) map[int]string {
 
@@ -117,6 +153,63 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	d["TSListing"] = TSListing
 
 	views.RenderTmpl(w, "targetservice", d)
+}
+
+// TargetServiceUpdateGetHandler fills the update form for a Target Service
+func TargetServiceUpdateGetHandler(w http.ResponseWriter, r *http.Request) {
+
+	tsname := r.URL.Path[len("/package/update/"):]
+
+	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	d := make(map[string]interface{})
+
+	// retrieve Target Service Struct
+	myTS, err := models.GetTargetService(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	d["myTS"] = myTS
+
+	// list of TS appearing in menu
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+
+	views.RenderTmpl(w, "tsupdate", d)
+}
+
+// TargetServiceUpdatePostHandler updates a target service
+func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
+	tsname := r.URL.Path[len("/package/update/"):]
+	d := make(map[string]interface{})
+
+	ts, formErr := createTSStructFromForm(r)
+	if formErr != nil {
+		d["tsUpdateErr"] = formErr
+		logger.Error.Println(formErr)
+		views.RenderTmpl(w, "tsupdate", d)
+		return
+	}
+
+	tsToUpdate, tsToUpdateErr := models.GetTargetService(tsname)
+	if tsToUpdateErr != nil {
+		logger.Error.Println(tsToUpdateErr)
+		d["tsUpdateErr"] = tsToUpdateErr
+		views.RenderTmpl(w, "tsupdate", d)
+		return
+	}
+
+	ts.ID = tsToUpdate.ID
+
+	err := models.TSUpdate(ts)
+	if err != nil {
+		d["tsUpdateErr"] = err
+		logger.Error.Println(err)
+		views.RenderTmpl(w, "tsupdate", d)
+		return
+	}
+
+	http.Redirect(w, r, "/", 303)
 }
 
 // TargetServiceNewCSVConf  has the logic for parsing the new TS form and
@@ -227,33 +320,12 @@ func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
 func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	d := make(map[string]interface{})
 
-	// init our Target Service struct
-	ts := new(models.TargetService)
-
-	// used by gorilla schema to parse html forms
-	decoder := schema.NewDecoder()
-
-	// we parse the form
-	parseErr := r.ParseForm()
-	if parseErr != nil {
-		logger.Error.Println(parseErr)
-	}
-
-	// r.PostForm is a map of our POST form values
-	// we create a struct from form
-	// but ignore the fields which do not exist in the struct
-	decoder.IgnoreUnknownKeys(true)
-	errDecode := decoder.Decode(ts, r.PostForm)
-	if errDecode != nil {
-		logger.Error.Println(errDecode)
-	}
-
-	// parse the csv conf part of the form manually
-	csvConf, ok := TargetServiceNewCSVConf(r.Form)
-	if !ok {
-		logger.Info.Printf("no csv conf created for TS %s", ts.TSName)
-	} else {
-		ts.TSCsvConf = csvConf
+	ts, formErr := createTSStructFromForm(r)
+	if formErr != nil {
+		d["tsCreateErr"] = formErr
+		logger.Error.Println(formErr)
+		views.RenderTmpl(w, "targetservicenewget", d)
+		return
 	}
 
 	err := models.TSCreate(ts)
