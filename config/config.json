@@ -1,0 +1,5 @@
+{
+	"hostname": "http://localhost:8080/",
+	"mongodbhosts": "localhost:27017",
+	"authdatabase": "abacaxidb"
+}

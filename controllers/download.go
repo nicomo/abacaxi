@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/nicomo/abacaxi/config"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 )
@@ -26,6 +27,9 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	param := vars["param"]
 	matchXML, _ := regexp.MatchString(".xml$", param)
 	matchZIP, _ := regexp.MatchString(".zip$", param)
+
+	// hostname from configuration
+	conf := config.GetConfig()
 
 	if matchXML {
 		ebkID := param[:len(param)-4]
@@ -58,8 +62,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			Transport: transport,
 		}
 
-		// FIXME: url should not be hardcoded
-		resp, err := client.Get("http://localhost:8080/static/downloads/" + param)
+		resp, err := client.Get(conf.Hostname + "/static/downloads/" + param)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -120,8 +123,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 			Transport: transport,
 		}
 
-		// FIXME: url should not be hardcoded
-		resp, err := client.Get("http://localhost:8080/static/downloads/" + tsname + ".xml")
+		resp, err := client.Get(conf.Hostname + "/static/downloads/" + tsname + ".xml")
 		if err != nil {
 			fmt.Println(err)
 		}
