@@ -241,9 +241,9 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 		existingRecord, err := EbookGetByIsbns(isbnsToQuery)
 		if err != nil { // we don't: none of the isbns were found in DB
 			// let's create a new record
-			ebkCreateErr := EbookCreate(record)
-			if ebkCreateErr != nil {
-				logger.Error.Println(ebkCreateErr)
+			ErrEbkCreate := EbookCreate(record)
+			if ErrEbkCreate != nil {
+				logger.Error.Println(ErrEbkCreate)
 			}
 			createdCounter++
 			continue
@@ -263,9 +263,9 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 		record.RecordMarc21 = existingRecord.RecordMarc21
 
 		// save to DB
-		_, updateErr := EbookUpdate(record)
-		if updateErr != nil {
-			logger.Error.Println(updateErr)
+		_, ErrEbkUpdate := EbookUpdate(record)
+		if ErrEbkUpdate != nil {
+			logger.Error.Println(ErrEbkUpdate)
 		}
 		updatedCounter++
 	}

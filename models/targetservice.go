@@ -155,8 +155,8 @@ func TSCreate(ts TargetService) error {
 	if err != nil {
 		logger.Error.Println(err)
 		if mgo.IsDup(err) { // this Target service already exists in DB
-			tsIsDupErr := errors.New("Target service " + ts.TSName + " already exists")
-			return tsIsDupErr
+			ErrTSIsDup := errors.New("Target service " + ts.TSName + " already exists")
+			return ErrTSIsDup
 		}
 		return err
 	}

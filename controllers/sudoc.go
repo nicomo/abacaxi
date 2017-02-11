@@ -37,10 +37,10 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 	myEbook.Ppns = result.PPNs
 
 	// actually save updated ebook struct to DB
-	var ebkUpdateErr error
-	myEbook, ebkUpdateErr = models.EbookUpdate(myEbook)
-	if ebkUpdateErr != nil {
-		logger.Error.Println(ebkUpdateErr)
+	var ErrEbkUpdate error
+	myEbook, ErrEbkUpdate = models.EbookUpdate(myEbook)
+	if ErrEbkUpdate != nil {
+		logger.Error.Println(ErrEbkUpdate)
 	}
 
 	// redirect to book detail page
@@ -116,10 +116,10 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 			myEbook.RecordUnimarc = record
 
 			// actually save updated ebook struct to DB
-			var ebkUpdateErr error
-			myEbook, ebkUpdateErr = models.EbookUpdate(myEbook)
-			if ebkUpdateErr != nil {
-				logger.Error.Println(ebkUpdateErr)
+			var ErrEbkUpdate error
+			myEbook, ErrEbkUpdate = models.EbookUpdate(myEbook)
+			if ErrEbkUpdate != nil {
+				logger.Error.Println(ErrEbkUpdate)
 			}
 
 			if len(myEbook.RecordUnimarc) > 0 {

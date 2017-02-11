@@ -27,9 +27,9 @@ func GetConfig() Conf {
 
 	// unmarshal json into a config struct
 	config := Conf{}
-	jsonUnmarshalErr := json.Unmarshal(file, &config)
-	if jsonUnmarshalErr != nil {
-		logger.Error.Println(jsonUnmarshalErr)
+	ErrJSONUnmarshal := json.Unmarshal(file, &config)
+	if ErrJSONUnmarshal != nil {
+		logger.Error.Println(ErrJSONUnmarshal)
 		os.Exit(1)
 	}
 

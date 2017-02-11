@@ -54,9 +54,9 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// create dir if it doesn't exist
 	path := "data"
-	pathErr := os.MkdirAll("data", os.ModePerm)
-	if pathErr != nil {
-		logger.Error.Println(pathErr)
+	ErrPath := os.MkdirAll("data", os.ModePerm)
+	if ErrPath != nil {
+		logger.Error.Println(ErrPath)
 	}
 
 	fpath := path + "/" + handler.Filename
@@ -79,18 +79,18 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.Error.Println(err)
 		}
-		createdCounter, updatedCounter, createUpdateErr := models.EbooksCreateOrUpdate(csvRecords)
-		if createUpdateErr != nil {
-			logger.Error.Println("EbooksCreateOrUpdate error: ", createUpdateErr)
+		createdCounter, updatedCounter, ErrCreateUpdate := models.EbooksCreateOrUpdate(csvRecords)
+		if ErrCreateUpdate != nil {
+			logger.Error.Println("EbooksCreateOrUpdate error: ", ErrCreateUpdate)
 		}
 
 		userM["createdCounter"] = strconv.Itoa(createdCounter)
 		userM["updatedCounter"] = strconv.Itoa(updatedCounter)
 
 		// update the target service with last update date
-		tsUpdateErr := models.TSUpdate(myTS)
-		if tsUpdateErr != nil {
-			logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, tsUpdateErr)
+		ErrTSUpdate := models.TSUpdate(myTS)
+		if ErrTSUpdate != nil {
+			logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, ErrTSUpdate)
 		}
 
 		// list of TS appearing in menu
@@ -105,16 +105,16 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.Error.Println(err)
 		}
-		createdCounter, updatedCounter, createUpdateErr := models.EbooksCreateOrUpdate(xmlRecords)
-		if createUpdateErr != nil {
-			logger.Error.Println("EbooksCreateOrUpdate error: ", createUpdateErr)
+		createdCounter, updatedCounter, ErrCreateUpdate := models.EbooksCreateOrUpdate(xmlRecords)
+		if ErrCreateUpdate != nil {
+			logger.Error.Println("EbooksCreateOrUpdate error: ", ErrCreateUpdate)
 		}
 		userM["createdCounter"] = strconv.Itoa(createdCounter)
 		userM["updatedCounter"] = strconv.Itoa(updatedCounter)
 
-		tsUpdateErr := models.TSUpdate(myTS)
-		if tsUpdateErr != nil {
-			logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, tsUpdateErr)
+		ErrTSUpdate := models.TSUpdate(myTS)
+		if ErrTSUpdate != nil {
+			logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, ErrTSUpdate)
 		}
 
 		// list of TS appearing in menu

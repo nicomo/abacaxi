@@ -46,9 +46,9 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		ebks = append(ebks, myEbook)
 
 		// create the downloadable file
-		fileSize, createFileErr := models.CreateUnimarcFile(ebks, param)
-		if createFileErr != nil {
-			logger.Error.Println(createFileErr)
+		fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, param)
+		if ErrCreateFile != nil {
+			logger.Error.Println(ErrCreateFile)
 		}
 
 		//TODO: abstract in own func (2)
@@ -81,9 +81,9 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		// make sure download went OK, then delete file on server
 		if fileSize == written {
 			// FIXME: url should not be hardcoded
-			fDeleteError := os.Remove("./static/downloads/" + param)
-			if fDeleteError != nil {
-				logger.Error.Println(fDeleteError)
+			ErrFDelete := os.Remove("./static/downloads/" + param)
+			if ErrFDelete != nil {
+				logger.Error.Println(ErrFDelete)
 			}
 		}
 
@@ -105,9 +105,9 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// create the downloadable file
-		fileSize, createFileErr := models.CreateUnimarcFile(ebks, tsname+".xml")
-		if createFileErr != nil {
-			logger.Error.Println(createFileErr)
+		fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, tsname+".xml")
+		if ErrCreateFile != nil {
+			logger.Error.Println(ErrCreateFile)
 		}
 
 		// TODO: zip the downloadable file if size too big: > 1*10^6 (i.e. 1Mo)
@@ -143,9 +143,9 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		if fileSize == written {
 			logger.Debug.Printf("filesize: %d - written: %d", fileSize, written)
 			// FIXME: url should not be hardcoded
-			fDeleteError := os.Remove("./static/downloads/" + tsname + ".xml")
-			if fDeleteError != nil {
-				logger.Error.Println(fDeleteError)
+			ErrFDelete := os.Remove("./static/downloads/" + tsname + ".xml")
+			if ErrFDelete != nil {
+				logger.Error.Println(ErrFDelete)
 			}
 		}
 	}

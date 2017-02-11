@@ -36,8 +36,8 @@ func Search(r *http.Request) ([]Ebook, string, error) {
 
 	//TODO: sort by relevance. See https://docs.mongodb.com/manual/reference/operator/query/text/#sort-by-text-search-score
 	// execute query
-	findErr := coll.Find(qry).Limit(200).All(&results)
-	if findErr != nil {
+	ErrFind := coll.Find(qry).Limit(200).All(&results)
+	if ErrFind != nil {
 		return results, qryString, err
 	}
 

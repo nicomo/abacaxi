@@ -47,11 +47,11 @@ func csvIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 	}
 
 	// save cleaned copy of csv file
-	userM, csvSaveProcessedErr := csvSaveProcessed(csvData, tsname, userM)
-	if csvSaveProcessedErr != nil {
-		logger.Error.Println("couldn't save processed CSV", csvSaveProcessedErr)
-		userM["err"] = csvSaveProcessedErr
-		return nil, myTargetService, userM, csvSaveProcessedErr
+	userM, ErrCsvSaveProcessed := csvSaveProcessed(csvData, tsname, userM)
+	if ErrCsvSaveProcessed != nil {
+		logger.Error.Println("couldn't save processed CSV", ErrCsvSaveProcessed)
+		userM["err"] = ErrCsvSaveProcessed
+		return nil, myTargetService, userM, ErrCsvSaveProcessed
 	}
 
 	// unmarshall csv records into ebook structs
@@ -242,8 +242,8 @@ func csvUnmarshall(recordIn CSVRecord, myTargetService models.TargetService) mod
 		ebk.Authors = append(ebk.Authors, aut)
 	}
 	ebk.Publisher = recordIn.publisher
-	Isbn := models.Isbn{recordIn.isbn, false}  // print isbn, not electronic
-	Eisbn := models.Isbn{recordIn.eisbn, true} // eisbn, electronic
+	Isbn := models.Isbn{Isbn: recordIn.isbn, Electronic: false}  // print isbn, not electronic
+	Eisbn := models.Isbn{Isbn: recordIn.eisbn, Electronic: true} // eisbn, electronic
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.title
 	ebk.Pubdate = recordIn.pubdate

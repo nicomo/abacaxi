@@ -8,8 +8,8 @@
 
 			<h2>Update {{ .myTS.TSDisplayName }}</h2>
 
-			{{ if .tsUpdateErr }}
-				<p class="bg-danger">{{ .tsUpdateErr }}</p>
+			{{ if .ErrTSUpdate }}
+				<p class="bg-danger">{{ .ErrTSUpdate }}</p>
 			{{ end }}
 
 			<form class="form-horizontal" action="/package/update/{{ .myTS.TSName }}" method="post">

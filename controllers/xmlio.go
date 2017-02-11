@@ -74,10 +74,10 @@ func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 	// save a server copy of source xml file
 	t := time.Now()
 	dst := "./data/" + tsname + "Processed" + t.Format("20060102150405") + ".xml"
-	xmlSaveCopyErr := xmlSaveCopy(dst, filename)
-	if xmlSaveCopyErr != nil {
-		logger.Error.Println(xmlSaveCopyErr)
-		return ebooks, myTargetService, userM, xmlSaveCopyErr
+	ErrXMLSaveCopy := xmlSaveCopy(dst, filename)
+	if ErrXMLSaveCopy != nil {
+		logger.Error.Println(ErrXMLSaveCopy)
+		return ebooks, myTargetService, userM, ErrXMLSaveCopy
 	}
 
 	// logging + user message with result of save copy
@@ -104,8 +104,8 @@ func xmlUnmarshall(recordIn XMLRecord, myTargetService models.TargetService) mod
 	for _, aut := range recordIn.Authors {
 		ebk.Authors = append(ebk.Authors, aut)
 	}
-	Isbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), false}  // print isbn, not electronic
-	Eisbn := models.Isbn{strings.Trim(strings.Replace(recordIn.Eisbn, "-", "", -1), " "), true} // eisbn, electronic
+	Isbn := models.Isbn{Isbn: strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), Electronic: false}  // print isbn, not electronic
+	Eisbn := models.Isbn{Isbn: strings.Trim(strings.Replace(recordIn.Eisbn, "-", "", -1), " "), Electronic: true} // eisbn, electronic
 	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
 	ebk.Title = recordIn.Title
 	ebk.SFXLastHarvest = time.Now()
@@ -138,15 +138,15 @@ func xmlSaveCopy(dst, src string) error {
 	defer out.Close()
 
 	// do the actual copy
-	_, copyErr := io.Copy(out, in)
-	if copyErr != nil {
-		logger.Error.Println(copyErr)
-		return copyErr
+	_, ErrCopy := io.Copy(out, in)
+	if ErrCopy != nil {
+		logger.Error.Println(ErrCopy)
+		return ErrCopy
 	}
-	closeErr := out.Close()
-	if closeErr != nil {
-		logger.Error.Println(closeErr)
-		return closeErr
+	ErrClose := out.Close()
+	if ErrClose != nil {
+		logger.Error.Println(ErrClose)
+		return ErrClose
 	}
 
 	return nil

@@ -12,7 +12,7 @@ import (
 )
 
 // createTSStructFromForm creates a TS struct from a form
-func createTSStructFromForm(r *http.Request) (models.TargetService, error) {
+func createTSStructFromForm(r *http.Request) (models.TargetService, bool, error) {
 	// init our Target Service struct
 	ts := models.TargetService{}
 
@@ -20,10 +20,10 @@ func createTSStructFromForm(r *http.Request) (models.TargetService, error) {
 	decoder := schema.NewDecoder()
 
 	// we parse the form
-	parseErr := r.ParseForm()
-	if parseErr != nil {
-		logger.Error.Println(parseErr)
-		return ts, parseErr
+	ErrParse := r.ParseForm()
+	if ErrParse != nil {
+		logger.Error.Println(ErrParse)
+		return ts, false, ErrParse
 	}
 
 	// r.PostForm is a map of our POST form values
@@ -33,18 +33,19 @@ func createTSStructFromForm(r *http.Request) (models.TargetService, error) {
 	errDecode := decoder.Decode(&ts, r.PostForm)
 	if errDecode != nil {
 		logger.Error.Println(errDecode)
-		return ts, errDecode
+		return ts, false, errDecode
 	}
 
 	// parse the csv conf part of the form manually
 	csvConf, ok := TargetServiceNewCSVConf(r.Form)
 	if !ok {
 		logger.Info.Printf("no csv conf created for TS %s", ts.TSName)
-	} else {
-		ts.TSCsvConf = csvConf
+		return ts, false, nil // false : there's no csvconf for this Target Service
 	}
 
-	return ts, nil
+	ts.TSCsvConf = csvConf
+
+	return ts, true, nil
 }
 
 // TargetServiceHandler retrieves the ebooks linked to a Target Service
@@ -128,18 +129,27 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	tsname := r.URL.Path[len("/package/update/"):]
 	d := make(map[string]interface{})
 
-	ts, formErr := createTSStructFromForm(r)
-	if formErr != nil {
-		d["tsUpdateErr"] = formErr
-		logger.Error.Println(formErr)
+	ts, hasCSV, ErrForm := createTSStructFromForm(r)
+	if ErrForm != nil || ts.DisplayName == "" {
+		d["ErrTSUpdate"] = ErrForm
+		logger.Error.Println(ErrForm)
 		views.RenderTmpl(w, "tsupdate", d)
 		return
 	}
 
-	tsToUpdate, tsToUpdateErr := models.GetTargetService(tsname)
-	if tsToUpdateErr != nil {
-		logger.Error.Println(tsToUpdateErr)
-		d["tsUpdateErr"] = tsToUpdateErr
+	if hasCSV {
+		if !csvConfValidate(ts.TSCsvConf) {
+			csvConfNotValid := "csv configuration not valid : should have a title and isbn/e-isbn"
+			d["ErrTSUpdate"] = csvConfNotValid
+			views.RenderTmpl(w, "tsupdate", d)
+			return
+		}
+	}
+
+	tsToUpdate, ErrTsToUpdate := models.GetTargetService(tsname)
+	if ErrTsToUpdate != nil {
+		logger.Error.Println(ErrTsToUpdate)
+		d["ErrTSUpdate"] = ErrTsToUpdate
 		views.RenderTmpl(w, "tsupdate", d)
 		return
 	}
@@ -148,13 +158,14 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := models.TSUpdate(ts)
 	if err != nil {
-		d["tsUpdateErr"] = err
+		d["ErrTSUpdate"] = err
 		logger.Error.Println(err)
 		views.RenderTmpl(w, "tsupdate", d)
 		return
 	}
 
-	http.Redirect(w, r, "/", 303)
+	redirectURL := "/package/" + tsname
+	http.Redirect(w, r, redirectURL, 303)
 }
 
 // TargetServiceNewCSVConf  has the logic for parsing the new TS form and
@@ -248,10 +259,6 @@ func TargetServiceNewCSVConf(form url.Values) (models.TSCSVConf, bool) {
 		return conf, false
 	}
 
-	if !csvConfValidate(conf) {
-		return conf, false
-	}
-
 	return conf, true
 }
 
@@ -269,12 +276,21 @@ func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
 func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	d := make(map[string]interface{})
 
-	ts, formErr := createTSStructFromForm(r)
-	if formErr != nil {
-		d["tsCreateErr"] = formErr
-		logger.Error.Println(formErr)
+	ts, hasCSV, ErrForm := createTSStructFromForm(r)
+	if ErrForm != nil {
+		d["tsCreateErr"] = ErrForm
+		logger.Error.Println(ErrForm)
 		views.RenderTmpl(w, "targetservicenewget", d)
 		return
+	}
+
+	if hasCSV {
+		if !csvConfValidate(ts.TSCsvConf) {
+			csvConfNotValid := "csv configuration not valid : should have a title and isbn/e-isbn"
+			d["tsCreateErr"] = csvConfNotValid
+			views.RenderTmpl(w, "targetservicenewget", d)
+			return
+		}
 	}
 
 	err := models.TSCreate(ts)
@@ -314,9 +330,9 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			v.Active = true
 		}
-		_, vUpdateErr := models.EbookUpdate(v)
-		if vUpdateErr != nil {
-			logger.Error.Printf("can't update record %v: %v", v.ID, vUpdateErr)
+		_, ErrEbkUpdate := models.EbookUpdate(v)
+		if ErrEbkUpdate != nil {
+			logger.Error.Printf("can't update record %v: %v", v.ID, ErrEbkUpdate)
 		}
 	}
 
@@ -328,9 +344,9 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save TS to DB
-	tsUpdateErr := models.TSUpdate(myTS)
-	if tsUpdateErr != nil {
-		logger.Error.Println(tsUpdateErr)
+	ErrTSUpdate := models.TSUpdate(myTS)
+	if ErrTSUpdate != nil {
+		logger.Error.Println(ErrTSUpdate)
 	}
 
 	// refresh TS page

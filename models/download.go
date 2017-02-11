@@ -13,8 +13,8 @@ func CreateUnimarcFile(ebks []Ebook, fname string) (int64, error) {
 
 	// create dirs if they don't exist
 	path := filepath.Join("static", "downloads")
-	pathErr := os.MkdirAll(path, os.ModePerm)
-	if pathErr != nil {
+	ErrPath := os.MkdirAll(path, os.ModePerm)
+	if ErrPath != nil {
 		logger.Error.Println(path)
 	}
 
@@ -28,28 +28,28 @@ func CreateUnimarcFile(ebks []Ebook, fname string) (int64, error) {
 
 	// get a buffered writer and write to file
 	w := bufio.NewWriter(f)
-	_, writeHeaderErr := w.WriteString("<?xml version=\"1.0\"?>\n")
-	if writeHeaderErr != nil {
-		logger.Error.Println(writeHeaderErr)
-		return 0, writeHeaderErr
+	_, ErrWriteHeader := w.WriteString("<?xml version=\"1.0\"?>\n")
+	if ErrWriteHeader != nil {
+		logger.Error.Println(ErrWriteHeader)
+		return 0, ErrWriteHeader
 	}
 
 	// write each marc record in turn
 	for _, ebk := range ebks {
-		_, writeRecordErr := w.WriteString(ebk.RecordUnimarc)
-		if writeRecordErr != nil {
-			logger.Error.Println(writeRecordErr)
-			return 0, writeRecordErr
+		_, ErrWriteRecord := w.WriteString(ebk.RecordUnimarc)
+		if ErrWriteRecord != nil {
+			logger.Error.Println(ErrWriteRecord)
+			return 0, ErrWriteRecord
 		}
 	}
 
 	w.Flush() // flush the buffer
 
 	// get & return the size of the written file
-	fi, fileInfoErr := f.Stat()
-	if fileInfoErr != nil {
-		logger.Error.Println("couldn't get file info: ", fileInfoErr)
-		return 0, fileInfoErr
+	fi, ErrFileInfo := f.Stat()
+	if ErrFileInfo != nil {
+		logger.Error.Println("couldn't get file info: ", ErrFileInfo)
+		return 0, ErrFileInfo
 	}
 	fs := fi.Size()
 

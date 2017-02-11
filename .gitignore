@@ -26,7 +26,6 @@ _testmain.go
 *.prof
 
 # specific files
-controllers/csvio/ERMetadataHub_log.txt
-ERMetadataHub_log.txt
 abacaxi
 testfile_cyberlibris_15.csv
+abacaxi_log.txt

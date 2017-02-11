@@ -18,7 +18,7 @@ var (
 func init() {
 
 	// set up log parameters
-	logfile, logfileErr := os.OpenFile("ERMetadataHub_log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logfile, logfileErr := os.OpenFile("abacaxi_log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if logfileErr != nil {
 		log.Fatalln("Failed to open error log file: ", logfileErr)
 	}

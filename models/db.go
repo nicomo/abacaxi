@@ -48,9 +48,9 @@ func init() {
 		Sparse:     true,
 	}
 
-	tsCollIndexErr := tsColl.EnsureIndex(tsIndex)
-	if tsCollIndexErr != nil {
-		panic(tsCollIndexErr)
+	ErrTSCollIndex := tsColl.EnsureIndex(tsIndex)
+	if ErrTSCollIndex != nil {
+		panic(ErrTSCollIndex)
 	}
 
 	// create the ebooks collection with a compound text index
@@ -64,9 +64,9 @@ func init() {
 		Sparse:     false,
 	}
 
-	ebkIndexErr := ebkColl.EnsureIndex(ebkIndex)
-	if ebkIndexErr != nil {
-		logger.Error.Println(ebkIndexErr)
+	ErrEbkIndex := ebkColl.EnsureIndex(ebkIndex)
+	if ErrEbkIndex != nil {
+		logger.Error.Println(ErrEbkIndex)
 	}
 
 }

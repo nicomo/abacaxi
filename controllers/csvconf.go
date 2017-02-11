@@ -5,7 +5,29 @@ import (
 	"sort"
 
 	"github.com/nicomo/abacaxi/models"
+
+	"github.com/nicomo/abacaxi/logger"
 )
+
+// csvConf2String returns the csvConf as a string to be displayed in UI
+func csvConf2String(c map[int]string) string {
+
+	var csvConfString string
+
+	// To store the keys in slice in sorted order
+	var keys []int
+	for k := range c {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+
+	// To perform the opertion you want
+	for _, k := range keys {
+		csvConfString += c[k] + "; "
+	}
+
+	return csvConfString
+}
 
 // csvConfConvert swaps keys and values of the TSCSVConf struct
 func csvConfConvert(c models.TSCSVConf) map[int]string {
@@ -40,30 +62,12 @@ func csvConfGetNFields(c models.TSCSVConf) int {
 	return len(m)
 }
 
-// csvConf2String returns the csvConf as a string to be displayed in UI
-func csvConf2String(c map[int]string) string {
-
-	var csvConfString string
-
-	// To store the keys in slice in sorted order
-	var keys []int
-	for k := range c {
-		keys = append(keys, k)
-	}
-	sort.Ints(keys)
-
-	// To perform the opertion you want
-	for _, k := range keys {
-		csvConfString += c[k] + "; "
-	}
-
-	return csvConfString
-}
-
 // csvConfValidate checks that the required fields are there
 func csvConfValidate(c models.TSCSVConf) bool {
 	if (c.Isbn == 0 && c.Eisbn == 0) || c.Title == 0 {
+		logger.Debug.Println("csvConfValidate false")
 		return false
 	}
+	logger.Debug.Println("csvConfValidate true")
 	return true
 }
