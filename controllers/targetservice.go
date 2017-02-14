@@ -129,18 +129,30 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	tsname := r.URL.Path[len("/package/update/"):]
 	d := make(map[string]interface{})
 
+	// list of TS appearing in menu
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+
 	ts, hasCSV, ErrForm := createTSStructFromForm(r)
-	if ErrForm != nil || ts.DisplayName == "" {
+	if ErrForm != nil {
 		d["ErrTSUpdate"] = ErrForm
 		logger.Error.Println(ErrForm)
 		views.RenderTmpl(w, "tsupdate", d)
 		return
 	}
 
+	if ts.TSDisplayName == "" {
+		d["ErrTSUpdate"] = "Display name can't be empty for TS " + tsname
+		logger.Info.Println("Display name can't be empty for TS " + tsname)
+		views.RenderTmpl(w, "tsupdate", d)
+		return
+	}
+
 	if hasCSV {
 		if !csvConfValidate(ts.TSCsvConf) {
-			csvConfNotValid := "csv configuration not valid : should have a title and isbn/e-isbn"
+			csvConfNotValid := "csv configuration not valid for TS " + tsname + " : should have a title and isbn/e-isbn"
 			d["ErrTSUpdate"] = csvConfNotValid
+			logger.Info.Println(csvConfNotValid)
 			views.RenderTmpl(w, "tsupdate", d)
 			return
 		}
