@@ -13,8 +13,18 @@
 				</ul>
 			{{ else }}
 				<h2>&#127821; is empty</h2>
-				<p>Start by creating a Target Service, then upload a source file.</p>
-			{{ end }}<p></p>
+				<h4>Start by creating a <a href="/packagenew">New Target Service</a></h4>
+				<p>A Target Service here has roughly the same meaning as in SFX, i.e. it's a <mark>package from a provider</mark>, e.g. Springer Mathematics Ebooks.<br>
+					If you want to (it's optional), you can specify that you have CSV files for that package and tell how it's structured.</p>
+				<h4>Upload records</h4>
+				<p>You'll then be able to upload a source file, i.e. a list of records (objects in SFX parlance). Records in a given file have to all be part of a given Target Service.<br>
+					You can upload
+					<ul>
+						<li>.csv files, if a .csv format has been specified for that particular Target Service</li>
+						<li>.xml files has exporter from SFX</li>
+					</ul> 
+				</p>
+			{{ end }}
 		</div>
 	</body>
 {{end}}

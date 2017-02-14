@@ -55,7 +55,6 @@ func csvIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 	}
 
 	// unmarshall csv records into ebook structs
-	//FIXME: creation of isbns is not correct, with results like [{ false} {9781607807582 true}]
 	ebooks := []models.Ebook{}
 	for _, record := range csvData {
 		ebook := csvUnmarshall(record, myTargetService)
@@ -104,7 +103,7 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 			panic(err)
 		}
 
-		// if row not if the expected length, move on
+		// if row not of the expected length, move on
 		if len(record) != reader.FieldsPerRecord {
 			logger.Info.Printf("parsing line %d failed: invalid length of %d, expected 10\n", line, len(record))
 			rejectedLines = append(rejectedLines, line)
@@ -117,39 +116,41 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 		authors := make([]string, 0)
 
 		for i, value := range record {
-
 			if value == "" { // if value is empty, move on to next field
 				continue
-			} else if !utf8.ValidString(value) { // encoding issue, not utf-8
+			}
+
+			if !utf8.ValidString(value) { // encoding issue, not utf-8
 				logger.Info.Printf("parsing line %d failed: not utf-8 encoded", line)
 				break
-			} else { // value not empty, save in struct
-				switch i {
-				// csvConf is indexed from 1, 0 being the nil value
-				case csvConf.Publisher - 1:
-					csvRecord.publisher = value
-				case csvConf.Title - 1:
-					csvRecord.title = value
-				case csvConf.Isbn - 1:
-					// clean isbn, remove spaces & dashes
-					csvRecord.isbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
-					isbnCount++
-				case csvConf.Eisbn - 1:
-					csvRecord.eisbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
-					eisbnCount++
-				case csvConf.Pubdate - 1:
-					csvRecord.pubdate = value
-				case csvConf.URL - 1:
-					csvRecord.url = value
-				case csvConf.Lang - 1:
-					csvRecord.lang = value
-				}
+			}
 
-				// authors are in a slice
-				for j := 0; j < len(csvConf.Authors); j++ {
-					if i == csvConf.Authors[j] {
-						authors = append(authors, value)
-					}
+			// value not empty, save in struct
+			switch i {
+			// csvConf is indexed from 1, 0 being the nil value
+			case csvConf.Publisher - 1:
+				csvRecord.publisher = value
+			case csvConf.Title - 1:
+				csvRecord.title = value
+			case csvConf.Isbn - 1:
+				// clean isbn, remove spaces & dashes
+				csvRecord.isbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
+				isbnCount++
+			case csvConf.Eisbn - 1:
+				csvRecord.eisbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
+				eisbnCount++
+			case csvConf.Pubdate - 1:
+				csvRecord.pubdate = value
+			case csvConf.URL - 1:
+				csvRecord.url = value
+			case csvConf.Lang - 1:
+				csvRecord.lang = value
+			}
+
+			// authors are in a slice
+			for j := 0; j < len(csvConf.Authors); j++ {
+				if i+1 == csvConf.Authors[j] {
+					authors = append(authors, value)
 				}
 			}
 		}
@@ -176,9 +177,11 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 	userM["parsedLog"] = parsedLog
 
 	// log lines rejected
-	rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
-	logger.Info.Println(rejectedLinesLog)
-	userM["rejectedLinesLog"] = rejectedLinesLog
+	if len(rejectedLines) > 0 {
+		rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
+		logger.Info.Println(rejectedLinesLog)
+		userM["rejectedLinesLog"] = rejectedLinesLog
+	}
 
 	return csvData, userM, nil
 }
@@ -242,9 +245,14 @@ func csvUnmarshall(recordIn CSVRecord, myTargetService models.TargetService) mod
 		ebk.Authors = append(ebk.Authors, aut)
 	}
 	ebk.Publisher = recordIn.publisher
-	Isbn := models.Isbn{Isbn: recordIn.isbn, Electronic: false}  // print isbn, not electronic
-	Eisbn := models.Isbn{Isbn: recordIn.eisbn, Electronic: true} // eisbn, electronic
-	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
+	if recordIn.isbn != "" {
+		Isbn := models.Isbn{Isbn: recordIn.isbn, Electronic: false} // print isbn, not electronic
+		ebk.Isbns = append(ebk.Isbns, Isbn)
+	}
+	if recordIn.eisbn != "" {
+		Eisbn := models.Isbn{Isbn: recordIn.eisbn, Electronic: true} // eisbn, electronic
+		ebk.Isbns = append(ebk.Isbns, Eisbn)
+	}
 	ebk.Title = recordIn.title
 	ebk.Pubdate = recordIn.pubdate
 	ebk.Lang = recordIn.lang
