@@ -1,15 +1,45 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 	"github.com/nicomo/abacaxi/views"
 )
+
+// getSkipInts takes the number of records in a result
+// returns the recors to skip to when we split the result set  in chunks of n
+func getSkipInts(count int) []int {
+	var skip []int
+	for i := 1; i <= count/20; i++ { //TODO: 200 rather than 20
+		skip = append(skip, i)
+	}
+	sort.Ints(skip)
+	logger.Debug.Println(skip)
+	return skip
+}
+
+func getTSNameAndPage(r *http.Request) (string, int) {
+
+	// check if we have a tsname + page coming in the Request context
+	if ctxTSName, page, ok := fromContextPage(r.Context()); ok {
+		logger.Debug.Println(ctxTSName, page)
+		return ctxTSName, page
+	}
+
+	// the name of the target service we're interested in is in the router variables
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
+	return tsname, 0
+
+}
 
 // createTSStructFromForm creates a TS struct from a form
 func createTSStructFromForm(r *http.Request) (models.TargetService, bool, error) {
@@ -51,12 +81,14 @@ func createTSStructFromForm(r *http.Request) (models.TargetService, bool, error)
 // TargetServiceHandler retrieves the ebooks linked to a Target Service
 //  and various other info, e.g. number of library records linked, etc.
 func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
+
+	logger.Debug.Println(r)
+
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 
-	// package name is last part of the URL
-	tsname := r.URL.Path[len("/package/"):]
-	d["myPackage"] = tsname
+	tsname, page := getTSNameAndPage(r)
+	logger.Debug.Println(tsname, page)
 
 	// get the TS Struct from DB
 	myTS, err := models.GetTargetService(tsname)
@@ -77,6 +109,14 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	d["myPackageEbooksCount"] = count
 
 	if count > 0 { // no need to query for actual ebooks otherwise
+
+		// // if we need to paginate, get record skip integers, e.g. skip to records 20, 40, 60, etc;
+		// to be used by mgo.skip() to do a simple paginate
+		// NOTE: if we want to paginate in a cleaner way, see https://github.com/icza/minquery
+		if count > 20 {
+			skip := getSkipInts(count)
+			d["Pages"] = skip
+		}
 
 		// how many ebooks have marc records
 		nbRecordsUnimarc := models.TSCountRecordsUnimarc(tsname)
@@ -103,11 +143,14 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 
 // TargetServiceUpdateGetHandler fills the update form for a Target Service
 func TargetServiceUpdateGetHandler(w http.ResponseWriter, r *http.Request) {
-
-	tsname := r.URL.Path[len("/package/update/"):]
-
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
+
+	// the name of the target service we're interested in is in the router variables
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
+	d["myPackage"] = tsname
+	//	tsname := r.URL.Path[len("/package/update/"):]
 
 	// retrieve Target Service Struct
 	myTS, err := models.GetTargetService(tsname)
@@ -124,10 +167,36 @@ func TargetServiceUpdateGetHandler(w http.ResponseWriter, r *http.Request) {
 	views.RenderTmpl(w, "tsupdate", d)
 }
 
+// TargetServicePageHandler gets TS with list of books for page n
+func TargetServicePageHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	page, err := strconv.Atoi(vars["page"])
+	if err != nil {
+		logger.Error.Println(err)
+	}
+	tsname := vars["targetservice"]
+
+	// insert the page in the http.Request Context
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+	ctx = newContextPage(ctx, page)
+	ctx = newContextTSName(ctx, tsname)
+
+	logger.Debug.Println(ctx)
+	// redirect to upload get page
+	TargetServiceHandler(w, r.WithContext(ctx))
+
+}
+
 // TargetServiceUpdatePostHandler updates a target service
 func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
-	tsname := r.URL.Path[len("/package/update/"):]
+	//tsname := r.URL.Path[len("/package/update/"):]
 	d := make(map[string]interface{})
+
+	// the name of the target service we're interested in is in the router variables
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
+	d["myPackage"] = tsname
 
 	// list of TS appearing in menu
 	TSListing, _ := models.GetTargetServicesListing()
@@ -320,7 +389,10 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 
 	// package name is last part of the URL
-	tsname := r.URL.Path[len("/package/toggleactive/"):]
+	//	tsname := r.URL.Path[len("/package/toggleactive/"):]
+	// the name of the target service we're interested in is in the router variables
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
 
 	// retrieve Target Service Struct
 	myTS, err := models.GetTargetService(tsname)

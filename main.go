@@ -18,6 +18,7 @@ func main() {
 	router.HandleFunc("/ebook/delete/{ebookID}", controllers.EbookDeleteHandler)
 	router.HandleFunc("/search", controllers.SearchHandler)
 	router.HandleFunc("/package/{targetservice}", controllers.TargetServiceHandler)
+	router.HandleFunc("/package/{targetservice}/{page:[0-9]+}", controllers.TargetServicePageHandler)
 	router.HandleFunc("/package/toggleactive/{targetservice}", controllers.TargetServiceToggleActiveHandler)
 	router.HandleFunc("/package/update/{targetservice}", controllers.TargetServiceUpdateGetHandler).Methods("GET")
 	router.HandleFunc("/package/update/{targetservice}", controllers.TargetServiceUpdatePostHandler).Methods("POST")

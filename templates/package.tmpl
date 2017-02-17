@@ -43,6 +43,16 @@
 
 			{{ template "recordslist" . }}
 
+			{{ if .Pages }}
+				<div class="row">
+					<div class="col-md-4"></div>
+					<div class="col-md-4">
+						{{ range .Pages }} <a href="/package/cyberlibris/20">{{ . }}</a>{{ end }}
+					</div>
+					<div class="col-md-4"></div>
+				</div>
+				<p>&nbsp;</p>
+			{{ end }}	
 		</div>
 	</body>
 {{end}}
