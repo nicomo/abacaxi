@@ -43,16 +43,12 @@
 
 			{{ template "recordslist" . }}
 
-			{{ if .Pages }}
-				<div class="row">
-					<div class="col-md-4"></div>
-					<div class="col-md-4">
-						{{ range .Pages }} <a href="/package/cyberlibris/20">{{ . }}</a>{{ end }}
-					</div>
-					<div class="col-md-4"></div>
-				</div>
-				<p>&nbsp;</p>
-			{{ end }}	
+			<div class="row">
+				<div class="col-md-4 text-left">{{ if  .previous   }} <a href="/package/{{.myPackage}}/{{.previous}}">< Previous</a>{{ end }}</div>
+				<div class="col-md-4"></div>
+				<div class="col-md-4 text-right">{{ if .next  }} <a href="/package/{{.myPackage}}/{{.next}}">Next  ></a>{{ end }}</div>
+			</div>
+			<p>&nbsp;</p>
 		</div>
 	</body>
 {{end}}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -14,23 +13,32 @@ import (
 	"github.com/nicomo/abacaxi/views"
 )
 
-// getSkipInts takes the number of records in a result
+// getPrevNext takes the number of records in a result
 // returns the recors to skip to when we split the result set  in chunks of n
-func getSkipInts(count int) []int {
-	var skip []int
-	for i := 1; i <= count/20; i++ { //TODO: 200 rather than 20
-		skip = append(skip, i)
+func getPrevNext(page int, count int) (int, int) {
+
+	// small batch, no need to paginate
+	if count < 20 {
+		return 0, 0
 	}
-	sort.Ints(skip)
-	logger.Debug.Println(skip)
-	return skip
+
+	// at the end : next = 0, previous = page -20
+	if count-page < 20 {
+		return page - 40, 0
+	}
+
+	// at the beginning
+	if page-20 < 0 {
+		return -1, 40
+	}
+	return page - 20, page + 20
+
 }
 
 func getTSNameAndPage(r *http.Request) (string, int) {
 
 	// check if we have a tsname + page coming in the Request context
 	if ctxTSName, page, ok := fromContextPage(r.Context()); ok {
-		logger.Debug.Println(ctxTSName, page)
 		return ctxTSName, page
 	}
 
@@ -89,6 +97,7 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 
 	tsname, page := getTSNameAndPage(r)
 	logger.Debug.Println(tsname, page)
+	d["myPackage"] = tsname
 
 	// get the TS Struct from DB
 	myTS, err := models.GetTargetService(tsname)
@@ -113,10 +122,14 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		// // if we need to paginate, get record skip integers, e.g. skip to records 20, 40, 60, etc;
 		// to be used by mgo.skip() to do a simple paginate
 		// NOTE: if we want to paginate in a cleaner way, see https://github.com/icza/minquery
-		if count > 20 {
-			skip := getSkipInts(count)
-			d["Pages"] = skip
+		previous, next := getPrevNext(page, count)
+		if previous >= 0 {
+			d["previous"] = previous
 		}
+		if next != 0 {
+			d["next"] = next
+		}
+		logger.Debug.Println("Previous / Next", d["previous"], d["next"])
 
 		// how many ebooks have marc records
 		nbRecordsUnimarc := models.TSCountRecordsUnimarc(tsname)
