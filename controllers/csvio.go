@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -87,8 +88,6 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 	// counters to keep track of records parsed, for logging
 	line := 1
 	var rejectedLines []int
-	isbnCount := 1
-	eisbnCount := 1
 
 	for {
 		// read a row
@@ -109,59 +108,10 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 			rejectedLines = append(rejectedLines, line)
 		}
 
-		// one record for the row
-		var csvRecord CSVRecord
-
-		// authors are in a slice of string
-		authors := make([]string, 0)
-
-		for i, value := range record {
-			if value == "" { // if value is empty, move on to next field
-				continue
-			}
-
-			if !utf8.ValidString(value) { // encoding issue, not utf-8
-				logger.Info.Printf("parsing line %d failed: not utf-8 encoded", line)
-				break
-			}
-
-			// value not empty, save in struct
-			switch i {
-			// csvConf is indexed from 1, 0 being the nil value
-			case csvConf.Publisher - 1:
-				csvRecord.publisher = value
-			case csvConf.Title - 1:
-				csvRecord.title = value
-			case csvConf.Isbn - 1:
-				// clean isbn, remove spaces & dashes
-				csvRecord.isbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
-				isbnCount++
-			case csvConf.Eisbn - 1:
-				csvRecord.eisbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
-				eisbnCount++
-			case csvConf.Pubdate - 1:
-				csvRecord.pubdate = value
-			case csvConf.URL - 1:
-				csvRecord.url = value
-			case csvConf.Lang - 1:
-				csvRecord.lang = value
-			}
-
-			// authors are in a slice
-			for j := 0; j < len(csvConf.Authors); j++ {
-				if i+1 == csvConf.Authors[j] {
-					authors = append(authors, value)
-				}
-			}
-		}
-
-		// write the authors slice to the record
-		csvRecord.authors = authors
-
-		// if the record has neither an isbn nor an eisbn, not worth saving
-		if csvRecord.eisbn == "" && csvRecord.isbn == "" {
+		csvRecord, err := csvParseRow(record, csvConf)
+		if err != nil {
+			logger.Error.Printf("line %d: %v", line, err)
 			rejectedLines = append(rejectedLines, line)
-			continue
 		}
 
 		// add this particular record to the slice
@@ -172,7 +122,7 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 	}
 
 	// log number of records successfully parsed
-	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s - CSV contained %d isbn and %d eisbn", len(csvData), filename, isbnCount, eisbnCount)
+	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s", len(csvData), filename)
 	logger.Info.Print(parsedLog)
 	userM["parsedLog"] = parsedLog
 
@@ -184,6 +134,64 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 	}
 
 	return csvData, userM, nil
+}
+
+func csvParseRow(record []string, csvConf models.TSCSVConf) (CSVRecord, error) {
+
+	// one record for the row
+	var csvRecord CSVRecord
+
+	// authors are in a slice of string
+	authors := make([]string, 0)
+
+	for i, value := range record {
+		if value == "" { // if value is empty, move on to next field
+			continue
+		}
+
+		if !utf8.ValidString(value) { // encoding issue, non utf-8 char. in value
+			err := errors.New("parsing failed: non utf-8 char. in value")
+			return csvRecord, err
+		}
+
+		// value not empty, save in struct
+		switch i {
+		// csvConf is indexed from 1, 0 being the nil value
+		case csvConf.Publisher - 1:
+			csvRecord.publisher = value
+		case csvConf.Title - 1:
+			csvRecord.title = value
+		case csvConf.Isbn - 1:
+			// clean isbn, remove spaces & dashes
+			csvRecord.isbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
+		case csvConf.Eisbn - 1:
+			csvRecord.eisbn = strings.Trim(strings.Replace(value, "-", "", -1), " ")
+		case csvConf.Pubdate - 1:
+			csvRecord.pubdate = value
+		case csvConf.URL - 1:
+			csvRecord.url = value
+		case csvConf.Lang - 1:
+			csvRecord.lang = value
+		}
+
+		// authors are in a slice
+		for j := 0; j < len(csvConf.Authors); j++ {
+			if i+1 == csvConf.Authors[j] {
+				authors = append(authors, value)
+			}
+		}
+	}
+
+	// write the authors slice to the record
+	csvRecord.authors = authors
+
+	// if the record has neither an isbn nor an eisbn, not worth saving
+	if csvRecord.eisbn == "" && csvRecord.isbn == "" {
+		err := errors.New("parsing failed: no isbn in record")
+		return csvRecord, err
+	}
+
+	return csvRecord, nil
 }
 
 // csvSaveProcessed saves cleaned values to a new, clean csv file

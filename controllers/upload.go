@@ -73,12 +73,14 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	// if xml pass on to xmlio, if csv, pass on to csvio, if neither, abort
 	ext := filepath.Ext(handler.Filename)
 	if ext == ".csv" {
-		// pass on the name of the package and the name of the file to csvio package
 
+		// pass on the name of the package and the name of the file to csvio package
 		csvRecords, myTS, userM, err := csvIO(fpath, tsname, userM)
 		if err != nil {
 			logger.Error.Println(err)
 		}
+
+		// actually create or update the ebooks in DB
 		createdCounter, updatedCounter, ErrCreateUpdate := models.EbooksCreateOrUpdate(csvRecords)
 		if ErrCreateUpdate != nil {
 			logger.Error.Println("EbooksCreateOrUpdate error: ", ErrCreateUpdate)
@@ -105,6 +107,13 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.Error.Println(err)
 		}
+
+		// TODO: add time.now() to each record's SFXLastHarvest field
+		// before passing on to EbooksCreateOrUpdate
+		// then EbooksCreateOrUpdate should test if SFXLastHarvest is today
+		// and protect other fields accordingly, e.g. PublisherLastHarvest
+		// do the reverse for Publisher CSV Upload
+
 		createdCounter, updatedCounter, ErrCreateUpdate := models.EbooksCreateOrUpdate(xmlRecords)
 		if ErrCreateUpdate != nil {
 			logger.Error.Println("EbooksCreateOrUpdate error: ", ErrCreateUpdate)

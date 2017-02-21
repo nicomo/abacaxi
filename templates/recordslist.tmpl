@@ -4,7 +4,7 @@
 			<tr>
 				<th>Title</th>
 				<th>Authors</th>
-				<th>Taget Service</th>
+				<th>Isbns</th>
 				<th>PPN</th>
 				<th>Unimarc Record</th>
 				<th>see more</th>
@@ -13,7 +13,7 @@
 			<tr>
 				<td>{{ .Title }}</td>
 				<td>{{ range .Authors }} {{ . }}<br /> {{ end }}</td>
-				<td>{{ range .TargetService }} {{ .TSDisplayName }}<br /> {{ end }}</td>
+				<td>{{ range .Isbns }} {{ .Isbn }}<br /> {{ end }}</td>
 				<td>{{ if .Ppns }} Y {{ else }} N {{ end }}</td>
 				<td>{{ if .RecordUnimarc }} Y {{ else }} N {{ end }}</td>
 				<td><a href="/ebook/{{ .ID.Hex }}">...</a></td>
