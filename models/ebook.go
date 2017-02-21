@@ -274,7 +274,7 @@ func EbooksCreateOrUpdate(records []Ebook) (int, int, error) {
 
 // EbooksGetByTSName retrieves the ebooks which have a given target service
 // i.e. belong to a given package
-func EbooksGetByTSName(tsname string) ([]Ebook, error) {
+func EbooksGetByTSName(tsname string, n int) ([]Ebook, error) {
 	var result []Ebook
 
 	// Request a socket connection from the session to process our query.
@@ -284,11 +284,17 @@ func EbooksGetByTSName(tsname string) ([]Ebook, error) {
 	// collection ebooks
 	coll := getEbooksColl()
 
-	// FIXME: iterate over slices of 1000 ebooks
-	// maybe use channels?
-	// or else retrieve all then calculate result / 1000 and just manage display of chuncks of 1000 ebooks
-	iter := coll.Find(bson.M{"targetservice.tsname": tsname}).Limit(1000).Iter()
-	err := iter.All(&result)
+	q := coll.Find(bson.M{"targetservice.tsname": tsname}).Sort("title").Limit(100)
+
+	// skip to result number n
+	// NOTE: if we want to paginate on large sets, we shouldn't skip
+	// (mongo iterates over all the result documents and omits the first n that need to be skipped.)
+	// better solution - see https://github.com/icza/minquery
+	if n > 0 {
+		q = q.Skip(n)
+	}
+
+	err := q.All(&result)
 	if err != nil {
 		return result, err
 	}

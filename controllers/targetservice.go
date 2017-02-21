@@ -18,20 +18,20 @@ import (
 func getPrevNext(page int, count int) (int, int) {
 
 	// small batch, no need to paginate
-	if count < 20 {
+	if count < 100 {
 		return 0, 0
 	}
 
-	// at the end : next = 0, previous = page -20
-	if count-page < 20 {
-		return page - 40, 0
+	// at the end : next = 0, previous = page -100
+	if count-page < 100 {
+		return page - 200, 0
 	}
 
 	// at the beginning
-	if page-20 < 0 {
-		return -1, 40
+	if page-100 < 0 {
+		return -1, 200
 	}
-	return page - 20, page + 20
+	return page - 100, page + 100
 
 }
 
@@ -90,13 +90,10 @@ func createTSStructFromForm(r *http.Request) (models.TargetService, bool, error)
 //  and various other info, e.g. number of library records linked, etc.
 func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 
-	logger.Debug.Println(r)
-
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 
 	tsname, page := getTSNameAndPage(r)
-	logger.Debug.Println(tsname, page)
 	d["myPackage"] = tsname
 
 	// get the TS Struct from DB
@@ -119,9 +116,8 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 
 	if count > 0 { // no need to query for actual ebooks otherwise
 
-		// // if we need to paginate, get record skip integers, e.g. skip to records 20, 40, 60, etc;
+		// if we need to paginate, get record skip integers, e.g. skip to records 20, 40, 60, etc;
 		// to be used by mgo.skip() to do a simple paginate
-		// NOTE: if we want to paginate in a cleaner way, see https://github.com/icza/minquery
 		previous, next := getPrevNext(page, count)
 		if previous >= 0 {
 			d["previous"] = previous
@@ -129,7 +125,6 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		if next != 0 {
 			d["next"] = next
 		}
-		logger.Debug.Println("Previous / Next", d["previous"], d["next"])
 
 		// how many ebooks have marc records
 		nbRecordsUnimarc := models.TSCountRecordsUnimarc(tsname)
@@ -140,7 +135,7 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		d["myPackagePPNsCount"] = nbPPNs
 
 		// get the ebooks
-		records, err := models.EbooksGetByTSName(tsname)
+		records, err := models.EbooksGetByTSName(tsname, page)
 		if err != nil {
 			logger.Error.Println(err)
 		}
@@ -195,7 +190,6 @@ func TargetServicePageHandler(w http.ResponseWriter, r *http.Request) {
 	ctx = newContextPage(ctx, page)
 	ctx = newContextTSName(ctx, tsname)
 
-	logger.Debug.Println(ctx)
 	// redirect to upload get page
 	TargetServiceHandler(w, r.WithContext(ctx))
 
@@ -414,7 +408,7 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// retrieve records with thats TS
-	records, err := models.EbooksGetByTSName(tsname)
+	records, err := models.EbooksGetByTSName(tsname, 0)
 	if err != nil {
 		logger.Error.Println(err)
 	}
