@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -22,137 +21,113 @@ import (
 //   -- delete the downloaded file from server
 func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
-	// retrieve param passed in url
+	// retrieve filename passed in url
 	vars := mux.Vars(r)
-	param := vars["param"]
-	matchXML, _ := regexp.MatchString(".xml$", param)
-	matchZIP, _ := regexp.MatchString(".zip$", param)
-
-	// hostname from configuration
-	conf := config.GetConfig()
-
-	if matchXML {
-		ebkID := param[:len(param)-4]
-
-		myEbook, err := models.EbookGetByID(ebkID)
-		if err != nil {
-			logger.Error.Println(err)
-			//TODO: exit cleanly with user message on error
-			panic(err)
-		}
-
-		// CreateUnimarcFile requires []Ebook
-		ebks := make([]models.Ebook, 1)
-		ebks = append(ebks, myEbook)
-
-		// create the downloadable file
-		fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, param)
-		if ErrCreateFile != nil {
-			logger.Error.Println(ErrCreateFile)
-		}
-
-		//TODO: abstract in own func (2)
-		timeout := time.Duration(5) * time.Second
-		transport := &http.Transport{
-			ResponseHeaderTimeout: timeout,
-			DisableKeepAlives:     true,
-		}
-
-		client := &http.Client{
-			Transport: transport,
-		}
-
-		resp, err := client.Get(conf.Hostname + "/static/downloads/" + param)
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer resp.Body.Close()
-
-		w.Header().Set("Content-Disposition", "attachment; filename="+param)
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-		w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
-
-		//stream the body, which is a Reader, to the client without fully loading it into memory
-		written, err := io.Copy(w, resp.Body)
-		if err != nil {
-			logger.Error.Println(err)
-		}
-
-		// make sure download went OK, then delete file on server
-		if fileSize == written {
-			// FIXME: url should not be hardcoded
-			ErrFDelete := os.Remove("./static/downloads/" + param)
-			if ErrFDelete != nil {
-				logger.Error.Println(ErrFDelete)
-			}
-		}
-
-	}
-
-	// download for multiple records
-	if matchZIP {
-		logger.Debug.Println(matchZIP, param)
-
-		// the name of the target service is in the filename
-		tsname := param[:len(param)-4]
-
-		// get the relevant ebooks
-		ebks, err := models.EbooksGetWithUnimarcByTSName(tsname)
-		if err != nil {
-			logger.Error.Println(err)
-			//TODO: exit cleanly with user message on error
-			panic(err)
-		}
-
-		// create the downloadable file
-		fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, tsname+".xml")
-		if ErrCreateFile != nil {
-			logger.Error.Println(ErrCreateFile)
-		}
-
-		// TODO: zip the downloadable file if size too big: > 1*10^6 (i.e. 1Mo)
-
-		//TODO: abstract in own func (2)
-		timeout := time.Duration(5) * time.Second
-		transport := &http.Transport{
-			ResponseHeaderTimeout: timeout,
-			DisableKeepAlives:     true,
-		}
-
-		client := &http.Client{
-			Transport: transport,
-		}
-
-		resp, err := client.Get(conf.Hostname + "/static/downloads/" + tsname + ".xml")
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer resp.Body.Close()
-
-		w.Header().Set("Content-Disposition", "attachment; filename="+tsname+".xml")
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-		w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
-
-		//stream the body, which is a Reader, to the client without fully loading it into memory
-		written, err := io.Copy(w, resp.Body)
-		if err != nil {
-			logger.Error.Println(err)
-		}
-
-		// make sure download went OK, then delete file on server
-		if fileSize == written {
-			logger.Debug.Printf("filesize: %d - written: %d", fileSize, written)
-			// FIXME: url should not be hardcoded
-			ErrFDelete := os.Remove("./static/downloads/" + tsname + ".xml")
-			if ErrFDelete != nil {
-				logger.Error.Println(ErrFDelete)
-			}
-		}
-	}
+	filename := vars["filename"]
+	matchXML, _ := regexp.MatchString(".xml$", filename)
+	matchZIP, _ := regexp.MatchString(".zip$", filename)
+	var filesize int64
 
 	if !matchXML && !matchZIP {
 		err := errors.New("Couldn't get a known file extension")
 		logger.Error.Println(err)
 		panic(err)
 	}
+
+	if matchXML {
+		ebkID := filename[:len(filename)-4]
+		filesize = singleRecordCreateFile(ebkID, filename)
+	}
+
+	// download for multiple records
+	if matchZIP {
+		// the name of the target service is in the filename
+		tsname := filename[:len(filename)-4]
+		filesize, filename = multipleRecordsCreateFile(tsname)
+	}
+
+	// hostname from configuration
+	conf := config.GetConfig()
+
+	timeout := time.Duration(5) * time.Second
+	transport := &http.Transport{
+		ResponseHeaderTimeout: timeout,
+		DisableKeepAlives:     true,
+	}
+
+	client := &http.Client{
+		Transport: transport,
+	}
+
+	resp, err := client.Get(conf.Hostname + "/static/downloads/" + filename)
+	if err != nil {
+		logger.Error.Println(err)
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+	w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
+
+	//stream the body, which is a Reader, to the client without fully loading it into memory
+	written, err := io.Copy(w, resp.Body)
+	if err != nil {
+		logger.Error.Println(err)
+		panic(err)
+	}
+
+	// make sure download went OK, then delete file on server
+	if filesize == written {
+		ErrFDelete := os.Remove("./static/downloads/" + filename)
+		if ErrFDelete != nil {
+			logger.Error.Println(ErrFDelete)
+		}
+	}
+
+}
+
+func multipleRecordsCreateFile(tsname string) (int64, string) {
+
+	// get the relevant ebooks
+	ebks, err := models.EbooksGetWithUnimarcByTSName(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+		//TODO: exit cleanly with user message on error
+		panic(err)
+	}
+
+	// create the downloadable file
+	fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, tsname+".xml")
+	if ErrCreateFile != nil {
+		logger.Error.Println(ErrCreateFile)
+	}
+
+	// TODO: zip the downloadable file if size too big: > 1*10^6 (i.e. 1Mo)
+	// if zipped change the file name
+	filename := tsname + ".xml"
+	return fileSize, filename
+
+}
+
+func singleRecordCreateFile(ebkID string, filename string) int64 {
+
+	// get the relevant ebook
+	myEbook, err := models.EbookGetByID(ebkID)
+	if err != nil {
+		logger.Error.Println(err)
+		//TODO: exit cleanly with user message on error
+		panic(err)
+	}
+
+	// CreateUnimarcFile requires []Ebook
+	ebks := make([]models.Ebook, 1)
+	ebks = append(ebks, myEbook)
+
+	// create the downloadable file
+	fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, filename)
+	if ErrCreateFile != nil {
+		logger.Error.Println(ErrCreateFile)
+	}
+	return fileSize
 }

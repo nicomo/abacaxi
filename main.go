@@ -13,7 +13,7 @@ func main() {
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	router.HandleFunc("/", controllers.HomeHandler)
-	router.HandleFunc("/download/{param:[\\w\\-\\.]+}", controllers.DownloadHandler)
+	router.HandleFunc("/download/{filename:[\\w\\-\\.]+}", controllers.DownloadHandler)
 	router.HandleFunc("/ebook/{ebookID}", controllers.EbookHandler)
 	router.HandleFunc("/ebook/delete/{ebookID}", controllers.EbookDeleteHandler)
 	router.HandleFunc("/search", controllers.SearchHandler)

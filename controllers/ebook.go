@@ -76,6 +76,9 @@ func EbookToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	myEbook, err = models.EbookUpdate(myEbook)
+	if err != nil {
+		logger.Error.Println(err)
+	}
 
 	// refresh ebook page
 	urlStr := "/ebook/" + ebookID
@@ -100,6 +103,9 @@ func EbookToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	myEbook, err = models.EbookUpdate(myEbook)
+	if err != nil {
+		logger.Error.Println(err)
+	}
 
 	// refresh ebook page
 	urlStr := "/ebook/" + ebookID
