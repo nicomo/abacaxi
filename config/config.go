@@ -10,9 +10,16 @@ import (
 
 // Conf : base configuration information pulled on init from a json file
 type Conf struct {
-	Hostname     string `json:"hostname"`
-	MongoDBHost  string `json:"mongodbhosts"`
-	AuthDatabase string `json:"authdatabase"`
+	Hostname         string `json:"hostname"`
+	MongoDBHost      string `json:"mongodbhosts"`
+	AuthDatabase     string `json:"authdatabase"`
+	SessionSecretKey string `json:"sesssecretkey"`
+	SessionName      string `json:"sessname"`
+	SessionPath      string `json:"sesspath"`
+	SessionDomain    string `json:"sessdomain"`
+	SessionMaxAge    int    `json:"sessmaxage"`
+	SessionSecure    bool   `json:"sesssecure"`
+	SessionHttpOnly  bool   `json:"sesshttponly"`
 }
 
 // GetConfig generates a Conf object from a json file

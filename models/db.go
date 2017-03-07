@@ -53,6 +53,23 @@ func init() {
 		panic(ErrTSCollIndex)
 	}
 
+	// create the Users collection, with an index on username
+	usersColl := mgoSession.DB(conf.AuthDatabase).C("users")
+	usersIndex := mgo.Index{
+		Key:        []string{"username"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	ErrUsersCollIndex := usersColl.EnsureIndex(usersIndex)
+	if ErrUsersCollIndex != nil {
+		panic(ErrUsersCollIndex)
+	}
+
+	//TODO: create admin user if user collection is empty
+
 	// create the ebooks collection with a compound text index
 	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
 	ebkColl := mgoSession.DB(conf.AuthDatabase).C("ebooks")
@@ -83,4 +100,10 @@ func getTargetServiceColl() *mgo.Collection {
 	conf := config.GetConfig()
 	tsColl := mgoSession.DB(conf.AuthDatabase).C("targetservices")
 	return tsColl
+}
+
+func getUsersColl() *mgo.Collection {
+	conf := config.GetConfig()
+	tsUsers := mgoSession.DB(conf.AuthDatabase).C("users")
+	return tsUsers
 }

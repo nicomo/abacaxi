@@ -6,9 +6,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/nicomo/abacaxi/controllers"
+	"github.com/nicomo/abacaxi/session"
 )
 
 func main() {
+
+	session.Configure()
 
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
@@ -32,6 +35,15 @@ func main() {
 	router.HandleFunc("/ebook/toggleactive/{ebookID}", controllers.EbookToggleActiveHandler)
 	router.HandleFunc("/upload", controllers.UploadGetHandler).Methods("GET")
 	router.HandleFunc("/upload", controllers.UploadPostHandler).Methods("POST")
+
+	router.HandleFunc("/users", controllers.UsersHandler)
+	router.HandleFunc("/users/login", controllers.UsersLoginGetHandler).Methods("GET")
+	router.HandleFunc("/users/login", controllers.UsersLoginPostHandler).Methods("POST")
+	router.HandleFunc("/users/logout", controllers.UsersLogoutHandler)
+	router.HandleFunc("/users/new", controllers.UsersNewGetHandler).Methods("GET")
+	router.HandleFunc("/users/new", controllers.UsersNewPostHandler).Methods("POST")
+	router.HandleFunc("/users/delete/{userID}", controllers.UsersDeleteHandler)
+
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(fmt.Sprintf("%s not found\n", r.URL)))
