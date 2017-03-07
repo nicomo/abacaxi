@@ -6,20 +6,15 @@ import (
 	"os"
 
 	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/session"
 )
 
 // Conf : base configuration information pulled on init from a json file
 type Conf struct {
-	Hostname         string `json:"hostname"`
-	MongoDBHost      string `json:"mongodbhosts"`
-	AuthDatabase     string `json:"authdatabase"`
-	SessionSecretKey string `json:"sesssecretkey"`
-	SessionName      string `json:"sessname"`
-	SessionPath      string `json:"sesspath"`
-	SessionDomain    string `json:"sessdomain"`
-	SessionMaxAge    int    `json:"sessmaxage"`
-	SessionSecure    bool   `json:"sesssecure"`
-	SessionHttpOnly  bool   `json:"sesshttponly"`
+	Hostname     string              `json:"hostname"`
+	MongoDBHost  string              `json:"mongodbhosts"`
+	AuthDatabase string              `json:"authdatabase"`
+	SessionConf  session.SessionConf `json:"sessionconf"`
 }
 
 // GetConfig generates a Conf object from a json file
@@ -39,6 +34,6 @@ func GetConfig() Conf {
 		logger.Error.Println(ErrJSONUnmarshal)
 		os.Exit(1)
 	}
-
+	logger.Debug.Println(config)
 	return config
 }

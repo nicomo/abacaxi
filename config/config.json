@@ -2,11 +2,13 @@
 	"hostname": "http://localhost:8080/",
 	"mongodbhosts": "localhost:27017",
 	"authdatabase": "abacaxidb",
-	"SessionSecretKey": "g9H4FJa+;y2ZC$wyye",
-	"SessionName": "sessStore",
-	"SessionPath": "/",
-	"SessionDomain": "",
-	"SessionMaxAge": 28800,
-	"SessionSecure": false,
-	"SessionHttpOnly": true,
+	"sessionconf": {
+		"secretkey": "g9H4FJa+;y2ZC$wyye",
+		"name": "sessStore",
+		"path": "/",
+		"domain": "",
+		"maxage": 28800,
+		"secure": false,
+		"httponly": true
+	}
 }

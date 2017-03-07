@@ -69,6 +69,10 @@ func init() {
 	}
 
 	//TODO: create admin user if user collection is empty
+	errUserOne := UserCreate("user1", "abacaxi-user1")
+	if errUserOne != nil {
+		logger.Error.Println(errUserOne)
+	}
 
 	// create the ebooks collection with a compound text index
 	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
