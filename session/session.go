@@ -6,36 +6,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gorilla/sessions"
-	"github.com/nicomo/abacaxi/logger"
 )
 
 var (
 	// Store is the cookie store
 	Store *sessions.CookieStore
-	// Name is the session name
-	Name string
 )
 
-// SessionConf stores session level information
-type SessionConf struct {
-	Options   sessions.Options `json:"Options"`   // Pulled from: http://www.gorillatoolkit.org/pkg/sessions#Options
-	Name      string           `json:"Name"`      // Name for: http://www.gorillatoolkit.org/pkg/sessions#CookieStore.Get
-	SecretKey string           `json:"SecretKey"` // Key for: http://www.gorillatoolkit.org/pkg/sessions#CookieStore.New
-}
-
-// Configure the session cookie store
-func Configure(s SessionConf) {
-	Store = sessions.NewCookieStore([]byte(s.SecretKey))
-	Store.Options = &s.Options
-	Name = s.Name
-	logger.Debug.Println(Store)
+func StoreCreate(ssk string) {
+	Store = sessions.NewCookieStore([]byte(ssk))
 }
 
 // Instance returns a new session, never returns an error
-func Instance(r *http.Request) *sessions.Session {
-	session, _ := Store.Get(r, Name)
-	logger.Debug.Println(session)
-	return session
+func Instance(r *http.Request, name string) *sessions.Session {
+	sess, _ := Store.Get(r, "abacaxi-session")
+	return sess
 }
 
 // Empty deletes all the current session values

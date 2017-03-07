@@ -3,6 +3,9 @@ package models
 import (
 	"time"
 
+	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/session"
+
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -38,11 +41,17 @@ func UserByUsername(username string) (User, error) {
 // UserCreate creates a new user
 func UserCreate(username, password string) error {
 	now := time.Now()
+	// hashing the password
+	pw, err := session.HashString(password)
+	if err != nil {
+		logger.Error.Println(err)
+		return err
+	}
 
 	user := &User{
 		ID:           bson.NewObjectId(),
 		Username:     username,
-		Password:     password,
+		Password:     pw,
 		DateCreated:  now,
 		DateLastSeen: now,
 	}
@@ -54,9 +63,9 @@ func UserCreate(username, password string) error {
 	// collection users
 	coll := getUsersColl()
 
-	err := coll.Insert(user)
-	if err != nil {
-		return err
+	errColl := coll.Insert(user)
+	if errColl != nil {
+		return errColl
 	}
 
 	return nil

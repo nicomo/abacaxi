@@ -37,7 +37,7 @@ func UsersLoginGetHandler(w http.ResponseWriter, r *http.Request) {
 // UsersLoginPostHandler
 func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
-	sess := session.Instance(r)
+	sess := session.Instance(r, "abacaxi-session")
 
 	logger.Debug.Println(sess)
 
@@ -54,6 +54,9 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// get form values
 	username := policy.Sanitize(r.FormValue("username"))
 	pw := policy.Sanitize(r.FormValue("password"))
+
+	logger.Debug.Println(pw)
+
 	if username == "" || pw == "" {
 		logger.Info.Println("login attempt missing required field")
 		sess.Save(r, w)
@@ -72,7 +75,10 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	if session.MatchString(user.Password, pw) {
 		// login is successful
-		session.Empty(sess) // clean session (of login attempts)
+
+		// clean session (of login attempts counter)
+		delete(sess.Values, sessLoginAttempt)
+
 		// fill session values, save & redirect to home
 		sess.Values["id"] = user.ID.Hex()
 		sess.Values["username"] = user.Username
@@ -86,12 +92,13 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // UsersLogoutHandler logs user out
 func UsersLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
-	sess := session.Instance(r)
+	sess := session.Instance(r, "abacaxi-session")
 
 	// If user is authenticated we empty the session
 	if sess.Values["id"] != nil {

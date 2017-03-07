@@ -6,16 +6,17 @@ import (
 	"os"
 
 	"github.com/nicomo/abacaxi/logger"
-	"github.com/nicomo/abacaxi/session"
 )
 
 // Conf : base configuration information pulled on init from a json file
 type Conf struct {
-	Hostname     string              `json:"hostname"`
-	MongoDBHost  string              `json:"mongodbhosts"`
-	AuthDatabase string              `json:"authdatabase"`
-	SessionConf  session.SessionConf `json:"sessionconf"`
+	Hostname        string `json:"hostname"`
+	MongoDBHost     string `json:"mongodbhosts"`
+	AuthDatabase    string `json:"authdatabase"`
+	SessionStoreKey string `json:"sessionstorekey"`
 }
+
+//TODO: stop calling GetConfig() multiple times
 
 // GetConfig generates a Conf object from a json file
 func GetConfig() Conf {
