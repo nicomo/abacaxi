@@ -106,12 +106,14 @@ func csvClean(filename string, csvConf models.TSCSVConf, userM UserMessages) ([]
 		if len(record) != reader.FieldsPerRecord {
 			logger.Info.Printf("parsing line %d failed: invalid length of %d, expected 10\n", line, len(record))
 			rejectedLines = append(rejectedLines, line)
+			continue
 		}
 
 		csvRecord, err := csvParseRow(record, csvConf)
 		if err != nil {
 			logger.Error.Printf("line %d: %v", line, err)
 			rejectedLines = append(rejectedLines, line)
+			continue
 		}
 
 		// add this particular record to the slice
