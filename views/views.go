@@ -120,7 +120,16 @@ func init() {
 		"templates/head.tmpl",
 		"templates/nav.tmpl",
 		"templates/tslisting.tmpl",
-		"templates/tsnew.tmpl",
+		"templates/usernew.tmpl",
+	))
+
+	// users list page
+	tmpl["users"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
+		"templates/users.tmpl",
 	))
 
 }

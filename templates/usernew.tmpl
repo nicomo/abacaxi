@@ -6,13 +6,13 @@
 
 			{{ template "nav" . }}
 
-			<h2>Create a new Target Service</h2>
+			<h2>Create a new user</h2>
 
-			{{ if .tsCreateErr }}
-				<p class="bg-danger">{{ .tsCreateErr }}</p>
+			{{ if .userCreateErr }}
+				<p class="bg-danger">{{ .userCreateErr }}</p>
 			{{ end }}
 
-			<form class="form-horizontal" action="/packagenew" method="post">
+			<form class="form-horizontal" action="/users/new" method="post">
 				<div class="form-group">
 					<label for="username" class="col-sm-2 control-label">Username: </label>
 					<div class="col-sm-10">

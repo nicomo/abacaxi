@@ -90,3 +90,22 @@ func UserDelete(username string) error {
 
 	return nil
 }
+
+// GetUsers retrieves the full list of users
+func GetUsers() ([]User, error) {
+
+	var Users []User
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getUsersColl()
+
+	err := coll.Find(bson.M{}).Sort("username").All(&Users)
+	if err != nil {
+		return Users, err
+	}
+
+	return Users, nil
+
+}

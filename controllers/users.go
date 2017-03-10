@@ -27,7 +27,30 @@ func logAttempt(sess *sessions.Session) {
 }
 
 // UsersHandler displays the list of existing users
-func UsersHandler(w http.ResponseWriter, r *http.Request) {}
+func UsersHandler(w http.ResponseWriter, r *http.Request) {
+	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	d := make(map[string]interface{})
+
+	// Get session
+	sess := session.Instance(r)
+	if sess.Values["id"] != nil {
+		d["IsLoggedIn"] = true
+	}
+
+	result, err := models.GetUsers()
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	d["users"] = result
+
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+	d["TSCount"] = len(TSListing)
+
+	views.RenderTmpl(w, "users", d)
+
+}
 
 // UsersLoginGetHandler
 func UsersLoginGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +61,6 @@ func UsersLoginGetHandler(w http.ResponseWriter, r *http.Request) {
 func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
 	sess := session.Instance(r)
-
-	logger.Debug.Println(sess)
 
 	// Prevent brute force login attempt: invalidate request
 	if sess.Values[sessLoginAttempt] != nil && sess.Values[sessLoginAttempt].(int) >= 5 {
@@ -54,8 +75,6 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// get form values
 	username := policy.Sanitize(r.FormValue("username"))
 	pw := policy.Sanitize(r.FormValue("password"))
-
-	logger.Debug.Println(pw)
 
 	if username == "" || pw == "" {
 		logger.Info.Println("login attempt missing required field")
@@ -92,7 +111,6 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // UsersLogoutHandler logs user out
@@ -111,10 +129,47 @@ func UsersLogoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UsersNewGetHandler
-func UsersNewGetHandler(w http.ResponseWriter, r *http.Request) {}
+func UsersNewGetHandler(w http.ResponseWriter, r *http.Request) {
+	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	d := make(map[string]interface{})
+
+	// Get session
+	sess := session.Instance(r)
+	if sess.Values["id"] != nil {
+		d["IsLoggedIn"] = true
+	}
+
+	TSListing, _ := models.GetTargetServicesListing()
+	d["TSListing"] = TSListing
+	d["TSCount"] = len(TSListing)
+
+	views.RenderTmpl(w, "usernew", d)
+
+}
 
 // UsersNewPostHandler
-func UsersNewPostHandler(w http.ResponseWriter, r *http.Request) {}
+func UsersNewPostHandler(w http.ResponseWriter, r *http.Request) {
+	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
+	d := make(map[string]interface{})
+
+	// new strict sanitizing policy for the user create form
+	policy := bluemonday.StrictPolicy()
+	// get form values
+	username := policy.Sanitize(r.FormValue("username"))
+	pw := policy.Sanitize(r.FormValue("password"))
+
+	err := models.UserCreate(username, pw)
+	if err != nil {
+		logger.Error.Println(err)
+		d["userCreateErr"] = err
+		logger.Error.Println(err)
+		views.RenderTmpl(w, "usernew", d)
+		return
+	}
+
+	http.Redirect(w, r, "/users", http.StatusFound)
+
+}
 
 // UsersDeleteHandler
 func UsersDeleteHandler(w http.ResponseWriter, r *http.Request) {}
