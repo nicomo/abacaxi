@@ -18,7 +18,7 @@ func StoreCreate(ssk string) {
 }
 
 // Instance returns a new session, never returns an error
-func Instance(r *http.Request, name string) *sessions.Session {
+func Instance(r *http.Request) *sessions.Session {
 	sess, _ := Store.Get(r, "abacaxi-session")
 	return sess
 }

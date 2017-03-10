@@ -37,7 +37,7 @@ func UsersLoginGetHandler(w http.ResponseWriter, r *http.Request) {
 // UsersLoginPostHandler
 func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
-	sess := session.Instance(r, "abacaxi-session")
+	sess := session.Instance(r)
 
 	logger.Debug.Println(sess)
 
@@ -98,7 +98,7 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 // UsersLogoutHandler logs user out
 func UsersLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
-	sess := session.Instance(r, "abacaxi-session")
+	sess := session.Instance(r)
 
 	// If user is authenticated we empty the session
 	if sess.Values["id"] != nil {

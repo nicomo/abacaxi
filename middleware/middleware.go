@@ -11,7 +11,7 @@ func DisallowAnon(h http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get session
-		sess := session.Instance(r, "abacaxi-session")
+		sess := session.Instance(r)
 
 		// If user is not authenticated, redirect to login
 		if sess.Values["id"] == nil {
@@ -19,6 +19,7 @@ func DisallowAnon(h http.Handler) http.Handler {
 			return
 		}
 
+		// otherwise, move on with context logged in true
 		h.ServeHTTP(w, r)
 	})
 }
@@ -27,7 +28,7 @@ func DisallowAnon(h http.Handler) http.Handler {
 func DisallowAuthed(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get session
-		sess := session.Instance(r, "abacaxi-session")
+		sess := session.Instance(r)
 
 		// If user is authenticated, redirect to home
 		if sess.Values["id"] != nil {
@@ -35,6 +36,7 @@ func DisallowAuthed(h http.Handler) http.Handler {
 			return
 		}
 
+		// otherwise, move on with context logged in true
 		h.ServeHTTP(w, r)
 	})
 }

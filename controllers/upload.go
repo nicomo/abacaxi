@@ -10,6 +10,7 @@ import (
 
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
+	"github.com/nicomo/abacaxi/session"
 	"github.com/nicomo/abacaxi/views"
 )
 
@@ -17,6 +18,12 @@ import (
 func UploadGetHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be stored in this map
 	d := make(map[string]interface{})
+
+	// Get session
+	sess := session.Instance(r)
+	if sess.Values["id"] != nil {
+		d["IsLoggedIn"] = true
+	}
 
 	// check if we have messages coming in the Request context
 	if userM, ok := fromContextUserM(r.Context()); ok {

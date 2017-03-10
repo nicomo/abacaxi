@@ -24,17 +24,7 @@ func newContextPage(ctx context.Context, p int) context.Context {
 	return context.WithValue(ctx, pageKey, p)
 }
 
-// newContextTSName
-func newContextTSName(ctx context.Context, tsname string) context.Context {
-	return context.WithValue(ctx, tsnameKey, tsname)
-}
-
-// newContextUserM returns a new Context carrying userMessages
-func newContextUserM(ctx context.Context, userM UserMessages) context.Context {
-	return context.WithValue(ctx, userMessagesKey, userM)
-}
-
-// fromContextPage retrieves the page to skip to from a http Request Context
+// fromContextPage retrieves the page to skip to when paginating, from a http Request Context
 func fromContextPage(ctx context.Context) (string, int, bool) {
 	page, ok1 := ctx.Value(pageKey).(int)
 	tsname, ok2 := ctx.Value(tsnameKey).(string)
@@ -43,6 +33,16 @@ func fromContextPage(ctx context.Context) (string, int, bool) {
 	}
 
 	return tsname, page, true
+}
+
+// newContextTSName
+func newContextTSName(ctx context.Context, tsname string) context.Context {
+	return context.WithValue(ctx, tsnameKey, tsname)
+}
+
+// newContextUserM returns a new Context carrying userMessages
+func newContextUserM(ctx context.Context, userM UserMessages) context.Context {
+	return context.WithValue(ctx, userMessagesKey, userM)
 }
 
 // fromContextUserM retrieves userMessages from a http Request Context
