@@ -46,13 +46,13 @@ func main() {
 	router.Handle("/upload", middleware.DisallowAnon(http.HandlerFunc(controllers.UploadGetHandler))).Methods("GET")
 	router.Handle("/upload", middleware.DisallowAnon(http.HandlerFunc(controllers.UploadPostHandler))).Methods("POST")
 	router.Handle("/users", middleware.DisallowAnon(http.HandlerFunc(controllers.UsersHandler)))
-	router.Handle("/users/delete/{userID}", middleware.DisallowAnon(http.HandlerFunc(controllers.UsersDeleteHandler)))
+	router.Handle("/users/delete/{userID}", middleware.DisallowAnon(http.HandlerFunc(controllers.UserDeleteHandler)))
 	// user login pages allowed for anon users only
-	router.Handle("/users/login", middleware.DisallowAuthed(http.HandlerFunc(controllers.UsersLoginGetHandler))).Methods("GET")
-	router.Handle("/users/login", middleware.DisallowAuthed(http.HandlerFunc(controllers.UsersLoginPostHandler))).Methods("POST")
-	router.Handle("/users/logout", middleware.DisallowAnon(http.HandlerFunc(controllers.UsersLogoutHandler)))
-	router.Handle("/users/new", middleware.DisallowAnon(http.HandlerFunc(controllers.UsersNewGetHandler))).Methods("GET")
-	router.Handle("/users/new", middleware.DisallowAnon(http.HandlerFunc(controllers.UsersNewPostHandler))).Methods("POST")
+	router.Handle("/users/login", middleware.DisallowAuthed(http.HandlerFunc(controllers.UserLoginGetHandler))).Methods("GET")
+	router.Handle("/users/login", middleware.DisallowAuthed(http.HandlerFunc(controllers.UserLoginPostHandler))).Methods("POST")
+	router.Handle("/users/logout", middleware.DisallowAnon(http.HandlerFunc(controllers.UserLogoutHandler)))
+	router.Handle("/users/new", middleware.DisallowAnon(http.HandlerFunc(controllers.UserNewGetHandler))).Methods("GET")
+	router.Handle("/users/new", middleware.DisallowAnon(http.HandlerFunc(controllers.UserNewPostHandler))).Methods("POST")
 
 	// 404
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

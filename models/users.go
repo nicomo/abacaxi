@@ -18,6 +18,47 @@ type User struct {
 	Password     string    `bson:"password"`
 }
 
+// GetUsers retrieves the full list of users
+func GetUsers() ([]User, error) {
+
+	var Users []User
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getUsersColl()
+
+	err := coll.Find(bson.M{}).Sort("username").All(&Users)
+	if err != nil {
+		return Users, err
+	}
+
+	return Users, nil
+}
+
+func UserByID(ID string) (User, error) {
+	user := User{}
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection users
+	coll := getUsersColl()
+
+	// cast ID as ObjectID
+	objectID := bson.ObjectIdHex(ID)
+
+	// delete record
+	qry := bson.M{"_id": objectID}
+	err := coll.Find(qry).One(&user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
 // UserByUsername retrieves a user by its username
 func UserByUsername(username string) (User, error) {
 	user := User{}
@@ -72,7 +113,7 @@ func UserCreate(username, password string) error {
 }
 
 // UserDelete deletes a user
-func UserDelete(username string) error {
+func UserDelete(ID string) error {
 
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
@@ -81,8 +122,11 @@ func UserDelete(username string) error {
 	// collection ebooks
 	coll := getUsersColl()
 
+	// cast ID as ObjectID
+	objectID := bson.ObjectIdHex(ID)
+
 	// delete record
-	qry := bson.M{"username": username}
+	qry := bson.M{"_id": objectID}
 	err := coll.Remove(qry)
 	if err != nil {
 		return err
@@ -91,21 +135,17 @@ func UserDelete(username string) error {
 	return nil
 }
 
-// GetUsers retrieves the full list of users
-func GetUsers() ([]User, error) {
-
-	var Users []User
-
+func UsersCount() int {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
 	coll := getUsersColl()
 
-	err := coll.Find(bson.M{}).Sort("username").All(&Users)
+	qry := coll.Find(bson.M{})
+	count, err := qry.Count()
 	if err != nil {
-		return Users, err
+		return 0
 	}
 
-	return Users, nil
-
+	return count
 }

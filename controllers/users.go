@@ -3,6 +3,9 @@ package controllers
 import (
 	"net/http"
 
+	"gopkg.in/mgo.v2/bson"
+
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/nicomo/abacaxi/logger"
@@ -49,16 +52,15 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	d["TSCount"] = len(TSListing)
 
 	views.RenderTmpl(w, "users", d)
-
 }
 
-// UsersLoginGetHandler
-func UsersLoginGetHandler(w http.ResponseWriter, r *http.Request) {
+// UserLoginGetHandler
+func UserLoginGetHandler(w http.ResponseWriter, r *http.Request) {
 	views.RenderTmpl(w, "userlogin", nil)
 }
 
-// UsersLoginPostHandler
-func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
+// UserLoginPostHandler
+func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
 	sess := session.Instance(r)
 
@@ -66,7 +68,7 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	if sess.Values[sessLoginAttempt] != nil && sess.Values[sessLoginAttempt].(int) >= 5 {
 		logger.Info.Println("Brute force login prevented")
 		sess.Save(r, w)
-		UsersLoginGetHandler(w, r)
+		UserLoginGetHandler(w, r)
 		return
 	}
 
@@ -79,7 +81,7 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	if username == "" || pw == "" {
 		logger.Info.Println("login attempt missing required field")
 		sess.Save(r, w)
-		UsersLoginGetHandler(w, r)
+		UserLoginGetHandler(w, r)
 		return
 	}
 
@@ -88,7 +90,7 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error.Println(err)
 		logAttempt(sess)
-		UsersLoginGetHandler(w, r)
+		UserLoginGetHandler(w, r)
 		return
 	}
 
@@ -107,14 +109,13 @@ func UsersLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		logger.Error.Println("wrong password")
 		logAttempt(sess)
-		UsersLoginGetHandler(w, r)
+		UserLoginGetHandler(w, r)
 		return
 	}
-
 }
 
-// UsersLogoutHandler logs user out
-func UsersLogoutHandler(w http.ResponseWriter, r *http.Request) {
+// UserLogoutHandler logs user out
+func UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
 	sess := session.Instance(r)
 
@@ -128,8 +129,8 @@ func UsersLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-// UsersNewGetHandler
-func UsersNewGetHandler(w http.ResponseWriter, r *http.Request) {
+// UserNewGetHandler displays the form to create a new user
+func UserNewGetHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 
@@ -144,11 +145,10 @@ func UsersNewGetHandler(w http.ResponseWriter, r *http.Request) {
 	d["TSCount"] = len(TSListing)
 
 	views.RenderTmpl(w, "usernew", d)
-
 }
 
-// UsersNewPostHandler
-func UsersNewPostHandler(w http.ResponseWriter, r *http.Request) {
+// UserNewPostHandler creates a new user
+func UserNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 
@@ -168,8 +168,51 @@ func UsersNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/users", http.StatusFound)
-
 }
 
-// UsersDeleteHandler
-func UsersDeleteHandler(w http.ResponseWriter, r *http.Request) {}
+// UserDeleteHandler deletes a user
+func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
+
+	// get the user ID from the url
+	vars := mux.Vars(r)
+	userID := vars["userID"]
+
+	// get the user concerned
+	targetUser, err := models.UserByID(userID)
+	if err != nil {
+		logger.Error.Println(err)
+
+		// TODO: transmit either error or success message to user
+
+		// redirect to users list
+		http.Redirect(w, r, "/users", 303)
+		return
+	}
+
+	// is the user trying to delete herself?
+	if targetUser.ID == bson.ObjectIdHex(userID) {
+		logger.Info.Printf("User %s trying to commit suicide and delete itself... Tsss....", userID)
+		// redirect to users list
+		http.Redirect(w, r, "/users", 303)
+		return
+	}
+
+	uc := models.UsersCount()
+	if uc < 3 {
+		logger.Info.Println("can't delete last user")
+		// redirect to users list
+		http.Redirect(w, r, "/users", 303)
+		return
+	}
+
+	errUserDelete := models.UserDelete(userID)
+	if errUserDelete != nil {
+		logger.Error.Println(errUserDelete)
+		// redirect to users list
+		http.Redirect(w, r, "/users", 303)
+		return
+	}
+
+	// redirect to users list
+	http.Redirect(w, r, "/users", 303)
+}
