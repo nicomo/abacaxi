@@ -107,6 +107,31 @@ func init() {
 		"templates/upload-report.tmpl",
 	))
 
+	// user login form
+	tmpl["userlogin"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/userlogin.tmpl",
+	))
+
+	// form to create a new user
+	tmpl["usernew"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
+		"templates/usernew.tmpl",
+	))
+
+	// users list page
+	tmpl["users"] = template.Must(template.ParseFiles(
+		"templates/base.tmpl",
+		"templates/head.tmpl",
+		"templates/nav.tmpl",
+		"templates/tslisting.tmpl",
+		"templates/users.tmpl",
+	))
+
 }
 
 // RenderTmpl is a wrapper around template.ExecuteTemplate

@@ -6,9 +6,11 @@ Requires :
 - [MongoDB](https://www.mongodb.com)
 - the [Go programming language](https://golang.org/)
 - a few extra Go libraries:
+  - [bcrypt](https://golang.org/x/crypto/bcrypt): `$ go get golang.org/x/crypto/bcrypt`
   - [bluemonday](https://github.com/microcosm-cc/bluemonday): `$ go get github.com/microcosm-cc/bluemonday`
   - [gorilla mux](http://www.gorillatoolkit.org/pkg/mux): `$ go get github.com/gorilla/mux`
   - [gorilla schema](http://www.gorillatoolkit.org/pkg/Schema): `$ go get github.com/gorilla/Schema`
+  - [gorilla sessions](http://www.gorillatoolkit.org/pkg/Sessions): `$ go get github.com/gorilla/sessions`
   - [mgo.v2](https://godoc.org/gopkg.in/mgo.v2): `$ go get gopkg.in/mgo.v2`
   - [mgo.v2/bson](https://godoc.org/gopkg.in/mgo.v2/bson): `$ go get gopkg.in/mgo.v2/bson`
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
+	"github.com/nicomo/abacaxi/session"
 	"github.com/nicomo/abacaxi/views"
 )
 
@@ -13,6 +14,12 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// results & messages to display in UI to be stored in this map
 	d := make(map[string]interface{})
+
+	// Get session
+	sess := session.Instance(r)
+	if sess.Values["id"] != nil {
+		d["IsLoggedIn"] = true
+	}
 
 	result, searchterms, err := models.Search(r)
 	if err != nil {

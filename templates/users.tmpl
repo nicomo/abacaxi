@@ -1,0 +1,27 @@
+{{ define "body" }}
+<body>
+	<div class="container">
+		<h1>&#127821; Metadata Hub</h1>
+		{{ template "nav" . }}
+		<h2>Users</h2>
+		<div class="panel panel-default">
+			<table class="table table-striped">
+				<tr>
+					<th>Username</th>
+					<th>Date created</th>
+					<th>Date last seen</th>
+					<th></th>
+				</tr>
+				{{ range .users }}
+				<tr>
+					<td>{{ .Username }}</td>
+					<td>{{ .DateCreated }}</td>
+					<td>{{ .DateLastSeen }}</td>
+					<td><a href="/users/delete/{{ .ID.Hex }}"><span class="label label-danger">delete</span></a></td>
+				</tr>
+				{{ end }}
+			</table>
+		</div>
+	</div>
+</body>
+{{end}}

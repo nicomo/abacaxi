@@ -10,10 +10,13 @@ import (
 
 // Conf : base configuration information pulled on init from a json file
 type Conf struct {
-	Hostname     string `json:"hostname"`
-	MongoDBHost  string `json:"mongodbhosts"`
-	AuthDatabase string `json:"authdatabase"`
+	Hostname        string `json:"hostname"`
+	MongoDBHost     string `json:"mongodbhosts"`
+	AuthDatabase    string `json:"authdatabase"`
+	SessionStoreKey string `json:"sessionstorekey"`
 }
+
+//TODO: stop calling GetConfig() multiple times
 
 // GetConfig generates a Conf object from a json file
 func GetConfig() Conf {
@@ -32,6 +35,6 @@ func GetConfig() Conf {
 		logger.Error.Println(ErrJSONUnmarshal)
 		os.Exit(1)
 	}
-
+	logger.Debug.Println(config)
 	return config
 }

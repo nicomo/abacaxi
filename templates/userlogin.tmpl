@@ -1,0 +1,27 @@
+{{define "body"}}
+	<body>
+		<div class="container">
+
+			<h1>&#127821; Metadata Hub</h1>
+			<form class="form-horizontal col-sm-8" action="/users/login" method="post">
+				<div class="form-group">
+					<label class="col-sm-2 control-label" for="username">Username</label>
+					<div class="col-sm-6">
+						<input type="text" class="form-control" id="username" name="username" maxlength="48" placeholder="Username" value="{{.username}}" />
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-sm-2 control-label" for="password">Password</label>
+					<div class="col-sm-6">
+						<input type="password" class="form-control" id="password" name="password" maxlength="48" placeholder="Password" value="{{.password}}" />
+					</div>
+				</div>
+				<div class="col-sm-4 col-sm-offset-2">
+					<input type="submit" class="btn btn-primary" value="Login" class="button" />
+				</div>
+				<input type="hidden" name="token" value="{{.token}}">
+			</form>
+		</div>
+	</body>
+{{ end }}

@@ -1,5 +1,6 @@
 {
 	"hostname": "http://localhost:8080/",
 	"mongodbhosts": "localhost:27017",
-	"authdatabase": "abacaxidb"
+	"authdatabase": "abacaxidb",
+	"sessionstorekey": "g9H4FJa+;y2ZC$wyye"
 }
