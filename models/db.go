@@ -16,11 +16,12 @@ import (
 // http://stackoverflow.com/questions/37041430/is-there-a-standard-way-to-keep-a-database-session-open-across-packages-in-golan
 // https://elithrar.github.io/article/custom-handlers-avoIDing-globals/
 var mgoSession *mgo.Session
+var conf config.Conf
 
 func init() {
 
 	// get the basic info for mongo
-	conf := config.GetConfig()
+	conf = config.GetConfig()
 
 	// info required to get a session to mongoDB
 	mgoDBDialInfo := &mgo.DialInfo{
@@ -96,20 +97,17 @@ func init() {
 
 // getEbooksColl retrieves a pointer to the Ebooks mongo collection
 func getEbooksColl() *mgo.Collection {
-	conf := config.GetConfig()
 	ebksColl := mgoSession.DB(conf.AuthDatabase).C("ebooks")
 	return ebksColl
 }
 
 // getTargetServiceColl retrieves a pointer to the Target Services (i.e. ebook commercial packages) mongo collection
 func getTargetServiceColl() *mgo.Collection {
-	conf := config.GetConfig()
 	tsColl := mgoSession.DB(conf.AuthDatabase).C("targetservices")
 	return tsColl
 }
 
 func getUsersColl() *mgo.Collection {
-	conf := config.GetConfig()
 	tsUsers := mgoSession.DB(conf.AuthDatabase).C("users")
 	return tsUsers
 }

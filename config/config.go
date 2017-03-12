@@ -16,8 +16,6 @@ type Conf struct {
 	SessionStoreKey string `json:"sessionstorekey"`
 }
 
-//TODO: stop calling GetConfig() multiple times
-
 // GetConfig generates a Conf object from a json file
 func GetConfig() Conf {
 
