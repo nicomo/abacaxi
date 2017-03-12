@@ -68,10 +68,12 @@ func init() {
 		panic(ErrUsersCollIndex)
 	}
 
-	//TODO: create admin user if user collection is empty
-	errUserOne := UserCreate("user1", "abacaxi-user1")
-	if errUserOne != nil {
-		logger.Error.Println(errUserOne)
+	// create admin user if user collection is empty
+	if UsersCount() == 0 {
+		errUserOne := UserCreate("user1", "abacaxi-user1")
+		if errUserOne != nil {
+			logger.Error.Println(errUserOne)
+		}
 	}
 
 	// create the ebooks collection with a compound text index

@@ -20,6 +20,7 @@ const (
 )
 
 // logAttempt increments a counter of logging attempts in session
+// used to prevent bruce force login attempts
 func logAttempt(sess *sessions.Session) {
 	// log the login attempt
 	if sess.Values[sessLoginAttempt] == nil {
@@ -192,14 +193,6 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// is the user trying to delete herself?
 	if targetUser.ID == bson.ObjectIdHex(userID) {
 		logger.Info.Printf("User %s trying to commit suicide and delete itself... Tsss....", userID)
-		// redirect to users list
-		http.Redirect(w, r, "/users", 303)
-		return
-	}
-
-	uc := models.UsersCount()
-	if uc < 3 {
-		logger.Info.Println("can't delete last user")
 		// redirect to users list
 		http.Redirect(w, r, "/users", 303)
 		return
