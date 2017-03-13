@@ -174,7 +174,7 @@ func UserNewPostHandler(w http.ResponseWriter, r *http.Request) {
 // UserDeleteHandler deletes a user
 func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
-	// get the user ID from the url
+	// get the user ID to delete from the url
 	vars := mux.Vars(r)
 	userID := vars["userID"]
 
@@ -190,9 +190,14 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get the logged in user ID
+	sess := session.Instance(r)
+	currentID := sess.Values["id"]
+
 	// is the user trying to delete herself?
-	if targetUser.ID == bson.ObjectIdHex(userID) {
-		logger.Info.Printf("User %s trying to commit suicide and delete itself... Tsss....", userID)
+	if targetUser.ID == bson.ObjectIdHex(currentID.(string)) {
+		logger.Info.Printf("User %s trying to commit suicide and delete itself... Tsss....", currentID)
+		logger.Debug.Println(targetUser, currentID)
 		// redirect to users list
 		http.Redirect(w, r, "/users", 303)
 		return
