@@ -93,6 +93,35 @@ func init() {
 		logger.Error.Println(ErrEbkIndex)
 	}
 
+	// create the records collection with a compound text index
+	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
+	recordsColl := mgoSession.DB(conf.AuthDatabase).C("records")
+	recordIndex := mgo.Index{
+		Key:        []string{"$text:publicationtitle", "$text:publishername", "$text:firstauthor", "$text:identifiers.identifier", "$text:ppns"},
+		Unique:     false,
+		DropDups:   false,
+		Background: true,
+		Sparse:     false,
+	}
+
+	ErrRecordIndex := recordsColl.EnsureIndex(recordIndex)
+	if ErrRecordIndex != nil {
+		logger.Error.Println(ErrRecordIndex)
+	}
+
+	recordIDIndex := mgo.Index{
+		Key:        []string{"$text:identifiers.identifier"},
+		Unique:     true,
+		DropDups:   false,
+		Background: true,
+		Sparse:     false,
+	}
+
+	ErrRecordIDIndex := recordsColl.EnsureIndex(recordIDIndex)
+	if ErrRecordIDIndex != nil {
+		logger.Error.Println(ErrRecordIDIndex)
+	}
+
 }
 
 // getEbooksColl retrieves a pointer to the Ebooks mongo collection

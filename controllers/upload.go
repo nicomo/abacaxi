@@ -79,7 +79,16 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// if xml pass on to xmlio, if csv, pass on to csvio, if neither, abort
 	ext := filepath.Ext(handler.Filename)
-	if ext == ".csv" {
+	var records []models.Record
+	var myTS models.TargetService
+	if ext == ".kbart" {
+
+		records, myTS, err = fileIO(fpath, tsname, ext)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+
+	} else if ext == ".csv" {
 
 		// pass on the name of the package and the name of the file to csvio package
 		csvRecords, myTS, userM, err := csvIO(fpath, tsname, userM)
@@ -154,4 +163,9 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		UploadGetHandler(w, r.WithContext(ctx))
 
 	}
+
+	logger.Debug.Println(records, myTS)
+
+	models.RecordsUpsert(records)
+
 }
