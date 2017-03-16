@@ -29,15 +29,16 @@ type TargetService struct {
 
 // TSCSVConf indicates the # of fields + column (index) of the various pieces of info in the csv file
 type TSCSVConf struct {
-	Authors   []int
-	Edition   int
-	Eisbn     int
-	Isbn      int
-	Lang      int
-	Publisher int
-	Pubdate   int
-	Title     int
-	URL       int
+	Col1  string `tag_col:"1"`
+	Col2  string `tag_col:"2"`
+	Col3  string `tag_col:"3"`
+	Col4  string `tag_col:"4"`
+	Col5  string `tag_col:"5"`
+	Col6  string `tag_col:"6"`
+	Col7  string `tag_col:"7"`
+	Col8  string `tag_col:"8"`
+	Col9  string `tag_col:"9"`
+	Col10 string `tag_col:"10"`
 }
 
 // GetTargetService retrieves a target service

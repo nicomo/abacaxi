@@ -56,6 +56,19 @@ func csvConfConvert(c models.TSCSVConf) map[int]string {
 	return sc
 }
 
+func csvConfSwap(c models.TSCSVConf) map[string]int {
+	sc := make(map[string]int)
+
+	s := reflect.ValueOf(c).Elem()
+	for i := 0; i < s.NumField(); i++ {
+		tField := s.Type().Field(i)
+		vField := s.Field(i)
+		tag := tField.Tag
+		logger.Debug.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", tField.Name, vField.Interface(), tag.Get("tag_col"))
+	}
+	return sc
+}
+
 // csvConfGetNFields returns the number of fields used in a particular TSCVConf struct
 func csvConfGetNFields(c models.TSCSVConf) int {
 	m := csvConfConvert(c)
@@ -64,10 +77,11 @@ func csvConfGetNFields(c models.TSCSVConf) int {
 
 // csvConfValidate checks that the required fields are there
 func csvConfValidate(c models.TSCSVConf) bool {
-	if (c.Isbn == 0 && c.Eisbn == 0) || c.Title == 0 {
-		logger.Debug.Println("csvConfValidate false")
-		return false
-	}
-	logger.Debug.Println("csvConfValidate true")
+	/*
+		if (c.Isbn == 0 && c.Eisbn == 0) || c.Title == 0 {
+			logger.Debug.Println("csvConfValidate false")
+			return false
+		}
+		logger.Debug.Println("csvConfValidate true")*/
 	return true
 }

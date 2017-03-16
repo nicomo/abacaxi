@@ -91,31 +91,10 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	} else if ext == ".csv" {
 
 		// pass on the name of the package and the name of the file to csvio package
-		csvRecords, myTS, userM, err := csvIO(fpath, tsname, userM)
+		records, myTS, userM, err = fileIO(fpath, tsname, userM, ext)
 		if err != nil {
 			logger.Error.Println(err)
 		}
-
-		// actually create or update the ebooks in DB
-		createdCounter, updatedCounter, ErrCreateUpdate := models.EbooksCreateOrUpdate(csvRecords)
-		if ErrCreateUpdate != nil {
-			logger.Error.Println("EbooksCreateOrUpdate error: ", ErrCreateUpdate)
-		}
-
-		userM["createdCounter"] = strconv.Itoa(createdCounter)
-		userM["updatedCounter"] = strconv.Itoa(updatedCounter)
-
-		// update the target service with last update date
-		ErrTSUpdate := models.TSUpdate(myTS)
-		if ErrTSUpdate != nil {
-			logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, ErrTSUpdate)
-		}
-
-		// list of TS appearing in menu
-		TSListing, _ := models.GetTargetServicesListing()
-		userM["TSListing"] = TSListing
-
-		views.RenderTmpl(w, "upload-report", userM)
 
 	} else if ext == ".xml" {
 

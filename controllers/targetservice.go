@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -51,7 +50,7 @@ func getTSNameAndPage(r *http.Request) (string, int) {
 }
 
 // createTSStructFromForm creates a TS struct from a form
-func createTSStructFromForm(r *http.Request) (models.TargetService, bool, error) {
+func createTSStructFromForm(r *http.Request) (models.TargetService, error) {
 	// init our Target Service struct
 	ts := models.TargetService{}
 
@@ -62,7 +61,7 @@ func createTSStructFromForm(r *http.Request) (models.TargetService, bool, error)
 	ErrParse := r.ParseForm()
 	if ErrParse != nil {
 		logger.Error.Println(ErrParse)
-		return ts, false, ErrParse
+		return ts, ErrParse
 	}
 
 	// r.PostForm is a map of our POST form values
@@ -72,19 +71,10 @@ func createTSStructFromForm(r *http.Request) (models.TargetService, bool, error)
 	errDecode := decoder.Decode(&ts, r.PostForm)
 	if errDecode != nil {
 		logger.Error.Println(errDecode)
-		return ts, false, errDecode
+		return ts, errDecode
 	}
 
-	// parse the csv conf part of the form manually
-	csvConf, ok := TargetServiceNewCSVConf(r.Form)
-	if !ok {
-		logger.Info.Printf("no csv conf created for TS %s", ts.TSName)
-		return ts, false, nil // false : there's no csvconf for this Target Service
-	}
-
-	ts.TSCsvConf = csvConf
-
-	return ts, true, nil
+	return ts, nil
 }
 
 // TargetServiceHandler retrieves the ebooks linked to a Target Service
@@ -216,7 +206,7 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	TSListing, _ := models.GetTargetServicesListing()
 	d["TSListing"] = TSListing
 
-	ts, hasCSV, ErrForm := createTSStructFromForm(r)
+	ts, ErrForm := createTSStructFromForm(r)
 	if ErrForm != nil {
 		d["ErrTSUpdate"] = ErrForm
 		logger.Error.Println(ErrForm)
@@ -231,14 +221,12 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hasCSV {
-		if !csvConfValidate(ts.TSCsvConf) {
-			csvConfNotValid := "csv configuration not valid for TS " + tsname + " : should have a title and isbn/e-isbn"
-			d["ErrTSUpdate"] = csvConfNotValid
-			logger.Info.Println(csvConfNotValid)
-			views.RenderTmpl(w, "tsupdate", d)
-			return
-		}
+	if !csvConfValidate(ts.TSCsvConf) {
+		csvConfNotValid := "csv configuration not valid for TS " + tsname + " : should have a title and isbn/e-isbn"
+		d["ErrTSUpdate"] = csvConfNotValid
+		logger.Info.Println(csvConfNotValid)
+		views.RenderTmpl(w, "tsupdate", d)
+		return
 	}
 
 	tsToUpdate, ErrTsToUpdate := models.GetTargetService(tsname)
@@ -263,6 +251,7 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, 303)
 }
 
+/*
 // TargetServiceNewCSVConf  has the logic for parsing the new TS form and
 // extracting the values to create a new csv configuration struct
 func TargetServiceNewCSVConf(form url.Values) (models.TSCSVConf, bool) {
@@ -356,7 +345,7 @@ func TargetServiceNewCSVConf(form url.Values) (models.TSCSVConf, bool) {
 
 	return conf, true
 }
-
+*/
 // TargetServiceNewGetHandler displays the form to register a new Target Service (i.e. ebook package)
 func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
@@ -371,7 +360,7 @@ func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
 func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	d := make(map[string]interface{})
 
-	ts, hasCSV, ErrForm := createTSStructFromForm(r)
+	ts, ErrForm := createTSStructFromForm(r)
 	if ErrForm != nil {
 		d["tsCreateErr"] = ErrForm
 		logger.Error.Println(ErrForm)
@@ -379,13 +368,11 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hasCSV {
-		if !csvConfValidate(ts.TSCsvConf) {
-			csvConfNotValid := "csv configuration not valid : should have a title and isbn/e-isbn"
-			d["tsCreateErr"] = csvConfNotValid
-			views.RenderTmpl(w, "targetservicenewget", d)
-			return
-		}
+	if !csvConfValidate(ts.TSCsvConf) {
+		csvConfNotValid := "csv configuration not valid : should have a title and isbn/e-isbn"
+		d["tsCreateErr"] = csvConfNotValid
+		views.RenderTmpl(w, "targetservicenewget", d)
+		return
 	}
 
 	err := models.TSCreate(ts)
