@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"github.com/nicomo/abacaxi/logger"
+
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -14,7 +16,7 @@ const (
 )
 
 type Record struct {
-	ID                           bson.ObjectId `bson:"_id"`
+	ID                           bson.ObjectId `bson:"_id,omitempty"`
 	AccessType                   string        `bson:",omitempty"`
 	Acquired                     bool          `bson:",omitempty"`
 	Active                       bool
@@ -26,19 +28,19 @@ type Record struct {
 	DateMonographPublishedPrint  string    `bson:",omitempty"`
 	DateUpdated                  time.Time `bson:",omitempty"`
 	Deleted                      bool
-	EmbargoInfo                  string `bson:",omitempty"`
-	FirstAuthor                  string `bson:",omitempty"`
-	FirstEditor                  string `bson:",omitempty"`
+	EmbargoInfo                  string       `bson:",omitempty"`
+	FirstAuthor                  string       `bson:",omitempty"`
+	FirstEditor                  string       `bson:",omitempty"`
 	Identifiers                  []Identifier `bson:",omitempty"`
-	MonographEdition             string `bson:",omitempty"`
-	MonographVolume              string `bson:",omitempty"`
-	Notes                        string `bson:",omitempty"`
-	NumFirstIssueOnline          string `bson:",omitempty"`
-	NumFirstVolOnline            string `bson:",omitempty"`
-	NumLastIssueOnline           string `bson:",omitempty"`
-	NumLastVolOnline             string `bson:",omitempty"`
-	ParentPublicationTitleID     string `bson:",omitempty"`
-	PrecedingPublicationTitleID  string `bson:",omitempty"`
+	MonographEdition             string       `bson:",omitempty"`
+	MonographVolume              string       `bson:",omitempty"`
+	Notes                        string       `bson:",omitempty"`
+	NumFirstIssueOnline          string       `bson:",omitempty"`
+	NumFirstVolOnline            string       `bson:",omitempty"`
+	NumLastIssueOnline           string       `bson:",omitempty"`
+	NumLastVolOnline             string       `bson:",omitempty"`
+	ParentPublicationTitleID     string       `bson:",omitempty"`
+	PrecedingPublicationTitleID  string       `bson:",omitempty"`
 	PublicationTitle             string
 	PublicationType              string          `bson:",omitempty"`
 	PublisherName                string          `bson:",omitempty"`
@@ -56,10 +58,22 @@ type Identifier struct {
 }
 
 // RecordsUpsert updates or inserts a number of records in DB
-func RecordsUpsert(records []Record) {}
+func RecordsUpsert(records []Record) (int, int) {
+	var recordsUpdates, recordsInserts int
+	for _, r := range records {
+		updated, upserted, err := RecordUpsert(r)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+		recordsUpdates += updated
+		recordsInserts += upserted
+	}
+	return recordsUpdates, recordsInserts
+}
 
+func RecordUpsert(record Record) (int, int, error) {
 
-func RecordUpsert(record Record) error {
+	var updated, upserted int
 
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
@@ -77,24 +91,20 @@ func RecordUpsert(record Record) error {
 	}
 
 	// updateQry
-	info, err := coll.Upsert(selectorQry, record)
-	logger.Debug.Println(info)
+	changeInfo, err := coll.Upsert(selectorQry, record)
 	if err != nil {
 		logger.Error.Printf("could not save record with identifier %v in DB: %s", record.Identifiers[0].Identifier, err)
-		return err
+		return updated, upserted, err
 	}
 
-	return nil
+	// changeInfo tells us if there's been an update or an insert
+	if changeInfo.UpsertedId != nil {
+		upserted++
+	}
+	if changeInfo.Updated != 0 {
+		updated++
+	}
 
-
-}
-
-
-
-
-
-
-
-
+	return updated, upserted, nil
 
 }

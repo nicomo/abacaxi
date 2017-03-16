@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -13,7 +14,7 @@ import (
 	"github.com/nicomo/abacaxi/models"
 )
 
-func fileIO(filename string, tsname string, ext string) ([]models.Record, models.TargetService, error) {
+func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]models.Record, models.TargetService, UserMessages, error) {
 	// retrieve target service (i.e. ebook package) for this file
 	myTS, err := models.GetTargetService(tsname)
 	if err != nil {
@@ -79,19 +80,19 @@ func fileIO(filename string, tsname string, ext string) ([]models.Record, models
 		line++
 	}
 
-	//TODO: log number of records successfully parsed
-	/*	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s", len(records), filename)
-		logger.Info.Print(parsedLog)
-		userM["parsedLog"] = parsedLog
+	// log number of records successfully parsed
+	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s", len(records), filename)
+	logger.Info.Print(parsedLog)
+	userM["parsedLog"] = parsedLog
 
-		// log lines rejected
-		if len(rejectedLines) > 0 {
-			rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
-			logger.Info.Println(rejectedLinesLog)
-			userM["rejectedLinesLog"] = rejectedLinesLog
-		}
-	*/
-	return records, myTS, nil
+	// log lines rejected
+	if len(rejectedLines) > 0 {
+		rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
+		logger.Info.Println(rejectedLinesLog)
+		userM["rejectedLinesLog"] = rejectedLinesLog
+	}
+
+	return records, myTS, userM, nil
 }
 
 func fileParseRow(fRecord []string, ext string) (models.Record, error) {

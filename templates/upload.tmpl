@@ -3,7 +3,9 @@
 		<div class="container">
 			<h1>&#127821; Metadata Hub</h1>
 			{{ template "nav" . }}
-			<h2>Upload a source file (xlm from SFX or csv from publisher)</h2>
+			<h2>Upload a source file</h2>
+			<p><em>Accepted files are : <mark>.xml</mark> (as exported from SFX); <mark>.csv</mark> (if a csv configuration exists for the target service); <mark>.kbart</mark><br />
+			Please discard the 1st line in your .csv or .kbart file if it's a header</em></p>
 			{{ if .wrongExt }}
 				<p class="bg-danger">{{ .wrongExt }}</p>
 			{{ end }}

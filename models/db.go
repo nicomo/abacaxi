@@ -110,7 +110,7 @@ func init() {
 	}
 
 	recordIDIndex := mgo.Index{
-		Key:        []string{"$text:identifiers.identifier"},
+		Key:        []string{"identifiers.identifier"},
 		Unique:     true,
 		DropDups:   false,
 		Background: true,
@@ -139,4 +139,9 @@ func getTargetServiceColl() *mgo.Collection {
 func getUsersColl() *mgo.Collection {
 	tsUsers := mgoSession.DB(conf.AuthDatabase).C("users")
 	return tsUsers
+}
+
+func getRecordsColl() *mgo.Collection {
+	recordsColl := mgoSession.DB(conf.AuthDatabase).C("records")
+	return recordsColl
 }

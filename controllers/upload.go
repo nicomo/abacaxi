@@ -83,7 +83,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	var myTS models.TargetService
 	if ext == ".kbart" {
 
-		records, myTS, err = fileIO(fpath, tsname, ext)
+		records, myTS, userM, err = fileIO(fpath, tsname, userM, ext)
 		if err != nil {
 			logger.Error.Println(err)
 		}
@@ -164,8 +164,14 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	logger.Debug.Println(records, myTS)
+	recordsUpdated, recordsInserted := models.RecordsUpsert(records)
+	logger.Info.Printf("TS: %s; recordsUpdated: %d; recordsInserted: %d", myTS.TSName, recordsUpdated, recordsInserted)
+	userM["createdCounter"] = strconv.Itoa(recordsInserted)
+	userM["updatedCounter"] = strconv.Itoa(recordsUpdated)
 
-	models.RecordsUpsert(records)
+	// list of TS appearing in menu
+	TSListing, _ := models.GetTargetServicesListing()
+	userM["TSListing"] = TSListing
 
+	views.RenderTmpl(w, "upload-report", userM)
 }
