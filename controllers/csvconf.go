@@ -23,7 +23,9 @@ func csvConf2String(c models.TSCSVConf) string {
 
 	// To perform the opertion you want
 	for _, k := range keys {
-		csvConfString += sc[k] + "; "
+		if sc[k] != "" {
+			csvConfString += sc[k] + "; "
+		}
 	}
 
 	return csvConfString
@@ -50,16 +52,18 @@ func csvConfConvert(c models.TSCSVConf) map[int]string {
 // csvConfSwap takes a csv configuration, extracts the values to use as keys, and the types become indexes (Col1 -> 1)
 // Col8 "publishername" becomes publishername: 8
 func csvConfSwap(c models.TSCSVConf) map[string]int {
+
 	sc := make(map[string]int)
 	s := reflect.ValueOf(c)
 	for i := 0; i < s.NumField(); i++ {
 		vField := s.Field(i)
 		tag := s.Type().Field(i).Tag
-		if colIndex, err := strconv.Atoi(tag.Get("tag_col")); err == nil {
-			sc[vField.Interface().(string)] = colIndex
+		if vField.Interface().(string) != "" {
+			if colIndex, err := strconv.Atoi(tag.Get("tag_col")); err == nil {
+				sc[vField.Interface().(string)] = colIndex
+			}
 		}
 	}
-
 	return sc
 }
 
@@ -71,11 +75,13 @@ func csvConfGetNFields(c models.TSCSVConf) int {
 
 // csvConfValidate checks that the required fields are there
 func csvConfValidate(c models.TSCSVConf) bool {
-	/*
-		if (c.Isbn == 0 && c.Eisbn == 0) || c.Title == 0 {
-			logger.Debug.Println("csvConfValidate false")
-			return false
-		}
-		logger.Debug.Println("csvConfValidate true")*/
-	return true
+
+	sc := csvConfSwap(c)
+	_, okTitle := sc["publicationtitle"]
+	_, okIDPrint := sc["identifierprint"]
+	_, okIDOnline := sc["identifieronline"]
+	if (okIDOnline || okIDPrint) && okTitle {
+		return true
+	}
+	return false
 }

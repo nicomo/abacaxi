@@ -29,23 +29,22 @@ type TargetService struct {
 
 // TSCSVConf indicates the # of fields + column (index) of the various pieces of info in the csv file
 type TSCSVConf struct {
-	Col1  string `tag_col:"1"`
-	Col2  string `tag_col:"2"`
-	Col3  string `tag_col:"3"`
-	Col4  string `tag_col:"4"`
-	Col5  string `tag_col:"5"`
-	Col6  string `tag_col:"6"`
-	Col7  string `tag_col:"7"`
-	Col8  string `tag_col:"8"`
-	Col9  string `tag_col:"9"`
-	Col10 string `tag_col:"10"`
+	Col1  string `bson:",omitempty" tag_col:"0"`
+	Col2  string `bson:",omitempty" tag_col:"1"`
+	Col3  string `bson:",omitempty" tag_col:"2"`
+	Col4  string `bson:",omitempty" tag_col:"3"`
+	Col5  string `bson:",omitempty" tag_col:"4"`
+	Col6  string `bson:",omitempty" tag_col:"5"`
+	Col7  string `bson:",omitempty" tag_col:"6"`
+	Col8  string `bson:",omitempty" tag_col:"7"`
+	Col9  string `bson:",omitempty" tag_col:"8"`
+	Col10 string `bson:",omitempty" tag_col:"9"`
 }
 
 // GetTargetService retrieves a target service
 func GetTargetService(tsname string) (TargetService, error) {
 
 	ts := TargetService{}
-
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
@@ -56,6 +55,7 @@ func GetTargetService(tsname string) (TargetService, error) {
 	if err != nil {
 		return ts, err
 	}
+
 	return ts, nil
 
 }
@@ -145,6 +145,7 @@ func TSCountPPNs(tsname string) int {
 // here : should pbly be a value, since we neither change nor return the struct
 func TSCreate(ts TargetService) error {
 
+	// TODO: date created not properly saved
 	ts.TSDateCreated = time.Now()
 
 	// Request a socket connection from the session to process our query.

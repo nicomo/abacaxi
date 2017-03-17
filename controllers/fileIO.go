@@ -14,12 +14,17 @@ import (
 	"github.com/nicomo/abacaxi/models"
 )
 
+const (
+	kbartNumFields = 25
+)
+
 func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]models.Record, models.TargetService, UserMessages, error) {
 	// retrieve target service (i.e. ebook package) for this file
 	myTS, err := models.GetTargetService(tsname)
 	if err != nil {
 		logger.Error.Println(err)
 	}
+
 	// update date for TS publisher last harvest since
 	// we're harvesting books from a publisher provided csv file
 	myTS.TSPublisherLastHarvest = time.Now()
@@ -38,7 +43,13 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 
 	// package csv has n fields, separator is ;
 	// TODO: (1) retrieve the number of fields in csvConf if it's a .csv file, or else constant if it's .kbart
-	reader.FieldsPerRecord = 25
+	var csvConf map[string]int
+	if ext == ".csv" {
+		csvConf = csvConfSwap(myTS.TSCsvConf)
+		reader.FieldsPerRecord = len(csvConf)
+	} else {
+		reader.FieldsPerRecord = kbartNumFields // kbart is a const: always 25 fields
+	}
 	reader.Comma = ';'
 
 	// counters to keep track of records parsed, for logging
@@ -55,18 +66,14 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 				break
 			}
 			logger.Error.Println(err)
-			panic(err)
-		}
-
-		// if row not of the expected length, move on
-		if len(fRecord) != reader.FieldsPerRecord {
-			logger.Info.Printf("parsing line %d failed: invalid length of %d, expected %d\n", line, len(fRecord), reader.FieldsPerRecord)
 			rejectedLines = append(rejectedLines, line)
+			line++
 			continue
+
 		}
 
 		// parse each line into a struct
-		record, err := fileParseRow(fRecord, ext)
+		record, err := fileParseRow(fRecord, csvConf)
 		if err != nil {
 			logger.Error.Println(err)
 		}
@@ -95,8 +102,7 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 	return records, myTS, userM, nil
 }
 
-func fileParseRow(fRecord []string, ext string) (models.Record, error) {
-
+func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, error) {
 	var record models.Record
 	var identifiers []models.Identifier
 
@@ -108,7 +114,7 @@ func fileParseRow(fRecord []string, ext string) (models.Record, error) {
 		}
 	}
 
-	if ext == ".kbart" {
+	if csvConf == nil { // the csv Configuration is nil, we default to kbart values
 		record.PublicationTitle = fRecord[0]
 		// Identifiers Print ID
 		printID := strings.Trim(strings.Replace(fRecord[1], "-", "", -1), " ")
@@ -139,6 +145,85 @@ func fileParseRow(fRecord []string, ext string) (models.Record, error) {
 		record.ParentPublicationTitleID = fRecord[22]
 		record.PrecedingPublicationTitleID = fRecord[23]
 		record.AccessType = fRecord[24]
+	} else { // we do have a csv configuration
+		if i, ok := csvConf["publicationtitle"]; ok {
+			record.PublicationTitle = fRecord[i]
+		}
+		if i, ok := csvConf["identifierprint"]; ok {
+			printID := strings.Trim(strings.Replace(fRecord[i], "-", "", -1), " ")
+			identifiers = append(identifiers, models.Identifier{Identifier: printID, IdType: models.IdTypePrint})
+		}
+		if i, ok := csvConf["identifieronline"]; ok {
+			onlineID := strings.Trim(strings.Replace(fRecord[i], "-", "", -1), " ")
+			identifiers = append(identifiers, models.Identifier{Identifier: onlineID, IdType: models.IdTypeOnline})
+		}
+		record.Identifiers = identifiers
+		if i, ok := csvConf["datefirstissueonline"]; ok {
+			record.DateFirstIssueOnline = fRecord[i]
+		}
+		if i, ok := csvConf["numfirstvolonline"]; ok {
+			record.NumFirstVolOnline = fRecord[i]
+		}
+		if i, ok := csvConf["numfirstissueonline"]; ok {
+			record.NumFirstIssueOnline = fRecord[i]
+		}
+		if i, ok := csvConf["datelastissueonline"]; ok {
+			record.DateLastIssueOnline = fRecord[i]
+		}
+		if i, ok := csvConf["numlastvolonline"]; ok {
+			record.NumLastVolOnline = fRecord[i]
+		}
+		if i, ok := csvConf["numlastissueonline"]; ok {
+			record.NumLastIssueOnline = fRecord[i]
+		}
+		if i, ok := csvConf["titleurl"]; ok {
+			record.TitleURL = fRecord[i]
+		}
+		if i, ok := csvConf["firstauthor"]; ok {
+			record.FirstAuthor = fRecord[i]
+		}
+		if i, ok := csvConf["titleid"]; ok {
+			record.TitleID = fRecord[i]
+		}
+		if i, ok := csvConf["embargoinfo"]; ok {
+			record.EmbargoInfo = fRecord[i]
+		}
+		if i, ok := csvConf["coveragedepth"]; ok {
+			record.CoverageDepth = fRecord[i]
+		}
+		if i, ok := csvConf["notes"]; ok {
+			record.Notes = fRecord[i]
+		}
+		if i, ok := csvConf["publishername"]; ok {
+			record.PublisherName = fRecord[i]
+		}
+		if i, ok := csvConf["publicationtype"]; ok {
+			record.PublicationType = fRecord[i]
+		}
+		if i, ok := csvConf["datemonographpublishedprint"]; ok {
+			record.DateMonographPublishedPrint = fRecord[i]
+		}
+		if i, ok := csvConf["datemonographpublishedonline"]; ok {
+			record.DateMonographPublishedOnline = fRecord[i]
+		}
+		if i, ok := csvConf["monographvolume"]; ok {
+			record.MonographVolume = fRecord[i]
+		}
+		if i, ok := csvConf["monographedition"]; ok {
+			record.MonographEdition = fRecord[i]
+		}
+		if i, ok := csvConf["firsteditor"]; ok {
+			record.FirstEditor = fRecord[i]
+		}
+		if i, ok := csvConf["parentpublicationtitleid"]; ok {
+			record.ParentPublicationTitleID = fRecord[i]
+		}
+		if i, ok := csvConf["precedingpublicationtitleid"]; ok {
+			record.PrecedingPublicationTitleID = fRecord[i]
+		}
+		if i, ok := csvConf["accesstype"]; ok {
+			record.AccessType = fRecord[i]
+		}
 	}
 
 	if !validateRecord(record) {

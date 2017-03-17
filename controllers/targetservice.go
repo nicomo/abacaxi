@@ -63,10 +63,9 @@ func createTSStructFromForm(r *http.Request) (models.TargetService, error) {
 		logger.Error.Println(ErrParse)
 		return ts, ErrParse
 	}
-
 	// r.PostForm is a map of our POST form values
 	// we create a struct from form
-	// but ignore the fields which do not exist in the struct
+	// but ignore the fields which would not exist in the struct
 	decoder.IgnoreUnknownKeys(true)
 	errDecode := decoder.Decode(&ts, r.PostForm)
 	if errDecode != nil {

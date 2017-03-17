@@ -197,7 +197,7 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// is the user trying to delete herself?
 	if targetUser.ID == bson.ObjectIdHex(currentID.(string)) {
 		logger.Info.Printf("User %s trying to commit suicide and delete itself... Tsss....", currentID)
-		logger.Debug.Println(targetUser, currentID)
+
 		// redirect to users list
 		http.Redirect(w, r, "/users", 303)
 		return
