@@ -3,69 +3,63 @@ package controllers
 import (
 	"reflect"
 	"sort"
+	"strconv"
 
 	"github.com/nicomo/abacaxi/models"
-
-	"github.com/nicomo/abacaxi/logger"
 )
 
 // csvConf2String returns the csvConf as a string to be displayed in UI
-func csvConf2String(c map[int]string) string {
+func csvConf2String(c models.TSCSVConf) string {
 
 	var csvConfString string
+	sc := csvConfConvert(c)
 
 	// To store the keys in slice in sorted order
 	var keys []int
-	for k := range c {
+	for k := range sc {
 		keys = append(keys, k)
 	}
 	sort.Ints(keys)
 
 	// To perform the opertion you want
 	for _, k := range keys {
-		csvConfString += c[k] + "; "
+		csvConfString += sc[k] + "; "
 	}
 
 	return csvConfString
 }
 
-// csvConfConvert swaps keys and values of the TSCSVConf struct
+// csvConfConvert takes a csv configuration, replaces the string keys with int keys using the struct tag (Col1 -> 1)
+// Col8 "publishername" becomes 8: "publishername"
 func csvConfConvert(c models.TSCSVConf) map[int]string {
 
 	sc := make(map[int]string)
-
 	s := reflect.ValueOf(c)
-	typeOfc := s.Type()
 
 	for i := 0; i < s.NumField(); i++ {
-		f := s.Field(i)
-		typ := f.Kind().String()
-		switch typ {
-		case "slice": // authors
-			for _, v := range f.Interface().([]int) {
-				sc[v] = typeOfc.Field(i).Name
-			}
-		case "int":
-			myi := f.Interface().(int)
-			if myi == 0 {
-				continue
-			}
-			sc[myi] = typeOfc.Field(i).Name
+		vField := s.Field(i)
+		tag := s.Type().Field(i).Tag
+		if colIndex, err := strconv.Atoi(tag.Get("tag_col")); err == nil {
+			sc[colIndex] = vField.Interface().(string)
 		}
 	}
+
 	return sc
 }
 
+// csvConfSwap takes a csv configuration, extracts the values to use as keys, and the types become indexes (Col1 -> 1)
+// Col8 "publishername" becomes publishername: 8
 func csvConfSwap(c models.TSCSVConf) map[string]int {
 	sc := make(map[string]int)
-
-	s := reflect.ValueOf(c).Elem()
+	s := reflect.ValueOf(c)
 	for i := 0; i < s.NumField(); i++ {
-		tField := s.Type().Field(i)
 		vField := s.Field(i)
-		tag := tField.Tag
-		logger.Debug.Printf("Field Name: %s,\t Field Value: %v,\t Tag Value: %s\n", tField.Name, vField.Interface(), tag.Get("tag_col"))
+		tag := s.Type().Field(i).Tag
+		if colIndex, err := strconv.Atoi(tag.Get("tag_col")); err == nil {
+			sc[vField.Interface().(string)] = colIndex
+		}
 	}
+
 	return sc
 }
 

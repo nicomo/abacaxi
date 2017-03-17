@@ -100,12 +100,8 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	d["IsTSActive"] = myTS.TSActive
 
-	// if there is one, get the csv conf in a string for display
-	convertedCsvConf := csvConfConvert(myTS.TSCsvConf)
-	// we do have a csv configuration for this TS
-	if len(convertedCsvConf) > 0 {
-		d["myPackageCSVConf"] = csvConf2String(convertedCsvConf)
-	}
+	// convert the csv configuration into a string to be displayed
+	d["myPackageCSVConf"] = csvConf2String(myTS.TSCsvConf)
 
 	// any ebooks records have this TS?
 	count := models.TSCountEbooks(tsname)
