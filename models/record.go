@@ -250,3 +250,24 @@ func RecordsUpsert(records []Record) (int, int) {
 	}
 	return recordsUpdates, recordsInserts
 }
+
+// RecordsGetWithUnimarcByTSName retrieves all records with condition : has Unimarc Record, given TS
+func RecordsGetWithUnimarcByTSName(tsname string) ([]Record, error) {
+	var result []Record
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks if PPN exists
+	err := coll.Find(bson.M{"targetservice.tsname": tsname, "recordunimarc": bson.M{"$exists": true}}).All(&result)
+	if err != nil {
+		logger.Error.Println(err)
+		return result, err
+	}
+
+	return result, nil
+}

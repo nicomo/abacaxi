@@ -35,8 +35,8 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if matchXML {
-		ebkID := filename[:len(filename)-4]
-		filesize = singleRecordCreateFile(ebkID, filename)
+		recordID := filename[:len(filename)-4]
+		filesize = singleRecordCreateFile(recordID, filename)
 	}
 
 	// download for multiple records
@@ -89,8 +89,8 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 func multipleRecordsCreateFile(tsname string) (int64, string) {
 
-	// get the relevant ebooks
-	ebks, err := models.EbooksGetWithUnimarcByTSName(tsname)
+	// get the relevant records
+	records, err := models.RecordsGetWithUnimarcByTSName(tsname)
 	if err != nil {
 		logger.Error.Println(err)
 		//TODO: exit cleanly with user message on error
@@ -98,7 +98,7 @@ func multipleRecordsCreateFile(tsname string) (int64, string) {
 	}
 
 	// create the downloadable file
-	fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, tsname+".xml")
+	fileSize, ErrCreateFile := models.CreateUnimarcFile(records, tsname+".xml")
 	if ErrCreateFile != nil {
 		logger.Error.Println(ErrCreateFile)
 	}
@@ -110,22 +110,22 @@ func multipleRecordsCreateFile(tsname string) (int64, string) {
 
 }
 
-func singleRecordCreateFile(ebkID string, filename string) int64 {
+func singleRecordCreateFile(recordID string, filename string) int64 {
 
-	// get the relevant ebook
-	myEbook, err := models.EbookGetByID(ebkID)
+	// get the relevant record
+	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
 		logger.Error.Println(err)
 		//TODO: exit cleanly with user message on error
 		panic(err)
 	}
 
-	// CreateUnimarcFile requires []Ebook
-	ebks := make([]models.Ebook, 1)
-	ebks = append(ebks, myEbook)
+	// CreateUnimarcFile requires []Record
+	records := make([]models.Record, 1)
+	records = append(records, myRecord)
 
 	// create the downloadable file
-	fileSize, ErrCreateFile := models.CreateUnimarcFile(ebks, filename)
+	fileSize, ErrCreateFile := models.CreateUnimarcFile(records, filename)
 	if ErrCreateFile != nil {
 		logger.Error.Println(ErrCreateFile)
 	}
