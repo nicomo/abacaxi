@@ -14,14 +14,14 @@
 			</p>
 			<p>
 				{{ if .Record.Active }}
-					<a href="/ebook/toggleactive/{{ .Record.ID.Hex }}"><span class="label label-success">Active</span></a>
+					<a href="/record/toggleactive/{{ .Record.ID.Hex }}"><span class="label label-success">Active</span></a>
 				{{ else }}
-					<a href="/ebook/toggleactive/{{ .Record.ID.Hex }}"><span class="label label-danger">Inactive</span></a>
+					<a href="/record/toggleactive/{{ .Record.ID.Hex }}"><span class="label label-danger">Inactive</span></a>
 				{{ end }}
 				{{ if .Record.Acquired }}
-					<a href="/ebook/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-success">Acquired</span></a>
+					<a href="/record/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-success">Acquired</span></a>
 				{{ else }}
-					<a href="/ebook/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-danger">Rented</span></a>
+					<a href="/record/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-danger">Rented</span></a>
 				{{ end}}
 			</p>
 			<p>

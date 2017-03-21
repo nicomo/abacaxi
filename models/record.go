@@ -103,6 +103,66 @@ func RecordGetByID(ID string) (Record, error) {
 	return record, nil
 }
 
+// RecordUpdate saves an updated record struct to DB
+func RecordUpdate(record Record) (Record, error) {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getRecordsColl()
+
+	// let's add the time and save
+	record.DateUpdated = time.Now()
+
+	// we select on the record's ID
+	selector := bson.M{"_id": record.ID}
+
+	err := coll.Update(selector, &record)
+	if err != nil {
+		logger.Error.Printf("Couldn't update record: %v", err)
+		return record, err
+	}
+
+	return record, nil
+}
+
+// RecordUpsert inserts or updates a record in DB
+func RecordUpsert(record Record) (int, int, error) {
+
+	var updated, upserted int
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+	coll := getRecordsColl()
+
+	// selectorQry
+	var IDsToQry []bson.M
+	for i := 0; i < len(record.Identifiers); i++ {
+		sTerm := bson.M{"identifiers.identifier": record.Identifiers[i].Identifier}
+		IDsToQry = append(IDsToQry, sTerm)
+	}
+	selectorQry := bson.M{
+		"$or": IDsToQry,
+	}
+
+	// updateQry
+	changeInfo, err := coll.Upsert(selectorQry, record)
+	if err != nil {
+		logger.Error.Printf("could not save record with identifier %v in DB: %s", record.Identifiers[0].Identifier, err)
+		return updated, upserted, err
+	}
+
+	// changeInfo tells us if there's been an update or an insert
+	if changeInfo.UpsertedId != nil {
+		upserted++
+	}
+	if changeInfo.Updated != 0 {
+		updated++
+	}
+
+	return updated, upserted, nil
+}
+
 // RecordsGetByTSName retrieves the records which have a given target service
 // i.e. belong to a given package
 func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
@@ -145,41 +205,4 @@ func RecordsUpsert(records []Record) (int, int) {
 		recordsInserts += upserted
 	}
 	return recordsUpdates, recordsInserts
-}
-
-func RecordUpsert(record Record) (int, int, error) {
-
-	var updated, upserted int
-
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-	coll := getRecordsColl()
-
-	// selectorQry
-	var IDsToQry []bson.M
-	for i := 0; i < len(record.Identifiers); i++ {
-		sTerm := bson.M{"identifiers.identifier": record.Identifiers[i].Identifier}
-		IDsToQry = append(IDsToQry, sTerm)
-	}
-	selectorQry := bson.M{
-		"$or": IDsToQry,
-	}
-
-	// updateQry
-	changeInfo, err := coll.Upsert(selectorQry, record)
-	if err != nil {
-		logger.Error.Printf("could not save record with identifier %v in DB: %s", record.Identifiers[0].Identifier, err)
-		return updated, upserted, err
-	}
-
-	// changeInfo tells us if there's been an update or an insert
-	if changeInfo.UpsertedId != nil {
-		upserted++
-	}
-	if changeInfo.Updated != 0 {
-		updated++
-	}
-
-	return updated, upserted, nil
 }

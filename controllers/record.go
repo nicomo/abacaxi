@@ -71,7 +71,7 @@ func RecordToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
 	// record ID is last part of the URL
 	recordID := r.URL.Path[len("/record/toggleacquired/"):]
 
-	myRecord, err := models.EbookGetByID(recordID)
+	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -82,7 +82,7 @@ func RecordToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
 		myRecord.Acquired = true
 	}
 
-	myRecord, err = models.EbookUpdate(myRecord)
+	myRecord, err = models.RecordUpdate(myRecord)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -98,7 +98,7 @@ func RecordToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	// record ID is last part of the URL
 	recordID := r.URL.Path[len("/record/toggleactive/"):]
 
-	myRecord, err := models.EbookGetByID(recordID)
+	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -109,7 +109,7 @@ func RecordToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 		myRecord.Active = true
 	}
 
-	myRecord, err = models.EbookUpdate(myRecord)
+	myRecord, err = models.RecordUpdate(myRecord)
 	if err != nil {
 		logger.Error.Println(err)
 	}
