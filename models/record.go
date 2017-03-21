@@ -163,6 +163,50 @@ func RecordUpsert(record Record) (int, int, error) {
 	return updated, upserted, nil
 }
 
+// RecordsGetNoPPNByTSName retrieves all records with conditions : no PPN, given TS
+// used to prepare query to sudoc isbn2ppn web service
+func RecordsGetNoPPNByTSName(tsname string) ([]Record, error) {
+	var result []Record
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks that PPN does not exist
+	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": bson.M{"$ne": IdTypePPN}}).All(&result)
+	if err != nil {
+		logger.Error.Println(err)
+		return result, err
+	}
+
+	return result, nil
+}
+
+// RecordsGetWithPPNByTSName retrieves all records with condition : has PPN, given TS
+// used to prepare query to sudoc get record web service
+func RecordsGetWithPPNByTSName(tsname string) ([]Record, error) {
+	var result []Record
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks if PPN exists
+	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": IdTypePPN}).All(&result)
+	if err != nil {
+		logger.Error.Println(err)
+		return result, err
+	}
+
+	return result, nil
+}
+
 // RecordsGetByTSName retrieves the records which have a given target service
 // i.e. belong to a given package
 func RecordsGetByTSName(tsname string, n int) ([]Record, error) {

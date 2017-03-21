@@ -28,7 +28,7 @@ type PPNDataResult struct {
 
 // FetchPPN retrieves ebook ppns from the sudoc web service
 func FetchPPN(isbn2ppnURL string) PPNDataResult {
-
+	logger.Debug.Println(isbn2ppnURL)
 	resp, err := http.Get(isbn2ppnURL)
 	if err != nil {
 		logger.Error.Printf("fetch: reading %s %v\n", isbn2ppnURL, err)
@@ -81,10 +81,10 @@ func GetRecord(recordURL string) (string, error) {
 }
 
 // GenChannel creates the initial channel in the Fan out / Fan in process to crawl isbn2PPN web service
-func GenChannel(ebks []models.Ebook) <-chan models.Ebook {
-	out := make(chan models.Ebook)
+func GenChannel(records []models.Record) <-chan models.Record {
+	out := make(chan models.Record)
 	go func() {
-		for _, ebk := range ebks {
+		for _, ebk := range records {
 			out <- ebk
 		}
 		close(out)
@@ -95,19 +95,22 @@ func GenChannel(ebks []models.Ebook) <-chan models.Ebook {
 // GenI2PURL generates an url to be consumed by the isbn2ppn web service
 // we place the "electronic" isbns first, then the other isbns
 //FIXME: add error management
-func GenI2PURL(ebk models.Ebook) string {
+func GenI2PURL(record models.Record) string {
 
 	i2purl := "http://www.sudoc.fr/services/isbn2ppn/"
 	m := make(map[int]string)
 	var se, s []string
 
 	// 2 slices : on for electronic isbns, one for others
-	for _, v := range ebk.Isbns {
-		if v.Electronic {
-			se = append(se, v.Isbn)
+	for _, v := range record.Identifiers {
+		if v.IdType == models.IdTypeOnline {
+			se = append(se, v.Identifier)
 			continue
 		}
-		s = append(s, v.Isbn)
+		if v.IdType == models.IdTypePrint {
+			s = append(s, v.Identifier)
+			continue
+		}
 	}
 
 	// we put the electronic isbns in the map first
@@ -133,13 +136,13 @@ func GenI2PURL(ebk models.Ebook) string {
 	return i2purl
 }
 
-// CrawlPPN takes a channel with an Ebook, passes it on to FetchPPN, retrieves the result
-func CrawlPPN(in <-chan models.Ebook) <-chan int {
+// CrawlPPN takes a channel with a Record, passes it on to FetchPPN, retrieves the result
+func CrawlPPN(in <-chan models.Record) <-chan int {
 	out := make(chan int)
 	go func() {
-		for ebk := range in {
+		for record := range in {
 			// generate the url for the web service
-			i2purl := GenI2PURL(ebk)
+			i2purl := GenI2PURL(record)
 
 			// get PPN for i2purl
 			result := FetchPPN(i2purl)
@@ -149,12 +152,12 @@ func CrawlPPN(in <-chan models.Ebook) <-chan int {
 				continue
 			}
 
-			// add ppn result in ebk struct
-			ebk.Ppns = result.PPNs
+			// add ppn result in record struct
+			//	record.Ppns = result.PPNs
 
 			// update record in DB
 			// NOTE: would be better to get back to controller and controller calls models.EbookUpdate
-			_, err := models.EbookUpdate(ebk)
+			_, err := models.RecordUpdate(record)
 			if err != nil {
 				logger.Error.Println(err)
 				out <- 0
@@ -171,29 +174,32 @@ func CrawlPPN(in <-chan models.Ebook) <-chan int {
 	return out
 }
 
-// CrawlRecords takes a channel with an ebook, passes it on to FetchRecord, retrieves the result
-func CrawlRecords(in <-chan models.Ebook) <-chan int {
+// CrawlRecords takes a channel with a record, passes it on to FetchRecord, retrieves the result
+func CrawlRecords(in <-chan models.Record) <-chan int {
 	out := make(chan int)
 	go func() {
-		for ebk := range in {
-			for i := 0; i < len(ebk.Ppns); i++ {
+		for record := range in {
+			var rURL string
+			for i := 0; i < len(record.Identifiers); i++ {
 				// generate the URL for the web service
-				crurl := "http://www.sudoc.fr/" + ebk.Ppns[i] + ".abes"
+				if record.Identifiers[i].IdType == models.IdTypePPN {
+					rURL = "http://www.sudoc.fr/" + record.Identifiers[i].Identifier + ".abes"
+				}
 
 				// get record for this PPN
-				result, err := GetRecord(crurl)
+				result, err := GetRecord(rURL)
 				if err != nil {
 					logger.Error.Println(err)
 					continue
 				}
 
 				// add record to ebook struct
-				ebk.RecordUnimarc = result
+				record.RecordUnimarc = result
 				break
 			}
 
 			// update record in DB
-			_, err := models.EbookUpdate(ebk)
+			_, err := models.RecordUpdate(record)
 			if err != nil {
 				logger.Error.Println(err)
 				out <- 0

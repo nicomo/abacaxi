@@ -18,15 +18,15 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 	// d := make(map[string]interface{})
 
 	// record ID is last part of the URL
-	ebookID := r.URL.Path[len("/sudoci2p/"):]
+	recordID := r.URL.Path[len("/sudoci2p/"):]
 
-	myEbook, err := models.EbookGetByID(ebookID)
+	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
 		logger.Error.Println(err)
 	}
 
 	// generate the web service url for this record
-	i2purl := sudoc.GenI2PURL(myEbook)
+	i2purl := sudoc.GenI2PURL(myRecord)
 
 	// get PPN for i2purl
 	result := sudoc.FetchPPN(i2purl)
@@ -34,18 +34,34 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error.Println(result.Err)
 	}
 
-	myEbook.Ppns = result.PPNs
+	logger.Debug.Println(result)
 
-	// actually save updated ebook struct to DB
-	var ErrEbkUpdate error
-	myEbook, ErrEbkUpdate = models.EbookUpdate(myEbook)
-	if ErrEbkUpdate != nil {
-		logger.Error.Println(ErrEbkUpdate)
+	// update live record with PPNs
+	for _, v := range result.PPNs {
+		var exists bool
+		for _, w := range myRecord.Identifiers {
+			if v == w.Identifier {
+				logger.Debug.Println("continue")
+				exists = true
+				continue
+			}
+		}
+		if !exists {
+			newPPN := models.Identifier{Identifier: v, IdType: models.IdTypePPN}
+			myRecord.Identifiers = append(myRecord.Identifiers, newPPN)
+		}
+	}
+
+	// actually save updated record struct to DB
+	var ErrRecordUpdate error
+	myRecord, ErrRecordUpdate = models.RecordUpdate(myRecord)
+	if ErrRecordUpdate != nil {
+		logger.Error.Println(ErrRecordUpdate)
 	}
 
 	// redirect to book detail page
 	// TODO: transmit either error or success message to user
-	urlStr := "/ebook/" + ebookID
+	urlStr := "/record/" + recordID
 	http.Redirect(w, r, urlStr, 303)
 }
 
@@ -59,7 +75,7 @@ func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
 	tsname := r.URL.Path[len("/sudoci2p-ts-new/"):]
 	d["myPackage"] = tsname
 
-	records, err := models.EbooksGetNoPPNByTSName(tsname)
+	records, err := models.RecordsGetNoPPNByTSName(tsname)
 	if err != nil {
 		logger.Error.Println(err)
 		d["sudoci2pError"] = err
@@ -144,7 +160,7 @@ func GetRecordsTSHandler(w http.ResponseWriter, r *http.Request) {
 	tsname := r.URL.Path[len("/sudocgetrecords/"):]
 	d["myPackage"] = tsname
 
-	records, err := models.EbooksGetWithPPNByTSName(tsname)
+	records, err := models.RecordsGetWithPPNByTSName(tsname)
 	if err != nil {
 		logger.Error.Println(err)
 		d["sudocGetRecordsError"] = err
