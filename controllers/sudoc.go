@@ -111,17 +111,20 @@ func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
 func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 	// record ID is last part of the URL
-	ebookID := r.URL.Path[len("/sudocgetrecord/"):]
+	recordID := r.URL.Path[len("/sudocgetrecord/"):]
 
-	myEbook, err := models.EbookGetByID(ebookID)
+	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
 		logger.Error.Println(err)
 	}
 
 	// ranging over the PPNs in a given local record
 	// we fetch the sudoc marc record, and stop as soon as we get one
-	for _, v := range myEbook.Ppns {
-		record, err := sudoc.GetRecord("http://www.sudoc.fr/" + v + ".abes")
+	for _, v := range myRecord.Identifiers {
+		if v.IdType != models.IdTypePPN {
+			continue
+		}
+		record, err := sudoc.GetRecord("http://www.sudoc.fr/" + v.Identifier + ".abes")
 		if err != nil {
 			logger.Error.Println(err)
 			continue
@@ -129,16 +132,16 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 		if record != "" {
 
-			myEbook.RecordUnimarc = record
+			myRecord.RecordUnimarc = record
 
 			// actually save updated ebook struct to DB
-			var ErrEbkUpdate error
-			myEbook, ErrEbkUpdate = models.EbookUpdate(myEbook)
-			if ErrEbkUpdate != nil {
-				logger.Error.Println(ErrEbkUpdate)
+			var ErrRecordUpdate error
+			myRecord, ErrRecordUpdate = models.RecordUpdate(myRecord)
+			if ErrRecordUpdate != nil {
+				logger.Error.Println(ErrRecordUpdate)
 			}
 
-			if len(myEbook.RecordUnimarc) > 0 {
+			if len(myRecord.RecordUnimarc) > 0 {
 				break
 			}
 		}
@@ -146,7 +149,7 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 	// redirect to book detail page
 	// TODO: transmit either error or success message to user
-	urlStr := "/ebook/" + ebookID
+	urlStr := "/record/" + recordID
 	http.Redirect(w, r, urlStr, 303)
 }
 

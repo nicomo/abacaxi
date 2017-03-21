@@ -39,7 +39,7 @@ func main() {
 	router.Handle("/packagenew", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceNewGetHandler))).Methods("GET")
 	router.Handle("/packagenew", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceNewPostHandler))).Methods("POST")
 	router.Handle("/search", middleware.DisallowAnon(http.HandlerFunc(controllers.SearchHandler)))
-	router.Handle("/sudocgetrecord/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.GetRecordHandler)))
+	router.Handle("/sudocgetrecord/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.GetRecordHandler)))
 	router.Handle("/sudocgetrecords/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.GetRecordsTSHandler)))
 	router.Handle("/sudoci2p/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.SudocI2PHandler)))
 	router.Handle("/sudoci2p-ts-new/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.SudocI2PTSNewHandler)))
