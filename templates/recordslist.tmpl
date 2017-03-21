@@ -2,22 +2,29 @@
 	<div class="panel panel-default">
 		<table class="table table-striped">
 			<tr>
+				<th>1st Author</th>
 				<th>Title</th>
-				<th>Authors</th>
-				<th>Isbns</th>
-				<th>PPN</th>
+				<th>Identifiers</th>
 				<th>Unimarc Record</th>
 				<th>see more</th>
 			</tr>
 			{{ range .myRecords }}
 			<tr>
-				<td>{{ .Title }}</td>
-				<td>{{ range .Authors }} {{ . }}<br /> {{ end }}</td>
-				<td>{{ range .Isbns }} {{ .Isbn }}<br /> {{ end }}</td>
-				<td>{{ if .Ppns }} Y {{ else }} N {{ end }}</td>
+				<td>{{ .FirstAuthor }}</td>
+				<td>{{ .PublicationTitle }}</td>
+				<td>
+					{{ range .Identifiers }} 
+						{{ .Identifier }} 
+						{{ if eq .IdType 0 }} (Online) {{ end }}
+						{{ if eq .IdType 1 }} (Print) {{ end }}
+						{{ if eq .IdType 2 }} (PPN) {{ end }}
+						{{ if eq .IdType 3 }} (SFX) {{ end }}
+						<br>
+					{{ end }}</td>
 				<td>{{ if .RecordUnimarc }} Y {{ else }} N {{ end }}</td>
-				<td><a href="/ebook/{{ .ID.Hex }}">...</a></td>
+				<td><a href="/record/{{ .ID.Hex }}">...</a></td>
 			</tr>
+
 			{{ end }}
 		</table>
 	</div>

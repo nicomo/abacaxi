@@ -103,7 +103,7 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	d["myPackageCSVConf"] = csvConf2String(myTS.TSCsvConf)
 
 	// any ebooks records have this TS?
-	count := models.TSCountEbooks(tsname)
+	count := models.TSCountRecords(tsname)
 	d["myPackageEbooksCount"] = count
 
 	if count > 0 { // no need to query for actual ebooks otherwise
@@ -126,8 +126,8 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		nbPPNs := models.TSCountPPNs(tsname)
 		d["myPackagePPNsCount"] = nbPPNs
 
-		// get the ebooks
-		records, err := models.EbooksGetByTSName(tsname, page)
+		// get the records
+		records, err := models.RecordsGetByTSName(tsname, page)
 		if err != nil {
 			logger.Error.Println(err)
 		}

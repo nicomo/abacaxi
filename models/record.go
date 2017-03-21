@@ -57,6 +57,36 @@ type Identifier struct {
 	IdType     int
 }
 
+// RecordsGetByTSName retrieves the records which have a given target service
+// i.e. belong to a given package
+func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
+	var result []Record
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	q := coll.Find(bson.M{"targetservices.tsname": tsname}).Sort("publicationtitle").Limit(100)
+
+	// skip to result number n
+	// NOTE: if we want to paginate on large sets, we shouldn't skip
+	// (mongo iterates over all the result documents and omits the first n that need to be skipped.)
+	// better solution - see https://github.com/icza/minquery
+	if n > 0 {
+		q = q.Skip(n)
+	}
+
+	err := q.All(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 // RecordsUpsert updates or inserts a number of records in DB
 func RecordsUpsert(records []Record) (int, int) {
 	var recordsUpdates, recordsInserts int
@@ -106,5 +136,4 @@ func RecordUpsert(record Record) (int, int, error) {
 	}
 
 	return updated, upserted, nil
-
 }

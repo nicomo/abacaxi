@@ -79,18 +79,18 @@ func GetTargetServicesListing() ([]TargetService, error) {
 
 }
 
-// TSCountEbooks counts the number of ebooks for this package
-func TSCountEbooks(tsname string) int {
+// TSCountRecords counts the number of records for this package
+func TSCountRecords(tsname string) int {
 
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
 
-	// collection ebooks
-	coll := getEbooksColl()
+	// collection records
+	coll := getRecordsColl()
 
-	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservice.tsname": tsname})
+	//  query records by package name, aka Target Service in SFX (and in models.Records struct)
+	qry := coll.Find(bson.M{"targetservices.tsname": tsname})
 	count, err := qry.Count()
 
 	if err != nil {
@@ -106,11 +106,11 @@ func TSCountRecordsUnimarc(tsname string) int {
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
 
-	// collection ebooks
-	coll := getEbooksColl()
+	// collection records
+	coll := getRecordsColl()
 
-	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservice.tsname": tsname, "recordunimarc": bson.M{"$ne": nil}})
+	//  query records by package name, aka Target Service in SFX (and in models.Ebook struct)
+	qry := coll.Find(bson.M{"targetservices.tsname": tsname, "recordunimarc": bson.M{"$ne": nil}})
 	count, err := qry.Count()
 
 	if err != nil {
