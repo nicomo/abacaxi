@@ -57,6 +57,52 @@ type Identifier struct {
 	IdType     int
 }
 
+// RecordDelete deletes a single ebook from DB
+func RecordDelete(ID string) error {
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection records
+	coll := getRecordsColl()
+
+	// cast ID as ObjectID
+	objectID := bson.ObjectIdHex(ID)
+
+	// delete record
+	qry := bson.M{"_id": objectID}
+	err := coll.Remove(qry)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RecordGetByID retrieves an ebook given its mongodb ID
+func RecordGetByID(ID string) (Record, error) {
+	record := Record{}
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection records
+	coll := getRecordsColl()
+
+	// cast ID as ObjectID
+	objectID := bson.ObjectIdHex(ID)
+
+	qry := bson.M{"_id": objectID}
+	err := coll.Find(qry).One(&record)
+	if err != nil {
+		return record, err
+	}
+
+	return record, nil
+}
+
 // RecordsGetByTSName retrieves the records which have a given target service
 // i.e. belong to a given package
 func RecordsGetByTSName(tsname string, n int) ([]Record, error) {

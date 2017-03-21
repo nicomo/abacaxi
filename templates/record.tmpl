@@ -1,0 +1,107 @@
+{{define "body"}}
+	<body>
+		<div class="container">
+
+			<h1>&#127821; Metadata Hub</h1>
+
+			{{ template "nav" . }}
+
+			<h2>Record #{{ .Record.ID.Hex }}</h2>
+
+			<p>
+				Created: {{ .formattedDateCreated }}
+				{{ if .formattedDateUpdated }} / Updated from source: {{ .formattedDateUpdated }} {{ end }}
+			</p>
+			<p>
+				{{ if .Record.Active }}
+					<a href="/ebook/toggleactive/{{ .Record.ID.Hex }}"><span class="label label-success">Active</span></a>
+				{{ else }}
+					<a href="/ebook/toggleactive/{{ .Record.ID.Hex }}"><span class="label label-danger">Inactive</span></a>
+				{{ end }}
+				{{ if .Record.Acquired }}
+					<a href="/ebook/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-success">Acquired</span></a>
+				{{ else }}
+					<a href="/ebook/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-danger">Rented</span></a>
+				{{ end}}
+			</p>
+			<p>
+				<div class="btn-group" role="group" aria-label="unimarc button">
+					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Unimarc (sudoc) <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						<li><a href="/sudoci2p/{{ .Record.ID.Hex }}">Get Sudoc PPNs</a></li>
+						{{ if .Record.Identifiers }}
+							<li><a href="/sudocgetrecord/{{ .Record.ID.Hex }}">Get Sudoc Unimarc</a></li>
+							{{ if .Record.RecordUnimarc }} 
+								<li><a href="/download/{{ .Record.ID.Hex }}.xml">Download Unimarc</a></li>
+							{{ end }}
+						{{ end }}
+					</ul>
+				</div>
+				<a class="btn btn-danger" href="/record/delete/{{ .Record.ID.Hex }}" role="button">Delete</a>
+			</p>
+			<table class="table table-condensed table-hover">
+				<tbody>
+					<tr>
+						<th scope="row">First Author</th>
+						<td>{{ .Record.FirstAuthor }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Title</th>
+						<td>{{ .Record.PublicationTitle }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Publisher</th>
+						<td>{{ if .Record.PublisherName }} {{ .Record.PublisherName }} {{ else }} - {{ end }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Pub. Date</th>
+						<td>{{ if .Record.DateMonographPublishedPrint }} {{ .Record.DateMonographPublishedPrint }} 
+						{{ else if .Record.DateMonographPublishedOnline}} {{ .Record.DateMonographPublishedOnline }}
+						{{ else }} - {{ end }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Edition</th>
+						<td>{{ if .Record.MonographEdition }} {{ .Record.MonographEdition }} {{ else }} - {{ end }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Identifiers</th>
+						<td>
+							{{ range .Record.Identifiers }}
+								{{ .Identifier }} 
+								{{ if eq .IdType 0 }} (Online) {{ end }}
+								{{ if eq .IdType 1 }} (Print) {{ end }}
+								{{ if eq .IdType 2 }} (PPN) {{ end }}
+								{{ if eq .IdType 3 }} (SFX) {{ end }}
+								<br />
+							{{ end }}
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">Target Services</th>
+						<td>
+							{{ range .Record.TargetServices }}
+									{{ .TSDisplayName }}<br />
+							{{ end }}							
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">URL</th>
+						<td>{{ if .Record.TitleURL }} <a href="{{ .Record.TitleURL }}">{{ .Record.TitleURL }}</a> {{ end }}</td>
+					</tr>
+					<tr>
+						<th scope="row">Unimarc Record</th>
+						<td>
+							{{ if .Record.RecordUnimarc }}
+								{{ .Record.RecordUnimarc}}<br />
+							{{ else }}
+							 	-
+							{{ end}}
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+{{ end }}

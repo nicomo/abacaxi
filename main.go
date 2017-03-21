@@ -27,10 +27,10 @@ func main() {
 
 	// all inner pages subject to authentication
 	router.Handle("/download/{filename:[\\w\\-\\.]+}", middleware.DisallowAnon(http.HandlerFunc(controllers.DownloadHandler)))
-	router.Handle("/ebook/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.EbookHandler)))
-	router.Handle("/ebook/delete/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.EbookDeleteHandler)))
-	router.Handle("/ebook/toggleacquired/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.EbookToggleAcquiredHandler)))
-	router.Handle("/ebook/toggleactive/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.EbookToggleActiveHandler)))
+	router.Handle("/record/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordHandler)))
+	router.Handle("/record/delete/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordDeleteHandler)))
+	router.Handle("/record/toggleacquired/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordToggleAcquiredHandler)))
+	router.Handle("/record/toggleactive/{ebookID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordToggleActiveHandler)))
 	router.Handle("/package/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceHandler)))
 	router.Handle("/package/{targetservice}/{page:[0-9]+}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServicePageHandler)))
 	router.Handle("/package/toggleactive/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceToggleActiveHandler)))
