@@ -263,7 +263,7 @@ func RecordsGetWithUnimarcByTSName(tsname string) ([]Record, error) {
 	coll := getRecordsColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks if PPN exists
-	err := coll.Find(bson.M{"targetservice.tsname": tsname, "recordunimarc": bson.M{"$exists": true}}).All(&result)
+	err := coll.Find(bson.M{"targetservices.tsname": tsname, "recordunimarc": bson.M{"$exists": true}}).All(&result)
 	if err != nil {
 		logger.Error.Println(err)
 		return result, err
