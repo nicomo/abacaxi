@@ -98,28 +98,12 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	} else if ext == ".xml" {
 
-		xmlRecords, myTS, userM, err := xmlIO(fpath, tsname, userM)
+		records, myTS, userM, err = xmlIO(fpath, tsname, userM)
 		if err != nil {
 			logger.Error.Println(err)
 		}
 
-		createdCounter, updatedCounter, ErrCreateUpdate := models.EbooksCreateOrUpdate(xmlRecords)
-		if ErrCreateUpdate != nil {
-			logger.Error.Println("EbooksCreateOrUpdate error: ", ErrCreateUpdate)
-		}
-		userM["createdCounter"] = strconv.Itoa(createdCounter)
-		userM["updatedCounter"] = strconv.Itoa(updatedCounter)
-
-		ErrTSUpdate := models.TSUpdate(myTS)
-		if ErrTSUpdate != nil {
-			logger.Error.Printf("couldn't update Target Service %v. Error: %v", myTS, ErrTSUpdate)
-		}
-
-		// list of TS appearing in menu
-		TSListing, _ := models.GetTargetServicesListing()
-		userM["TSListing"] = TSListing
-
-		views.RenderTmpl(w, "upload-report", userM)
+		logger.Debug.Println(records[10])
 
 	} else {
 

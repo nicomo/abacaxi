@@ -77,22 +77,6 @@ func init() {
 		}
 	}
 
-	// create the ebooks collection with a compound text index
-	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
-	ebkColl := mgoSession.DB(conf.AuthDatabase).C("ebooks")
-	ebkIndex := mgo.Index{
-		Key:        []string{"$text:title", "$text:publisher", "$text:authors", "$text:isbns.isbn", "$text:ppns"},
-		Unique:     false,
-		DropDups:   false,
-		Background: true,
-		Sparse:     false,
-	}
-
-	ErrEbkIndex := ebkColl.EnsureIndex(ebkIndex)
-	if ErrEbkIndex != nil {
-		logger.Error.Println(ErrEbkIndex)
-	}
-
 	// create the records collection with a compound text index
 	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
 	recordsColl := mgoSession.DB(conf.AuthDatabase).C("records")
@@ -122,12 +106,6 @@ func init() {
 		logger.Error.Println(ErrRecordIDIndex)
 	}
 
-}
-
-// getEbooksColl retrieves a pointer to the Ebooks mongo collection
-func getEbooksColl() *mgo.Collection {
-	ebksColl := mgoSession.DB(conf.AuthDatabase).C("ebooks")
-	return ebksColl
 }
 
 // getTargetServiceColl retrieves a pointer to the Target Services (i.e. ebook commercial packages) mongo collection

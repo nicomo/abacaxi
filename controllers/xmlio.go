@@ -20,26 +20,26 @@ type XMLRecords struct {
 
 // XMLRecord single XML record for parsing
 type XMLRecord struct {
-	XMLName xml.Name `xml:"item"`
-	Title   string   `xml:"title"`
-	SFXID   string   `xml:"SFX_id"`
-	Isbn    string   `xml:"isbn"`
-	Eisbn   string   `xml:"eisbn"`
-	Authors []string `xml:"authorlist>author"`
+	XMLName     xml.Name `xml:"item"`
+	Title       string   `xml:"title"`
+	SFXID       string   `xml:"sfx_id"`
+	Isbn        string   `xml:"isbn"`
+	Eisbn       string   `xml:"eisbn"`
+	FirstAuthor string   `xml:"authorlist>author"`
 }
 
 // xmlIO takes an xml file to clean it, save copy & unmarshall content
-func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, models.TargetService, UserMessages, error) {
+func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Record, models.TargetService, UserMessages, error) {
 
 	// retrieve target service (i.e. ebook package) for this file
-	myTargetService, err := models.GetTargetService(tsname)
+	myTS, err := models.GetTargetService(tsname)
 	if err != nil {
 		logger.Error.Println(err)
 	}
 
 	// update date for TS publisher last harvest since
 	// we're harvesting books from a publisher provided csv file
-	myTargetService.TSSFXLastHarvest = time.Now()
+	myTS.TSSFXLastHarvest = time.Now()
 
 	// open the source XML file
 	file, err := os.Open(filename) // FIXME: should be filepath rather than filename
@@ -59,15 +59,15 @@ func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 	// sanity check, display first record
 	logger.Debug.Println("1st record in file is\n", xmlRecords[0])
 
-	// unmarshall csv records into ebook structs
-	ebooks := []models.Ebook{}
+	// unmarshall csv records into record structs
+	records := []models.Record{}
 	for _, record := range xmlRecords {
-		ebook := xmlUnmarshall(record, myTargetService)
-		ebooks = append(ebooks, ebook)
+		record := xmlUnmarshall(record, myTS)
+		records = append(records, record)
 	}
 
 	// log number of records successfully parsed
-	parsedLog := fmt.Sprintf("successfully parsed %d records from %s", len(ebooks), filename)
+	parsedLog := fmt.Sprintf("successfully parsed %d records from %s", len(records), filename)
 	logger.Info.Print(parsedLog)
 	userM["parsedLog"] = parsedLog
 
@@ -77,7 +77,7 @@ func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 	ErrXMLSaveCopy := xmlSaveCopy(dst, filename)
 	if ErrXMLSaveCopy != nil {
 		logger.Error.Println(ErrXMLSaveCopy)
-		return ebooks, myTargetService, userM, ErrXMLSaveCopy
+		return records, myTS, userM, ErrXMLSaveCopy
 	}
 
 	// logging + user message with result of save copy
@@ -85,7 +85,7 @@ func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Ebook, 
 	logger.Info.Println(saveCopyMssg)
 	userM["saveCopyMssg"] = saveCopyMssg
 
-	return ebooks, myTargetService, userM, nil
+	return records, myTS, userM, nil
 }
 
 // ReadRecords reads the XML document
@@ -98,25 +98,23 @@ func ReadRecords(reader io.Reader) ([]XMLRecord, error) {
 	return xmlRecords.Records, nil
 }
 
-// create ebook object from xml record
-func xmlUnmarshall(recordIn XMLRecord, myTargetService models.TargetService) models.Ebook {
-	ebk := models.Ebook{}
-	for _, aut := range recordIn.Authors {
-		ebk.Authors = append(ebk.Authors, aut)
-	}
-	Isbn := models.Isbn{Isbn: strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), Electronic: false}  // print isbn, not electronic
-	Eisbn := models.Isbn{Isbn: strings.Trim(strings.Replace(recordIn.Eisbn, "-", "", -1), " "), Electronic: true} // eisbn, electronic
-	ebk.Isbns = append(ebk.Isbns, Isbn, Eisbn)
-	ebk.Title = recordIn.Title
-	ebk.SFXLastHarvest = time.Now()
-	ebk.TargetService = append(ebk.TargetService, myTargetService)
-	ebk.SFXID = recordIn.SFXID
+// create record object from xml record
+func xmlUnmarshall(recordIn XMLRecord, myTS models.TargetService) models.Record {
+	var record models.Record
 
-	if myTargetService.TSActive {
-		ebk.Active = true
+	record.FirstAuthor = recordIn.FirstAuthor
+	IdentifierPrint := models.Identifier{Identifier: strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), IdType: models.IdTypePrint}
+	IdentifierOnline := models.Identifier{Identifier: strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), IdType: models.IdTypeOnline}
+	IdentifierSFX := models.Identifier{Identifier: recordIn.SFXID, IdType: models.IdTypeSFX}
+	record.Identifiers = append(record.Identifiers, IdentifierPrint, IdentifierOnline, IdentifierSFX)
+	record.PublicationTitle = recordIn.Title
+	record.TargetServices = append(record.TargetServices, myTS)
+
+	if myTS.TSActive {
+		record.Active = true
 	}
 
-	return ebk
+	return record
 }
 
 func xmlSaveCopy(dst, src string) error {
