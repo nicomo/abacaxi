@@ -103,12 +103,6 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(err)
 		}
 
-		// TODO: add time.now() to each record's SFXLastHarvest field
-		// before passing on to EbooksCreateOrUpdate
-		// then EbooksCreateOrUpdate should test if SFXLastHarvest is today
-		// and protect other fields accordingly, e.g. PublisherLastHarvest
-		// do the reverse for Publisher CSV Upload
-
 		createdCounter, updatedCounter, ErrCreateUpdate := models.EbooksCreateOrUpdate(xmlRecords)
 		if ErrCreateUpdate != nil {
 			logger.Error.Println("EbooksCreateOrUpdate error: ", ErrCreateUpdate)

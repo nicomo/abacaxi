@@ -32,7 +32,6 @@ func getPrevNext(page int, count int) (int, int) {
 		return -1, 200
 	}
 	return page - 100, page + 100
-
 }
 
 func getTSNameAndPage(r *http.Request) (string, int) {
@@ -46,7 +45,6 @@ func getTSNameAndPage(r *http.Request) (string, int) {
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
 	return tsname, 0
-
 }
 
 // createTSStructFromForm creates a TS struct from a form
@@ -246,101 +244,6 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, 303)
 }
 
-/*
-// TargetServiceNewCSVConf  has the logic for parsing the new TS form and
-// extracting the values to create a new csv configuration struct
-func TargetServiceNewCSVConf(form url.Values) (models.TSCSVConf, bool) {
-	conf := models.TSCSVConf{}
-
-	nfields := 0
-	var authors []int
-
-	for k, v := range form { // url.Values is a map
-		for _, w := range v { // and each value is in a []string
-			switch {
-			// index from 1 to keep 0 as nil value
-			// so when used later to read a csv file, use as value-1
-			// see csvio.go
-			case w == "author":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				authors = append(authors, i)
-				nfields++
-			case w == "eisbn":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				conf.Eisbn = i
-				nfields++
-			case w == "edition":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				conf.Edition = i
-				nfields++
-			case w == "isbn":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				conf.Isbn = i
-				nfields++
-			case w == "lang":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				conf.Lang = i
-				nfields++
-			case w == "publisher":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				conf.Publisher = i
-				nfields++
-			case w == "pubdate":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				conf.Pubdate = i
-				nfields++
-			case w == "title":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				conf.Title = i
-				nfields++
-			case w == "url":
-				i, err := strconv.Atoi(k)
-				if err != nil {
-					logger.Error.Println(err)
-				}
-				nfields++
-				conf.URL = i
-			default:
-				continue
-			}
-		}
-	}
-
-	if len(authors) > 0 {
-		conf.Authors = authors
-	}
-
-	if nfields == 0 {
-		return conf, false
-	}
-
-	return conf, true
-}
-*/
 // TargetServiceNewGetHandler displays the form to register a new Target Service (i.e. ebook package)
 func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
@@ -397,7 +300,7 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// retrieve records with thats TS
-	records, err := models.EbooksGetByTSName(tsname, 0)
+	records, err := models.RecordsGetByTSName(tsname, 0)
 	if err != nil {
 		logger.Error.Println(err)
 	}
@@ -410,9 +313,9 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			v.Active = true
 		}
-		_, ErrEbkUpdate := models.EbookUpdate(v)
-		if ErrEbkUpdate != nil {
-			logger.Error.Printf("can't update record %v: %v", v.ID, ErrEbkUpdate)
+		_, ErrRecordUpdate := models.RecordUpdate(v)
+		if ErrRecordUpdate != nil {
+			logger.Error.Printf("can't update record %v: %v", v.ID, ErrRecordUpdate)
 		}
 	}
 

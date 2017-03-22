@@ -11,9 +11,9 @@ import (
 )
 
 // Search parses the search form in nav to retrieve ebooks
-func Search(r *http.Request) ([]Ebook, string, error) {
+func Search(r *http.Request) ([]Record, string, error) {
 
-	var results []Ebook
+	var results []Record
 
 	// create sanitizing policy : strict
 	p := bluemonday.StrictPolicy()
@@ -28,7 +28,7 @@ func Search(r *http.Request) ([]Ebook, string, error) {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
-	coll := getEbooksColl()
+	coll := getRecordsColl()
 
 	// build query
 	qryString := p.Sanitize(r.FormValue("search_terms"))
