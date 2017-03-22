@@ -7,9 +7,8 @@
 				<h2>Some info about the data currently stored</h2>
 				<ul>
 					<li>Number of Target Services: {{ .TSCount }}</li>
-					<li>Number of local records : {{ .ebksCount }}</li>
-					<li>Number of records with Sudoc PPNumbers : {{ .ppnCount }}</li>
-					<li>Number of Unimarc records : {{ .unimarcCount }}</li>
+					<li>Number of local records : {{ .recordsCount }}</li>
+					<li>Number of local records with Sudoc PPN / Unimarc Record : {{ .ppnCount }} / {{ .unimarcCount }}</li>
 				</ul>
 			{{ else }}
 				<h2>&#127821; is empty</h2>

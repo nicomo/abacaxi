@@ -34,14 +34,11 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error.Println(result.Err)
 	}
 
-	logger.Debug.Println(result)
-
 	// update live record with PPNs
 	for _, v := range result.PPNs {
 		var exists bool
 		for _, w := range myRecord.Identifiers {
 			if v == w.Identifier {
-				logger.Debug.Println("continue")
 				exists = true
 				continue
 			}
@@ -65,14 +62,14 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, urlStr, 303)
 }
 
-// SudocI2PTSNewHandler retrieves PPNs for all ebooks linked to a Target Service that don't currently have one
-func SudocI2PTSNewHandler(w http.ResponseWriter, r *http.Request) {
+// SudocI2PTSHandler retrieves PPNs for all records linked to a Target Service that don't currently have one
+func SudocI2PTSHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 	d["i2pType"] = "Get Sudoc PPN Record IDs for records currently without one"
 
 	// Target Service name is last part of the URL
-	tsname := r.URL.Path[len("/sudoci2p-ts-new/"):]
+	tsname := r.URL.Path[len("/sudoci2p-ts/"):]
 	d["myPackage"] = tsname
 
 	records, err := models.RecordsGetNoPPNByTSName(tsname)

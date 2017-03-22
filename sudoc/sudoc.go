@@ -28,7 +28,6 @@ type PPNDataResult struct {
 
 // FetchPPN retrieves ebook ppns from the sudoc web service
 func FetchPPN(isbn2ppnURL string) PPNDataResult {
-	logger.Debug.Println(isbn2ppnURL)
 	resp, err := http.Get(isbn2ppnURL)
 	if err != nil {
 		logger.Error.Printf("fetch: reading %s %v\n", isbn2ppnURL, err)

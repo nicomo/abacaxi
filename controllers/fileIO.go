@@ -231,6 +231,8 @@ func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, erro
 		return record, recordNotValid
 	}
 
+	record.DateCreated = time.Now()
+
 	return record, nil
 }
 

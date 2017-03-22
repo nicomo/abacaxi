@@ -163,6 +163,96 @@ func RecordUpsert(record Record) (int, int, error) {
 	return updated, upserted, nil
 }
 
+// RecordsCount counts the number of records in DB
+func RecordsCount() int {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	//  query ebooks
+	qry := coll.Find(nil)
+	count, err := qry.Count()
+
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	return count
+}
+
+// RecordsCountPPNs retrieves the number of record that have a PPN Identifier
+func RecordsCountPPNs() int {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	//  query ebooks
+	qry := coll.Find(bson.M{"identifiers.idtype": IdTypePPN})
+	count, err := qry.Count()
+
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	return count
+}
+
+// RecordsCountUnimarc retrieves the number of record that have a RecordUnimarc field
+func RecordsCountUnimarc() int {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	//  query ebooks
+	qry := coll.Find(bson.M{"recordunimarc": bson.M{"$exists": true}})
+	count, err := qry.Count()
+
+	if err != nil {
+		logger.Error.Println(err)
+	}
+
+	return count
+}
+
+// RecordsGetByTSName retrieves the records which have a given target service
+// i.e. belong to a given package
+func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
+	var result []Record
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection ebooks
+	coll := getRecordsColl()
+
+	q := coll.Find(bson.M{"targetservices.tsname": tsname}).Sort("publicationtitle").Limit(100)
+
+	// skip to result number n
+	// NOTE: if we want to paginate on large sets, we shouldn't skip
+	// (mongo iterates over all the result documents and omits the first n that need to be skipped.)
+	// better solution - see https://github.com/icza/minquery
+	if n > 0 {
+		q = q.Skip(n)
+	}
+
+	err := q.All(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 // RecordsGetNoPPNByTSName retrieves all records with conditions : no PPN, given TS
 // used to prepare query to sudoc isbn2ppn web service
 func RecordsGetNoPPNByTSName(tsname string) ([]Record, error) {
@@ -207,50 +297,6 @@ func RecordsGetWithPPNByTSName(tsname string) ([]Record, error) {
 	return result, nil
 }
 
-// RecordsGetByTSName retrieves the records which have a given target service
-// i.e. belong to a given package
-func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
-	var result []Record
-
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-
-	// collection ebooks
-	coll := getRecordsColl()
-
-	q := coll.Find(bson.M{"targetservices.tsname": tsname}).Sort("publicationtitle").Limit(100)
-
-	// skip to result number n
-	// NOTE: if we want to paginate on large sets, we shouldn't skip
-	// (mongo iterates over all the result documents and omits the first n that need to be skipped.)
-	// better solution - see https://github.com/icza/minquery
-	if n > 0 {
-		q = q.Skip(n)
-	}
-
-	err := q.All(&result)
-	if err != nil {
-		return result, err
-	}
-
-	return result, nil
-}
-
-// RecordsUpsert updates or inserts a number of records in DB
-func RecordsUpsert(records []Record) (int, int) {
-	var recordsUpdates, recordsInserts int
-	for _, r := range records {
-		updated, upserted, err := RecordUpsert(r)
-		if err != nil {
-			logger.Error.Println(err)
-		}
-		recordsUpdates += updated
-		recordsInserts += upserted
-	}
-	return recordsUpdates, recordsInserts
-}
-
 // RecordsGetWithUnimarcByTSName retrieves all records with condition : has Unimarc Record, given TS
 func RecordsGetWithUnimarcByTSName(tsname string) ([]Record, error) {
 	var result []Record
@@ -270,4 +316,18 @@ func RecordsGetWithUnimarcByTSName(tsname string) ([]Record, error) {
 	}
 
 	return result, nil
+}
+
+// RecordsUpsert updates or inserts a number of records in DB
+func RecordsUpsert(records []Record) (int, int) {
+	var recordsUpdates, recordsInserts int
+	for _, r := range records {
+		updated, upserted, err := RecordUpsert(r)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+		recordsUpdates += updated
+		recordsInserts += upserted
+	}
+	return recordsUpdates, recordsInserts
 }

@@ -21,13 +21,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// various stats about the data in the DB
-	ebksCount := models.EbooksCount()
-	d["ebksCount"] = ebksCount
+	recordsCount := models.RecordsCount()
+	d["recordsCount"] = recordsCount
 
-	ppnCount := models.EbooksCountPPNs()
+	ppnCount := models.RecordsCountPPNs()
 	d["ppnCount"] = ppnCount
 
-	unimarcCount := models.EbooksCountUnimarc()
+	unimarcCount := models.RecordsCountUnimarc()
 	d["unimarcCount"] = unimarcCount
 
 	TSListing, _ := models.GetTargetServicesListing()
