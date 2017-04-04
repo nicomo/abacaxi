@@ -90,11 +90,10 @@ func UserCreate(username, password string) error {
 	}
 
 	user := &User{
-		ID:           bson.NewObjectId(),
-		Username:     username,
-		Password:     pw,
-		DateCreated:  now,
-		DateLastSeen: now,
+		ID:          bson.NewObjectId(),
+		Username:    username,
+		Password:    pw,
+		DateCreated: now,
 	}
 
 	// Request a socket connection from the session to process our query.
@@ -128,6 +127,27 @@ func UserDelete(ID string) error {
 	// delete record
 	qry := bson.M{"_id": objectID}
 	err := coll.Remove(qry)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UserUpdateDateLastSeen updates a user's record when she logs in
+func UserUpdateDateLastSeen(u User) error {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection users
+	coll := getUsersColl()
+
+	// update query
+	qry := bson.M{ // field to update
+		"$set": bson.M{"datelastseen": u.DateLastSeen},
+	}
+	err := coll.Update(bson.M{"_id": u.ID}, qry)
 	if err != nil {
 		return err
 	}

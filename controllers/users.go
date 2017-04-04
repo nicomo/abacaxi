@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -97,6 +98,13 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	if session.MatchString(user.Password, pw) {
 		// login is successful
+
+		// update date last seen
+		user.DateLastSeen = time.Now()
+		err := models.UserUpdateDateLastSeen(user)
+		if err != nil {
+			logger.Error.Println(err)
+		}
 
 		// clean session (of login attempts counter)
 		delete(sess.Values, sessLoginAttempt)
