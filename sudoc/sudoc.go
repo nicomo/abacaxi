@@ -152,7 +152,9 @@ func CrawlPPN(in <-chan models.Record) <-chan int {
 			}
 
 			// add ppn result in record struct
-			//	record.Ppns = result.PPNs
+			for i := 0; i < len(result.PPNs); i++ {
+				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: result.PPNs[i], IdType: models.IdTypePPN})
+			}
 
 			// update record in DB
 			// NOTE: would be better to get back to controller and controller calls models.EbookUpdate
