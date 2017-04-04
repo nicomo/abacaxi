@@ -77,11 +77,19 @@ func csvConfGetNFields(c models.TSCSVConf) int {
 func csvConfValidate(c models.TSCSVConf) bool {
 
 	sc := csvConfSwap(c)
+
+	// it's OK to not have any csvConf at all
+	if len(sc) == 0 {
+		return true
+	}
+
+	// if one has a csv Conf, then some fields are required
 	_, okTitle := sc["publicationtitle"]
 	_, okIDPrint := sc["identifierprint"]
 	_, okIDOnline := sc["identifieronline"]
 	if (okIDOnline || okIDPrint) && okTitle {
 		return true
 	}
+
 	return false
 }
