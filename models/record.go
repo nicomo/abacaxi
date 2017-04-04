@@ -53,7 +53,7 @@ type Record struct {
 
 // Identifier embedded in an record
 type Identifier struct {
-	Identifier string
+	Identifier string `bson:",omitempty"`
 	IdType     int
 }
 

@@ -100,11 +100,11 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	// convert the csv configuration into a string to be displayed
 	d["myPackageCSVConf"] = csvConf2String(myTS.TSCsvConf)
 
-	// any ebooks records have this TS?
+	// any local records records have this TS?
 	count := models.TSCountRecords(tsname)
-	d["myPackageEbooksCount"] = count
+	d["myPackageRecordsCount"] = count
 
-	if count > 0 { // no need to query for actual ebooks otherwise
+	if count > 0 { // no need to query for actual local records otherwise
 
 		// if we need to paginate, get record skip integers, e.g. skip to records 20, 40, 60, etc;
 		// to be used by mgo.skip() to do a simple paginate
@@ -116,11 +116,11 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 			d["next"] = next
 		}
 
-		// how many ebooks have marc records
+		// how many local records have marc records
 		nbRecordsUnimarc := models.TSCountRecordsUnimarc(tsname)
 		d["myPackageRecordsUnimarcCount"] = nbRecordsUnimarc
 
-		// how many ebooks have a PPN from the Sudoc Union Catalog
+		// how many local records have a PPN from the Sudoc Union Catalog
 		nbPPNs := models.TSCountPPNs(tsname)
 		d["myPackagePPNsCount"] = nbPPNs
 

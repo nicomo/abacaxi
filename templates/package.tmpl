@@ -5,9 +5,9 @@
 			{{template "nav" .}}
 			<h2>Package : {{ .myPackage }}</h2>
 			<ul>
-				<li>{{ .myPackageEbooksCount }} ebooks</li>
-				<li>number of ebooks with Marc Records : {{ .myPackageRecordsUnimarcCount }} / {{ .myPackageEbooksCount }}</li>
-				<li>number of ebooks with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageEbooksCount }}</li>
+				<li>{{ .myPackageRecordsCount }} local records</li>
+				<li>number of local records with Marc Records : {{ .myPackageRecordsUnimarcCount }} / {{ .myPackageRecordsCount }}</li>
+				<li>number of local records with Pica Publication Numbers : {{ .myPackagePPNsCount }} / {{ .myPackageRecordsCount }}</li>
 				<li>{{ if .myPackageCSVConf }}
 						CSV Configuration : {{ .myPackageCSVConf }} 
 						[<a href="/package/update/{{ .myPackage }}">Update</a>]

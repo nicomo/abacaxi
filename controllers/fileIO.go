@@ -118,10 +118,14 @@ func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, erro
 		record.PublicationTitle = fRecord[0]
 		// Identifiers Print ID
 		printID := strings.Trim(strings.Replace(fRecord[1], "-", "", -1), " ")
-		identifiers = append(identifiers, models.Identifier{Identifier: printID, IdType: models.IdTypePrint})
+		if printID != "" {
+			identifiers = append(identifiers, models.Identifier{Identifier: printID, IdType: models.IdTypePrint})
+		}
 		// Identifiers Online ID
 		onlineID := strings.Trim(strings.Replace(fRecord[2], "-", "", -1), " ")
-		identifiers = append(identifiers, models.Identifier{Identifier: onlineID, IdType: models.IdTypeOnline})
+		if onlineID != "" {
+			identifiers = append(identifiers, models.Identifier{Identifier: onlineID, IdType: models.IdTypeOnline})
+		}
 		record.Identifiers = identifiers
 		record.DateFirstIssueOnline = fRecord[3]
 		record.NumFirstVolOnline = fRecord[4]

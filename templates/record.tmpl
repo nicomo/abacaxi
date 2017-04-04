@@ -19,9 +19,9 @@
 					<a href="/record/toggleactive/{{ .Record.ID.Hex }}"><span class="label label-danger">Inactive</span></a>
 				{{ end }}
 				{{ if .Record.Acquired }}
-					<a href="/record/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-success">Acquired</span></a>
+					<a href="/record/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-info">Acquired</span></a>
 				{{ else }}
-					<a href="/record/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-danger">Rented</span></a>
+					<a href="/record/toggleacquired/{{ .Record.ID.Hex }}"><span class="label label-info">Rented</span></a>
 				{{ end}}
 			</p>
 			<p>
