@@ -103,8 +103,6 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(err)
 		}
 
-		logger.Debug.Println(records[10])
-
 	} else {
 
 		// manage case wrong file extension : message to the user

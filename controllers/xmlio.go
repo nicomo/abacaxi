@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
+
+	"github.com/terryh/goisbn"
 
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
@@ -56,13 +57,14 @@ func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Record,
 		os.Exit(1)
 	}
 
-	// sanity check, display first record
-	logger.Debug.Println("1st record in file is\n", xmlRecords[0])
-
 	// unmarshall csv records into record structs
 	records := []models.Record{}
 	for _, record := range xmlRecords {
-		record := xmlUnmarshall(record, myTS)
+		record, err := xmlUnmarshall(record, myTS)
+		if err != nil {
+			logger.Error.Println(err)
+			continue
+		}
 		records = append(records, record)
 	}
 
@@ -99,14 +101,31 @@ func ReadRecords(reader io.Reader) ([]XMLRecord, error) {
 }
 
 // create record object from xml record
-func xmlUnmarshall(recordIn XMLRecord, myTS models.TargetService) models.Record {
+func xmlUnmarshall(recordIn XMLRecord, myTS models.TargetService) (models.Record, error) {
 	var record models.Record
 
 	record.FirstAuthor = recordIn.FirstAuthor
-	IdentifierPrint := models.Identifier{Identifier: strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), IdType: models.IdTypePrint}
-	IdentifierOnline := models.Identifier{Identifier: strings.Trim(strings.Replace(recordIn.Isbn, "-", "", -1), " "), IdType: models.IdTypeOnline}
+
+	// ISBNs : validate & cleanup, convert isbn 10 <-> isbn13
+	isbnCleaned, err := goisbn.Cleanup(recordIn.Isbn)
+	if err != nil { // not a valid isbn
+		return record, err
+	}
+	IdentifierIsbn := models.Identifier{Identifier: isbnCleaned, IdType: models.IdTypePrint}
+	record.Identifiers = append(record.Identifiers, IdentifierIsbn)
+
+	IsbnConverted, err := goisbn.Convert(isbnCleaned)
+	if err != nil {
+		logger.Error.Printf("couldn't convert isbn: %s - %v", IsbnConverted, err)
+	} else {
+		IdentifierIsbnConverted := models.Identifier{Identifier: IsbnConverted, IdType: models.IdTypePrint}
+		record.Identifiers = append(record.Identifiers, IdentifierIsbnConverted)
+	}
+
+	// add sfx ID
 	IdentifierSFX := models.Identifier{Identifier: recordIn.SFXID, IdType: models.IdTypeSFX}
-	record.Identifiers = append(record.Identifiers, IdentifierPrint, IdentifierOnline, IdentifierSFX)
+	record.Identifiers = append(record.Identifiers, IdentifierSFX)
+
 	record.PublicationTitle = recordIn.Title
 	record.TargetServices = append(record.TargetServices, myTS)
 
@@ -114,7 +133,7 @@ func xmlUnmarshall(recordIn XMLRecord, myTS models.TargetService) models.Record 
 		record.Active = true
 	}
 
-	return record
+	return record, nil
 }
 
 func xmlSaveCopy(dst, src string) error {

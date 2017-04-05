@@ -8,6 +8,7 @@ Requires :
 - a few extra Go libraries:
   - [bcrypt](https://golang.org/x/crypto/bcrypt): `$ go get golang.org/x/crypto/bcrypt`
   - [bluemonday](https://github.com/microcosm-cc/bluemonday): `$ go get github.com/microcosm-cc/bluemonday`
+  - [goisbn](https://github.com/terryh/goisbn): `$ go get -u github.com/terryh/goisbn`
   - [gorilla mux](http://www.gorillatoolkit.org/pkg/mux): `$ go get github.com/gorilla/mux`
   - [gorilla schema](http://www.gorillatoolkit.org/pkg/Schema): `$ go get github.com/gorilla/Schema`
   - [gorilla sessions](http://www.gorillatoolkit.org/pkg/Sessions): `$ go get github.com/gorilla/sessions`
