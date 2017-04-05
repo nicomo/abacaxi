@@ -75,7 +75,8 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 		// parse each line into a struct
 		record, err := fileParseRow(fRecord, csvConf)
 		if err != nil {
-			logger.Error.Println(err)
+			logger.Error.Println(err, fRecord)
+			continue
 		}
 
 		// add TS to record

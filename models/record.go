@@ -148,7 +148,7 @@ func RecordUpsert(record Record) (int, int, error) {
 	// updateQry
 	changeInfo, err := coll.Upsert(selectorQry, record)
 	if err != nil {
-		logger.Error.Printf("could not save record with identifier %v in DB: %s", record.Identifiers[0].Identifier, err)
+		logger.Debug.Println(record)
 		return updated, upserted, err
 	}
 
