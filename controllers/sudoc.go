@@ -10,8 +10,6 @@ import (
 )
 
 // SudocI2PHandler manages the consuming of a web service to retrieve a Sudoc ID
-//  There's a "priority" isbn, we try to get a marc record number for this one first
-// using the other isbns only if we can't
 func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 
 	// data to be display in UI will be stored in this map

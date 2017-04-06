@@ -92,7 +92,7 @@ func GenChannel(records []models.Record) <-chan models.Record {
 }
 
 // GenI2PURL generates an url to be consumed by the isbn2ppn web service
-// we place the "electronic" isbns first, then the other isbns
+// we place the "online" isbns first, then the other isbns
 //FIXME: add error management
 func GenI2PURL(record models.Record) string {
 
@@ -112,7 +112,7 @@ func GenI2PURL(record models.Record) string {
 		}
 	}
 
-	// we put the electronic isbns in the map first
+	// we put the online isbns in the map first
 	for i := 0; i < len(se); i++ {
 		m[i] = se[i]
 	}
@@ -151,9 +151,19 @@ func CrawlPPN(in <-chan models.Record) <-chan int {
 				continue
 			}
 
-			// add ppn result in record struct
-			for i := 0; i < len(result.PPNs); i++ {
-				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: result.PPNs[i], IdType: models.IdTypePPN})
+			// update live record with PPNs
+			for _, v := range result.PPNs {
+				var exists bool
+				for _, w := range record.Identifiers {
+					if v == w.Identifier {
+						exists = true
+						continue
+					}
+				}
+				if !exists {
+					newPPN := models.Identifier{Identifier: v, IdType: models.IdTypePPN}
+					record.Identifiers = append(record.Identifiers, newPPN)
+				}
 			}
 
 			// update record in DB
