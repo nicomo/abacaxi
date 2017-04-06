@@ -131,7 +131,7 @@ func GenI2PURL(record models.Record) string {
 		}
 		i2purl = i2purl + m[i] + ","
 	}
-
+	logger.Debug.Println(i2purl)
 	return i2purl
 }
 
@@ -195,18 +195,18 @@ func CrawlRecords(in <-chan models.Record) <-chan int {
 				// generate the URL for the web service
 				if record.Identifiers[i].IdType == models.IdTypePPN {
 					rURL = "http://www.sudoc.fr/" + record.Identifiers[i].Identifier + ".abes"
-				}
 
-				// get record for this PPN
-				result, err := GetRecord(rURL)
-				if err != nil {
-					logger.Error.Println(err)
-					continue
-				}
+					// get record for this PPN
+					result, err := GetRecord(rURL)
+					if err != nil {
+						logger.Error.Println(err)
+						continue
+					}
 
-				// add record to ebook struct
-				record.RecordUnimarc = result
-				break
+					// add record to ebook struct
+					record.RecordUnimarc = result
+					break
+				}
 			}
 
 			// update record in DB
