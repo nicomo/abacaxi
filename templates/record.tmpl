@@ -31,10 +31,12 @@
 					</button>
 					<ul class="dropdown-menu">
 						<li><a href="/sudoci2p/{{ .Record.ID.Hex }}">Get Sudoc PPNs</a></li>
-						{{ if .Record.Identifiers }}
-							<li><a href="/sudocgetrecord/{{ .Record.ID.Hex }}">Get Sudoc Unimarc</a></li>
-							{{ if .Record.RecordUnimarc }} 
-								<li><a href="/download/{{ .Record.ID.Hex }}.xml">Download Unimarc</a></li>
+						{{ range .Record.Identifiers }} 
+							{{ if eq .IDType 2 }} <!-- PPN -->
+								<li><a href="/sudocgetrecord/{{ $.Record.ID.Hex }}">Get Sudoc Unimarc</a></li>
+								{{ if $.Record.RecordUnimarc }} 
+									<li><a href="/download/{{ $.Record.ID.Hex }}.xml">Download Unimarc</a></li>
+								{{ end }}
 							{{ end }}
 						{{ end }}
 					</ul>
@@ -70,10 +72,10 @@
 						<td>
 							{{ range .Record.Identifiers }}
 								{{ .Identifier }} 
-								{{ if eq .IdType 0 }} (Online) {{ end }}
-								{{ if eq .IdType 1 }} (Print) {{ end }}
-								{{ if eq .IdType 2 }} (PPN) {{ end }}
-								{{ if eq .IdType 3 }} (SFX) {{ end }}
+								{{ if eq .IDType 0 }} (Online) {{ end }}
+								{{ if eq .IDType 1 }} (Print) {{ end }}
+								{{ if eq .IDType 2 }} (PPN) {{ end }}
+								{{ if eq .IDType 3 }} (SFX) {{ end }}
 								<br />
 							{{ end }}
 						</td>

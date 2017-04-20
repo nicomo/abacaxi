@@ -115,12 +115,11 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 		sess.Save(r, w)
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
-	} else {
-		logger.Error.Println("wrong password")
-		logAttempt(sess)
-		UserLoginGetHandler(w, r)
-		return
 	}
+	logger.Error.Println("wrong password")
+	logAttempt(sess)
+	UserLoginGetHandler(w, r)
+	return
 }
 
 // UserLogoutHandler logs user out

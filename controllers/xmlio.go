@@ -111,19 +111,19 @@ func xmlUnmarshall(recordIn XMLRecord, myTS models.TargetService) (models.Record
 	if err != nil { // not a valid isbn
 		return record, err
 	}
-	IdentifierIsbn := models.Identifier{Identifier: isbnCleaned, IdType: models.IdTypePrint}
+	IdentifierIsbn := models.Identifier{Identifier: isbnCleaned, IDType: models.IDTypePrint}
 	record.Identifiers = append(record.Identifiers, IdentifierIsbn)
 
 	IsbnConverted, err := goisbn.Convert(isbnCleaned)
 	if err != nil {
 		logger.Error.Printf("couldn't convert isbn: %s - %v", IsbnConverted, err)
 	} else {
-		IdentifierIsbnConverted := models.Identifier{Identifier: IsbnConverted, IdType: models.IdTypePrint}
+		IdentifierIsbnConverted := models.Identifier{Identifier: IsbnConverted, IDType: models.IDTypePrint}
 		record.Identifiers = append(record.Identifiers, IdentifierIsbnConverted)
 	}
 
 	// add sfx ID
-	IdentifierSFX := models.Identifier{Identifier: recordIn.SFXID, IdType: models.IdTypeSFX}
+	IdentifierSFX := models.Identifier{Identifier: recordIn.SFXID, IDType: models.IDTypeSFX}
 	record.Identifiers = append(record.Identifiers, IdentifierSFX)
 
 	record.PublicationTitle = recordIn.Title

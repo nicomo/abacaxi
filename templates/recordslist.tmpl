@@ -15,10 +15,10 @@
 				<td>
 					{{ range .Identifiers }} 
 						{{ .Identifier }} 
-						{{ if eq .IdType 0 }} (Online) {{ end }}
-						{{ if eq .IdType 1 }} (Print) {{ end }}
-						{{ if eq .IdType 2 }} (PPN) {{ end }}
-						{{ if eq .IdType 3 }} (SFX) {{ end }}
+						{{ if eq .IDType 0 }} (Online) {{ end }}
+						{{ if eq .IDType 1 }} (Print) {{ end }}
+						{{ if eq .IDType 2 }} (PPN) {{ end }}
+						{{ if eq .IDType 3 }} (SFX) {{ end }}
 						<br>
 					{{ end }}</td>
 				<td>{{ if .RecordUnimarc }} Y {{ else }} N {{ end }}</td>

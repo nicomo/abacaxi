@@ -9,12 +9,13 @@ import (
 )
 
 const (
-	IdTypeOnline = iota
-	IdTypePrint
-	IdTypePPN
-	IdTypeSFX
+	IDTypeOnline = iota // Types of Identifiers: mostly online ISBN / ISSN
+	IDTypePrint         // Types of Identifiers: mostly print ISBN / ISSN
+	IDTypePPN           // Types of Identifiers: unimarc record ID in Sudoc catalog
+	IDTypeSFX           // Types of Identifiers: ID in Ex Libris' SFX Open resolver
 )
 
+// Record stores a full record for a resource
 type Record struct {
 	ID                           bson.ObjectId `bson:"_id,omitempty"`
 	AccessType                   string        `bson:",omitempty"`
@@ -54,7 +55,7 @@ type Record struct {
 // Identifier embedded in an record
 type Identifier struct {
 	Identifier string `bson:",omitempty"`
-	IdType     int
+	IDType     int
 }
 
 // RecordDelete deletes a single ebook from DB
@@ -193,7 +194,7 @@ func RecordsCountPPNs() int {
 	coll := getRecordsColl()
 
 	//  query ebooks
-	qry := coll.Find(bson.M{"identifiers.idtype": IdTypePPN})
+	qry := coll.Find(bson.M{"identifiers.idtype": IDTypePPN})
 	count, err := qry.Count()
 
 	if err != nil {
@@ -266,7 +267,7 @@ func RecordsGetNoPPNByTSName(tsname string) ([]Record, error) {
 	coll := getRecordsColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks that PPN does not exist
-	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": bson.M{"$ne": IdTypePPN}}).All(&result)
+	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": bson.M{"$ne": IDTypePPN}}).All(&result)
 	if err != nil {
 		logger.Error.Println(err)
 		return result, err
@@ -288,7 +289,7 @@ func RecordsGetWithPPNByTSName(tsname string) ([]Record, error) {
 	coll := getRecordsColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks if PPN exists
-	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": IdTypePPN}).All(&result)
+	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": IDTypePPN}).All(&result)
 	if err != nil {
 		logger.Error.Println(err)
 		return result, err

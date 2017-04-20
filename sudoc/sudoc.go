@@ -91,28 +91,30 @@ func GenChannel(records []models.Record) <-chan models.Record {
 	return out
 }
 
-// GenI2PURL generates an url to be consumed by the isbn2ppn web service
-// we place the "online" isbns first, then the other isbns
+// GenI2PURL generates an url to be consumed by the sudoc web services
+// we use both ths ISBN and ISSN web services and try to get back a sudoc ID
 //FIXME: add error management
-func GenI2PURL(record models.Record) string {
+func GenI2PURL(ri []models.Identifier) (string, error) {
 
-	i2purl := "http://www.sudoc.fr/services/isbn2ppn/"
+	var i2purl string
+	isbn2purl := "http://www.sudoc.fr/services/isbn2ppn/"
+	issn2purl := "http://www.sudoc.fr/services/issn2ppn/"
 	m := make(map[int]string)
 	var se, s []string
 
-	// 2 slices : on for electronic isbns, one for others
-	for _, v := range record.Identifiers {
-		if v.IdType == models.IdTypeOnline {
+	// 2 slices : one for electronic identifiers, one for others
+	for _, v := range ri {
+		if v.IDType == models.IDTypeOnline {
 			se = append(se, v.Identifier)
 			continue
 		}
-		if v.IdType == models.IdTypePrint {
+		if v.IDType == models.IDTypePrint {
 			s = append(s, v.Identifier)
 			continue
 		}
 	}
 
-	// we put the online isbns in the map first
+	// we put the online identifiers in the map first
 	for i := 0; i < len(se); i++ {
 		m[i] = se[i]
 	}
@@ -123,16 +125,24 @@ func GenI2PURL(record models.Record) string {
 	}
 
 	// we generate a single url string from the map
-	// with e-isbns first
+	if len(m) == 0 {
+		return "", fmt.Errorf("no usable identifier available, can't generate URL")
+	}
+	if len(m[0]) < 10 { // probably an ISSN
+		i2purl = issn2purl
+	} else {
+		i2purl = isbn2purl
+	}
+
 	for i := 0; i < len(m); i++ {
 		if i == len(m)-1 {
-			i2purl = i2purl + m[i]
+			i2purl += m[i]
 			continue
 		}
 		i2purl = i2purl + m[i] + ","
 	}
 	logger.Debug.Println(i2purl)
-	return i2purl
+	return i2purl, nil
 }
 
 // CrawlPPN takes a channel with a Record, passes it on to FetchPPN, retrieves the result
@@ -141,7 +151,11 @@ func CrawlPPN(in <-chan models.Record) <-chan int {
 	go func() {
 		for record := range in {
 			// generate the url for the web service
-			i2purl := GenI2PURL(record)
+			i2purl, err := GenI2PURL(record.Identifiers)
+			if err != nil {
+				logger.Error.Println(err)
+				continue
+			}
 
 			// get PPN for i2purl
 			result := FetchPPN(i2purl)
@@ -161,14 +175,14 @@ func CrawlPPN(in <-chan models.Record) <-chan int {
 					}
 				}
 				if !exists {
-					newPPN := models.Identifier{Identifier: v, IdType: models.IdTypePPN}
+					newPPN := models.Identifier{Identifier: v, IDType: models.IDTypePPN}
 					record.Identifiers = append(record.Identifiers, newPPN)
 				}
 			}
 
 			// update record in DB
 			// NOTE: would be better to get back to controller and controller calls models.EbookUpdate
-			_, err := models.RecordUpdate(record)
+			_, err = models.RecordUpdate(record)
 			if err != nil {
 				logger.Error.Println(err)
 				out <- 0
@@ -193,7 +207,7 @@ func CrawlRecords(in <-chan models.Record) <-chan int {
 			var rURL string
 			for i := 0; i < len(record.Identifiers); i++ {
 				// generate the URL for the web service
-				if record.Identifiers[i].IdType == models.IdTypePPN {
+				if record.Identifiers[i].IDType == models.IDTypePPN {
 					rURL = "http://www.sudoc.fr/" + record.Identifiers[i].Identifier + ".abes"
 
 					// get record for this PPN

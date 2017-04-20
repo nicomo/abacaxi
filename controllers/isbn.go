@@ -12,10 +12,10 @@ func getIsbnIdentifiers(s string, r *models.Record, idType int) error {
 	}
 
 	// it's a valid isbn
-	r.Identifiers = append(r.Identifiers, models.Identifier{Identifier: isbnCleaned, IdType: idType})
+	r.Identifiers = append(r.Identifiers, models.Identifier{Identifier: isbnCleaned, IDType: idType})
 	isbnConverted, _ := goisbn.Convert(isbnCleaned)
 	if isbnConverted != "" {
-		isbnConverted := models.Identifier{Identifier: isbnConverted, IdType: idType}
+		isbnConverted := models.Identifier{Identifier: isbnConverted, IDType: idType}
 		r.Identifiers = append(r.Identifiers, isbnConverted)
 	}
 

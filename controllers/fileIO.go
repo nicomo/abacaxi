@@ -119,16 +119,16 @@ func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, erro
 
 		// ISBNs : validate & cleanup, convert isbn 10 <-> isbn13
 		// Identifiers Print ID
-		err := getIsbnIdentifiers(fRecord[1], &record, models.IdTypePrint)
+		err := getIsbnIdentifiers(fRecord[1], &record, models.IDTypePrint)
 		if err != nil && fRecord[1] != "" { // doesn't look like an isbn, might be issn, cleanup and add as is
 			idCleaned := strings.Trim(strings.Replace(fRecord[1], "-", "", -1), " ")
-			record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IdType: models.IdTypePrint})
+			record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypePrint})
 		}
 		// Identifiers Online ID
-		err = getIsbnIdentifiers(fRecord[2], &record, models.IdTypeOnline)
+		err = getIsbnIdentifiers(fRecord[2], &record, models.IDTypeOnline)
 		if err != nil && fRecord[2] != "" { // doesn't look like an isbn, might be issn, cleanup and add as is
 			idCleaned := strings.Trim(strings.Replace(fRecord[2], "-", "", -1), " ")
-			record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IdType: models.IdTypeOnline})
+			record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypeOnline})
 		}
 
 		record.DateFirstIssueOnline = fRecord[3]
@@ -158,17 +158,17 @@ func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, erro
 			record.PublicationTitle = fRecord[i]
 		}
 		if i, ok := csvConf["identifierprint"]; ok {
-			err := getIsbnIdentifiers(fRecord[i], &record, models.IdTypePrint)
+			err := getIsbnIdentifiers(fRecord[i], &record, models.IDTypePrint)
 			if err != nil && fRecord[i] != "" { // doesn't look like an isbn, might be issn, clean up and add as is
 				idCleaned := strings.Trim(strings.Replace(fRecord[i], "-", "", -1), " ")
-				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IdType: models.IdTypePrint})
+				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypePrint})
 			}
 		}
 		if i, ok := csvConf["identifieronline"]; ok {
-			err := getIsbnIdentifiers(fRecord[i], &record, models.IdTypeOnline)
+			err := getIsbnIdentifiers(fRecord[i], &record, models.IDTypeOnline)
 			if err != nil && fRecord[i] != "" { // doesn't look like an isbn, might be issn, clean up and add as is
 				idCleaned := strings.Trim(strings.Replace(fRecord[i], "-", "", -1), " ")
-				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IdType: models.IdTypeOnline})
+				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypeOnline})
 			}
 		}
 

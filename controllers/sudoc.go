@@ -24,7 +24,10 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate the web service url for this record
-	i2purl := sudoc.GenI2PURL(myRecord)
+	i2purl, err := sudoc.GenI2PURL(myRecord.Identifiers)
+	if err != nil {
+		logger.Error.Println(err)
+	}
 
 	// get PPN for i2purl
 	result := sudoc.FetchPPN(i2purl)
@@ -42,7 +45,7 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !exists {
-			newPPN := models.Identifier{Identifier: v, IdType: models.IdTypePPN}
+			newPPN := models.Identifier{Identifier: v, IDType: models.IDTypePPN}
 			myRecord.Identifiers = append(myRecord.Identifiers, newPPN)
 		}
 	}
@@ -116,7 +119,7 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 	// ranging over the PPNs in a given local record
 	// we fetch the sudoc marc record, and stop as soon as we get one
 	for _, v := range myRecord.Identifiers {
-		if v.IdType != models.IdTypePPN {
+		if v.IDType != models.IDTypePPN {
 			continue
 		}
 		record, err := sudoc.GetRecord("http://www.sudoc.fr/" + v.Identifier + ".abes")
