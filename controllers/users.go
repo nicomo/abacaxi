@@ -56,12 +56,12 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	views.RenderTmpl(w, "users", d)
 }
 
-// UserLoginGetHandler
+// UserLoginGetHandler to display user login form
 func UserLoginGetHandler(w http.ResponseWriter, r *http.Request) {
 	views.RenderTmpl(w, "userlogin", nil)
 }
 
-// UserLoginPostHandler
+// UserLoginPostHandler to parse user login form
 func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
 	sess := session.Instance(r)

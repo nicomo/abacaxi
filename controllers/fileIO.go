@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
@@ -71,6 +70,16 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 
 		}
 
+		// validate we don't have an unicode replacement char. in the string
+		// if we do abort: source file isn't proper utf8
+		for _, v := range fRecord {
+			if strings.ContainsRune(v, '\uFFFD') {
+				err := errors.New("parsing failed: non utf-8 char. in file")
+				userM["errUTF8"] = err
+				return records, myTS, userM, err
+			}
+		}
+
 		// parse each line into a struct
 		record, err := fileParseRow(fRecord, csvConf)
 		if err != nil {
@@ -110,14 +119,6 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 
 func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, error) {
 	var record models.Record
-
-	//TODO: (2) validate row : utf-8 + required fields
-	for _, value := range fRecord {
-		if !utf8.ValidString(value) { // encoding issue, non utf-8 char. in value
-			err := errors.New("parsing failed: non utf-8 char. in value")
-			return record, err
-		}
-	}
 
 	if csvConf == nil { // the csv Configuration is nil, we default to kbart values
 		record.PublicationTitle = fRecord[0]

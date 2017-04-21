@@ -94,6 +94,14 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		records, myTS, userM, err = fileIO(fpath, tsname, userM, ext)
 		if err != nil {
 			logger.Error.Println(err)
+			// insert the user messages in the http.Request Context before redirecting
+			ctx, cancel = context.WithCancel(context.Background())
+			defer cancel()
+			ctx = newContextUserM(ctx, userM)
+
+			// redirect to upload get page
+			UploadGetHandler(w, r.WithContext(ctx))
+			return	
 		}
 
 	} else if ext == ".xml" {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 	"github.com/nicomo/abacaxi/sudoc"
@@ -11,12 +12,9 @@ import (
 
 // SudocI2PHandler manages the consuming of a web service to retrieve a Sudoc ID
 func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
-
-	// data to be display in UI will be stored in this map
-	// d := make(map[string]interface{})
-
-	// record ID is last part of the URL
-	recordID := r.URL.Path[len("/sudoci2p/"):]
+	// retrieve the record ID from the request
+	vars := mux.Vars(r)
+	recordID := vars["recordID"]
 
 	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
@@ -69,8 +67,9 @@ func SudocI2PTSHandler(w http.ResponseWriter, r *http.Request) {
 	d := make(map[string]interface{})
 	d["i2pType"] = "Get Sudoc PPN Record IDs for records currently without one"
 
-	// Target Service name is last part of the URL
-	tsname := r.URL.Path[len("/sudoci2p-ts/"):]
+	// retrieve the Target Service from the request
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
 	d["myPackage"] = tsname
 
 	records, err := models.RecordsGetNoPPNByTSName(tsname)
@@ -108,8 +107,9 @@ func SudocI2PTSHandler(w http.ResponseWriter, r *http.Request) {
 // GetRecordHandler manages http request to use sudoc web service to retrieve marc record for 1 given ebook
 func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 
-	// record ID is last part of the URL
-	recordID := r.URL.Path[len("/sudocgetrecord/"):]
+	// retrieve the record ID from the request
+	vars := mux.Vars(r)
+	recordID := vars["recordID"]
 
 	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
@@ -157,8 +157,9 @@ func GetRecordsTSHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
 
-	// Target Service name is last part of the URL
-	tsname := r.URL.Path[len("/sudocgetrecords/"):]
+	// retrieve the Target Service from the request
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
 	d["myPackage"] = tsname
 
 	records, err := models.RecordsGetWithPPNByTSName(tsname)

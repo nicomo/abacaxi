@@ -148,7 +148,6 @@ func TargetServiceUpdateGetHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
 	d["myPackage"] = tsname
-	//	tsname := r.URL.Path[len("/package/update/"):]
 
 	// retrieve Target Service Struct
 	myTS, err := models.GetTargetService(tsname)
@@ -187,7 +186,6 @@ func TargetServicePageHandler(w http.ResponseWriter, r *http.Request) {
 
 // TargetServiceUpdatePostHandler updates a target service
 func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
-	//tsname := r.URL.Path[len("/package/update/"):]
 	d := make(map[string]interface{})
 
 	// the name of the target service we're interested in is in the router variables
@@ -287,9 +285,7 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 // TargetServiceToggleActiveHandler changes the boolean "active" for a TS *and* records who are linked to *only* this TS
 func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 
-	// package name is last part of the URL
-	//	tsname := r.URL.Path[len("/package/toggleactive/"):]
-	// the name of the target service we're interested in is in the router variables
+	// retrieve the Target Service from the request
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
 

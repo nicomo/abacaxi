@@ -9,6 +9,9 @@
 			{{ if .wrongExt }}
 				<p class="bg-danger">{{ .wrongExt }}</p>
 			{{ end }}
+			{{ if .errUTF8 }}
+				<p class="bg-danger">{{ .errUTF8 }}</p>
+			{{ end }}
 			<form class="form-horizontal" enctype="multipart/form-data" action="/upload" method="post">
 
 				<div class="form-group">

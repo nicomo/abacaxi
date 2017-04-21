@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 	"github.com/nicomo/abacaxi/session"
@@ -21,8 +22,9 @@ func RecordHandler(w http.ResponseWriter, r *http.Request) {
 		d["IsLoggedIn"] = true
 	}
 
-	// record ID is last part of the URL
-	recordID := r.URL.Path[len("/record/"):]
+	// retrieve the record ID from the request
+	vars := mux.Vars(r)
+	recordID := vars["recordID"]
 
 	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
@@ -47,8 +49,9 @@ func RecordHandler(w http.ResponseWriter, r *http.Request) {
 
 // RecordDeleteHandler handles deleting a single ebook
 func RecordDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	// record ID is last part of the URL
-	recordID := r.URL.Path[len("/record/delete/"):]
+	// retrieve the record ID from the request
+	vars := mux.Vars(r)
+	recordID := vars["recordID"]
 
 	err := models.RecordDelete(recordID)
 	if err != nil {
@@ -68,8 +71,9 @@ func RecordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 //RecordToggleAcquiredHandler toggles the boolean value "acquired" for a record
 func RecordToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
 
-	// record ID is last part of the URL
-	recordID := r.URL.Path[len("/record/toggleacquired/"):]
+	// retrieve the record ID from the request
+	vars := mux.Vars(r)
+	recordID := vars["recordID"]
 
 	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
@@ -95,8 +99,9 @@ func RecordToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
 // RecordToggleActiveHandler toggles the boolean value "active" for an record
 func RecordToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 
-	// record ID is last part of the URL
-	recordID := r.URL.Path[len("/record/toggleactive/"):]
+	// retrieve the record ID from the request
+	vars := mux.Vars(r)
+	recordID := vars["recordID"]
 
 	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
