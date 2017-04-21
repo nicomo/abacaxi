@@ -116,7 +116,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 		// redirect to upload get page
 		UploadGetHandler(w, r.WithContext(ctx))
-
+		return
 	}
 
 	recordsUpdated, recordsInserted := models.RecordsUpsert(records)
