@@ -42,7 +42,6 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 	var records []models.Record
 
 	// package csv has n fields, separator is ;
-	// TODO: (1) retrieve the number of fields in csvConf if it's a .csv file, or else constant if it's .kbart
 	var csvConf map[string]int
 	if ext == ".csv" {
 		csvConf = csvConfSwap(myTS.TSCsvConf)
@@ -95,6 +94,12 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 
 	// log lines rejected
 	if len(rejectedLines) > 0 {
+		if len(records) == 0 {
+			zeroRecordCreated := fmt.Sprintf("couldn't parse a single line: check file %s. Separator should be ;", filename)
+			logger.Error.Println(zeroRecordCreated)
+			userM["zeroRecordCreated"] = zeroRecordCreated
+			return records, myTS, userM, nil
+		}
 		rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
 		logger.Info.Println(rejectedLinesLog)
 		userM["rejectedLinesLog"] = rejectedLinesLog

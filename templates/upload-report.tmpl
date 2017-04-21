@@ -4,6 +4,9 @@
 			<h1>&#127821; Metadata Hub</h1>
 			{{template "nav" .}}
 			<h2>Upload Report {{ .myPackage }}</h2>
+			{{ if .zeroRecordCreated }}
+				<p class="bg-danger">{{ .zeroRecordCreated }}</p>
+			{{ end }}
 			<ul>
 				<li>{{ .parsedLog }}</li>
 				{{ if .rejectedLinesLog }}
