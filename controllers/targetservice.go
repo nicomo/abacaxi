@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"log"
+
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/nicomo/abacaxi/logger"
@@ -14,7 +16,7 @@ import (
 )
 
 // getPrevNext takes the number of records in a result
-// returns the recors to skip to when we split the result set  in chunks of n
+// returns the records to skip to when we split the result set in chunks of n
 func getPrevNext(page int, count int) (int, int) {
 
 	// small batch, no need to paginate
@@ -137,6 +139,69 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	d["TSListing"] = TSListing
 
 	views.RenderTmpl(w, "targetservice", d)
+}
+
+// TargetServiceExportKbartHandler exports a batch of records as a KBART-compliant .csv file
+func TargetServiceExportKbartHandler(w http.ResponseWriter, r *http.Request) {
+
+	// retrieve tsname passed in url
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
+
+	// get the relevant records
+	records, err := models.RecordsGetWithUnimarcByTSName(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+		//TODO: exit cleanly with user message on error
+		log.Fatalln(err)
+	}
+
+	filename := tsname + ".csv"
+
+	// create .csv kbart file
+	filesize, err := models.CreateKbartFile(records, filename)
+	if err != nil {
+		logger.Error.Panicf("could not create Kbart file: %v", err)
+		//TODO: exit cleanly with user message on error
+		log.Fatalln(err)
+	}
+
+	// exporting the created file
+	if err := exportFile(w, r, filename, filesize); err != nil {
+		logger.Error.Printf("couldn't stream the export file: %v", err)
+	}
+
+}
+
+// TargetServiceExportUnimarcHandler exports a batch of unimarc records
+func TargetServiceExportUnimarcHandler(w http.ResponseWriter, r *http.Request) {
+
+	// retrieve TS name
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
+
+	// get the relevant records
+	records, err := models.RecordsGetWithUnimarcByTSName(tsname)
+	if err != nil {
+		logger.Error.Println(err)
+		//TODO: exit cleanly with user message on error
+		panic(err)
+	}
+
+	filename := tsname + ".xml"
+
+	// create the file
+	filesize, err := models.CreateUnimarcFile(records, filename)
+	if err != nil {
+		logger.Error.Printf("could not create file: %v", err)
+		//TODO: exit cleanly with user message on error
+	}
+
+	// export the file
+	if err := exportFile(w, r, filename, filesize); err != nil {
+		logger.Error.Printf("couldn't stream the export file: %v", err)
+	}
+
 }
 
 // TargetServiceUpdateGetHandler fills the update form for a Target Service

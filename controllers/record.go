@@ -68,6 +68,40 @@ func RecordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 303)
 }
 
+// RecordExportUnimarcHandler exports a single unimarc record
+// To export a batch of records, see targetservice.go
+func RecordExportUnimarcHandler(w http.ResponseWriter, r *http.Request) {
+
+	// retrieve record ID
+	vars := mux.Vars(r)
+	recordID := vars["recordID"]
+
+	// get the relevant record
+	myRecord, err := models.RecordGetByID(recordID)
+	if err != nil {
+		logger.Error.Println(err)
+		//TODO: exit cleanly with user message on error
+		panic(err)
+	}
+
+	// put record in slice (required by models.CreateUnimarcFile)
+	recordToExport := []models.Record{myRecord}
+	filename := recordID + ".xml"
+
+	// create the file
+	filesize, err := models.CreateUnimarcFile(recordToExport, filename)
+	if err != nil {
+		logger.Error.Printf("could not create file: %v", err)
+		//TODO: exit cleanly with user message on error
+	}
+
+	// export the file
+	if err := exportFile(w, r, filename, filesize); err != nil {
+		logger.Error.Printf("couldn't stream the export file: %v", err)
+	}
+
+}
+
 //RecordToggleAcquiredHandler toggles the boolean value "acquired" for a record
 func RecordToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
 

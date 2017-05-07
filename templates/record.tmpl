@@ -34,13 +34,20 @@
 						{{ range .Record.Identifiers }} 
 							{{ if eq .IDType 2 }} <!-- PPN -->
 								<li><a href="/sudocgetrecord/{{ $.Record.ID.Hex }}">Get Sudoc Unimarc</a></li>
-								{{ if $.Record.RecordUnimarc }} 
-									<li><a href="/download/{{ $.Record.ID.Hex }}.xml">Download Unimarc</a></li>
-								{{ end }}
 							{{ end }}
 						{{ end }}
 					</ul>
 				</div>
+				<div class="btn-group" role="group" aria-label="export button">
+					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Export <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						{{ if .Record.RecordUnimarc }} 
+							<li><a href="/record/export/unimarc/{{ .Record.ID.Hex }}">Export Unimarc Record</a></li>
+						{{ end }}
+					</ul>
+				</div>	
 				<a class="btn btn-danger" href="/record/delete/{{ .Record.ID.Hex }}" role="button">Delete</a>
 			</p>
 			<table class="table table-condensed table-hover">

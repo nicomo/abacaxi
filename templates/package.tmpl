@@ -32,12 +32,22 @@
 						<li><a href="/sudoci2p-ts/{{ .myPackage }}">Get Sudoc PPNs</a></li>
 						{{ if .myPackagePPNsCount }} 
 							<li><a href="/sudocgetrecords/{{ .myPackage }}">Get Sudoc Unimarc Records</a></li>
-							{{ if .myPackageRecordsUnimarcCount }} 
-								<li><a href="/download/{{ .myPackage }}.zip">Download Unimarc Records</a></li>
-							{{ end }}
 						{{ end }}
 					</ul>
-				</div>				
+				</div>
+				{{ if gt .myPackageRecordsCount 0 }}
+					<div class="btn-group" role="group" aria-label="export button">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						Export <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li><a href="/package/export/kbart/{{ .myPackage }}">Export as KBart</a></li>
+							{{ if .myPackageRecordsUnimarcCount }} 
+								<li><a href="/package/export/unimarc/{{ .myPackage }}">Export Unimarc Records</a></li>
+							{{ end }}
+						</ul>
+					</div>				
+				{{ end }}
 			</p>
 
 

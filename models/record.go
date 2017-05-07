@@ -22,6 +22,7 @@ type Record struct {
 	Acquired                     bool          `bson:",omitempty"`
 	Active                       bool
 	CoverageDepth                string `bson:",omitempty"`
+	CoverageNotes                string `bson:",omitempty"`
 	DateCreated                  time.Time
 	DateFirstIssueOnline         string    `bson:",omitempty"`
 	DateLastIssueOnline          string    `bson:",omitempty"`
@@ -81,7 +82,7 @@ func RecordDelete(ID string) error {
 	return nil
 }
 
-// RecordGetByID retrieves an ebook given its mongodb ID
+// RecordGetByID retrieves a record given its mongodb ID
 func RecordGetByID(ID string) (Record, error) {
 	record := Record{}
 
@@ -164,6 +165,44 @@ func RecordUpsert(record Record) (int, int, error) {
 	return updated, upserted, nil
 }
 
+func recordToKbart(record Record) []string {
+	var printID, onlineID string
+
+	for _, v := range record.Identifiers {
+		if v.IDType == IDTypePrint {
+			printID = v.Identifier
+			continue
+		}
+		if v.IDType == IDTypeOnline {
+			onlineID = v.Identifier
+			continue
+		}
+		break
+	}
+
+	result := []string{
+		record.PublicationTitle,
+		printID,
+		onlineID,
+		record.DateFirstIssueOnline,
+		record.NumFirstIssueOnline,
+		record.NumFirstVolOnline,
+		record.DateLastIssueOnline,
+		record.NumLastVolOnline,
+		record.NumLastIssueOnline,
+		record.TitleURL,
+		record.FirstAuthor,
+		record.TitleID,
+		record.EmbargoInfo,
+		record.CoverageDepth,
+		record.CoverageNotes,
+		record.PublisherName,
+	}
+
+	return result
+
+}
+
 // RecordsCount counts the number of records in DB
 func RecordsCount() int {
 	// Request a socket connection from the session to process our query.
@@ -226,6 +265,7 @@ func RecordsCountUnimarc() int {
 
 // RecordsGetByTSName retrieves the records which have a given target service
 // i.e. belong to a given package
+// n is used to paginate. Use 0 if you want to start at record #1
 func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
 	var result []Record
 
@@ -236,7 +276,7 @@ func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
 	// collection ebooks
 	coll := getRecordsColl()
 
-	q := coll.Find(bson.M{"targetservices.tsname": tsname}).Sort("publicationtitle").Limit(100)
+	q := coll.Find(bson.M{"targetservices.tsname": tsname}).Sort("publicationtitle")
 
 	// skip to result number n
 	// NOTE: if we want to paginate on large sets, we shouldn't skip
@@ -246,8 +286,7 @@ func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
 		q = q.Skip(n)
 	}
 
-	err := q.All(&result)
-	if err != nil {
+	if err := q.All(&result); err != nil {
 		return result, err
 	}
 

@@ -26,13 +26,15 @@ func main() {
 	router.Handle("/", http.HandlerFunc(controllers.HomeHandler))
 
 	// all inner pages subject to authentication
-	router.Handle("/download/{filename:[\\w\\-\\.]+}", middleware.DisallowAnon(http.HandlerFunc(controllers.DownloadHandler)))
 	router.Handle("/record/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordHandler)))
+	router.Handle("/record/export/unimarc/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordExportUnimarcHandler)))
 	router.Handle("/record/delete/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordDeleteHandler)))
 	router.Handle("/record/toggleacquired/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordToggleAcquiredHandler)))
 	router.Handle("/record/toggleactive/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordToggleActiveHandler)))
 	router.Handle("/package/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceHandler)))
 	router.Handle("/package/{targetservice}/{page:[0-9]+}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServicePageHandler)))
+	router.Handle("/package/export/unimarc/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceExportUnimarcHandler)))
+	router.Handle("/package/export/kbart/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceExportKbartHandler)))
 	router.Handle("/package/toggleactive/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceToggleActiveHandler)))
 	router.Handle("/package/update/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceUpdateGetHandler))).Methods("GET")
 	router.Handle("/package/update/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceUpdatePostHandler))).Methods("POST")
