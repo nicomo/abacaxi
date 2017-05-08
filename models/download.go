@@ -29,8 +29,6 @@ func createFile(fname string) (*os.File, error) {
 // CreateKbartFile creates csv file with KBART fields from records
 func CreateKbartFile(records []Record, fname string) (int64, error) {
 
-	logger.Debug.Printf("in CreateKbartFile, fname : %s", fname)
-
 	f, err := createFile(fname)
 	if err != nil {
 		return 0, err
@@ -40,7 +38,6 @@ func CreateKbartFile(records []Record, fname string) (int64, error) {
 	// create a new writer and change default separator
 	w := csv.NewWriter(f)
 	w.Comma = ';'
-	defer w.Flush()
 
 	// write header to csv file
 	kbartHeader := []string{
@@ -61,17 +58,21 @@ func CreateKbartFile(records []Record, fname string) (int64, error) {
 		"coverage_notes",
 		"publisher_name",
 	}
+
+	// write the header
 	if err := w.Write(kbartHeader); err != nil {
 		return 0, err
 	}
 
+	// write each record in turn 
 	for _, record := range records {
 		if err := w.Write(recordToKbart(record)); err != nil {
 			logger.Error.Printf("couldn't write to csv file: %v", err)
 			continue
 		}
 	}
-
+	
+	w.Flush()
 	return getFileSize(f), nil
 }
 
