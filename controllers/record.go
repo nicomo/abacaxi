@@ -148,7 +148,7 @@ func RecordToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 		myRecord.Active = true
 	}
 
-	myRecord, err = models.RecordUpdate(myRecord)
+	_, err = models.RecordUpdate(myRecord)
 	if err != nil {
 		logger.Error.Println(err)
 	}

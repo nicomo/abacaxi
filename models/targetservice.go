@@ -166,6 +166,25 @@ func TSCreate(ts TargetService) error {
 	return nil
 }
 
+// TSDelete removes a target service
+func TSDelete(tsname string) error {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection records
+	coll := getTargetServiceColl()
+
+	// delete record
+	qry := bson.M{"tsname": tsname}
+	err := coll.Remove(qry)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // TSUpdate updates a target service
 func TSUpdate(ts TargetService) error {
 

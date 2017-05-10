@@ -41,13 +41,14 @@
 						Export <span class="caret"></span>
 						</button>
 						<ul class="dropdown-menu">
-							<li><a href="/package/export/kbart/{{ .myPackage }}">Export as KBart</a></li>
+							<li><a href="/package/export/kbart/{{ .myPackage }}">KBart</a></li>
 							{{ if .myPackageRecordsUnimarcCount }} 
-								<li><a href="/package/export/unimarc/{{ .myPackage }}">Export Unimarc Records</a></li>
+								<li><a href="/package/export/unimarc/{{ .myPackage }}">Unimarc Records</a></li>
 							{{ end }}
 						</ul>
 					</div>				
 				{{ end }}
+				<a class="btn btn-danger" href="/package/delete/{{ .myPackage }}" role="button">Delete</a>
 			</p>
 
 

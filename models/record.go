@@ -59,6 +59,12 @@ type Identifier struct {
 	IDType     int
 }
 
+// TSEmbed embeds the necessary fields from a Target Service
+type TSEmbed struct {
+	TSEName        string
+	TSEDisplayName string
+}
+
 // RecordDelete deletes a single ebook from DB
 func RecordDelete(ID string) error {
 
@@ -264,7 +270,7 @@ func RecordsCountUnimarc() int {
 }
 
 // RecordsGetByTSName retrieves the records which have a given target service
-// i.e. belong to a given package
+// i.e. belong to a given package.
 // n is used to paginate. Use 0 if you want to start at record #1
 func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
 	var result []Record

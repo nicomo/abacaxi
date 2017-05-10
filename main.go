@@ -33,6 +33,7 @@ func main() {
 	router.Handle("/record/toggleactive/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordToggleActiveHandler)))
 	router.Handle("/package/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceHandler)))
 	router.Handle("/package/{targetservice}/{page:[0-9]+}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServicePageHandler)))
+	router.Handle("/package/delete/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceDeleteHandler)))
 	router.Handle("/package/export/unimarc/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceExportUnimarcHandler)))
 	router.Handle("/package/export/kbart/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceExportKbartHandler)))
 	router.Handle("/package/toggleactive/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceToggleActiveHandler)))

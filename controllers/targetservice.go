@@ -141,6 +141,52 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	views.RenderTmpl(w, "targetservice", d)
 }
 
+// TargetServiceDeleteHandler deletes a target service
+// and de-activates the linked records if any
+func TargetServiceDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	// retrieve the TS from the request
+	vars := mux.Vars(r)
+	tsname := vars["targetservice"]
+
+	// delete TS in DB
+	if err := models.TSDelete(tsname); err != nil {
+		logger.Error.Println(err)
+		// TODO: transmit either error or success message to user
+		// redirect
+		redirectURL := "/package/" + tsname
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+	}
+
+	// get the linked records
+	records, err := models.RecordsGetByTSName(tsname, 0)
+	if err != nil {
+		logger.Error.Printf("could not retrieve linked records: %v", err)
+	}
+
+	// for each record, remove the link to the TS
+	// switch active to false if no other TS exists
+	// update the record
+	for _, record := range records {
+		for _, ts := range record.TargetServices {
+
+			if len(record.TargetServices) <= 1 {
+				record.Active = false
+			}
+
+			// TODO: delete embedded TS in records
+		}
+
+		logger.Debug.Printf("modified record TS: %v", record.TargetServices)
+		_, err := models.RecordUpdate(record)
+		if err != nil {
+			logger.Error.Printf("could not update linked record: %v", err)
+		}
+	}
+
+	// redirect to home
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 // TargetServiceExportKbartHandler exports a batch of records as a KBART-compliant .csv file
 func TargetServiceExportKbartHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -161,7 +207,7 @@ func TargetServiceExportKbartHandler(w http.ResponseWriter, r *http.Request) {
 	// create .csv kbart file
 	filesize, err := models.CreateKbartFile(records, filename)
 	if err != nil {
-		logger.Error.Panicf("could not create Kbart file: %v", err)
+		logger.Error.Printf("could not create Kbart file: %v", err)
 		//TODO: exit cleanly with user message on error
 		log.Fatalln(err)
 	}
