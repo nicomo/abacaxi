@@ -97,6 +97,7 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error.Println(err)
 	}
+	d["TSDisplayName"] = myTS.TSDisplayName
 	d["IsTSActive"] = myTS.TSActive
 
 	// convert the csv configuration into a string to be displayed
@@ -167,16 +168,18 @@ func TargetServiceDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// switch active to false if no other TS exists
 	// update the record
 	for _, record := range records {
-		for _, ts := range record.TargetServices {
+		for i, ts := range record.TargetServices {
 
 			if len(record.TargetServices) <= 1 {
 				record.Active = false
 			}
 
-			// TODO: delete embedded TS in records
+			// embedded TS in records removed
+			if ts.Name == tsname {
+				record.TargetServices = append(record.TargetServices[:i], record.TargetServices[i+1:]...) // we pop the ts from the slice
+			}
 		}
 
-		logger.Debug.Printf("modified record TS: %v", record.TargetServices)
 		_, err := models.RecordUpdate(record)
 		if err != nil {
 			logger.Error.Printf("could not update linked record: %v", err)

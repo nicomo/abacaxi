@@ -44,13 +44,13 @@ type Record struct {
 	ParentPublicationTitleID     string       `bson:",omitempty"`
 	PrecedingPublicationTitleID  string       `bson:",omitempty"`
 	PublicationTitle             string
-	PublicationType              string          `bson:",omitempty"`
-	PublisherName                string          `bson:",omitempty"`
-	RecordMarc21                 string          `bson:",omitempty"`
-	RecordUnimarc                string          `bson:",omitempty"`
-	TargetServices               []TargetService `bson:",omitempty"` // this is the name of the package in SFX, e.g. CAIRN QSJ
-	TitleID                      string          `bson:",omitempty"`
-	TitleURL                     string          `bson:",omitempty"`
+	PublicationType              string    `bson:",omitempty"`
+	PublisherName                string    `bson:",omitempty"`
+	RecordMarc21                 string    `bson:",omitempty"`
+	RecordUnimarc                string    `bson:",omitempty"`
+	TargetServices               []TSEmbed `bson:",omitempty"` // this is the name of the package in SFX, e.g. CAIRN QSJ
+	TitleID                      string    `bson:",omitempty"`
+	TitleURL                     string    `bson:",omitempty"`
 }
 
 // Identifier embedded in an record
@@ -61,8 +61,8 @@ type Identifier struct {
 
 // TSEmbed embeds the necessary fields from a Target Service
 type TSEmbed struct {
-	TSEName        string
-	TSEDisplayName string
+	Name        string
+	DisplayName string
 }
 
 // RecordDelete deletes a single ebook from DB
@@ -156,7 +156,6 @@ func RecordUpsert(record Record) (int, int, error) {
 	// updateQry
 	changeInfo, err := coll.Upsert(selectorQry, record)
 	if err != nil {
-		logger.Debug.Println(record)
 		return updated, upserted, err
 	}
 
@@ -282,7 +281,7 @@ func RecordsGetByTSName(tsname string, n int) ([]Record, error) {
 	// collection ebooks
 	coll := getRecordsColl()
 
-	q := coll.Find(bson.M{"targetservices.tsname": tsname}).Sort("publicationtitle")
+	q := coll.Find(bson.M{"targetservices.name": tsname}).Sort("publicationtitle")
 
 	// skip to result number n
 	// NOTE: if we want to paginate on large sets, we shouldn't skip
@@ -312,7 +311,7 @@ func RecordsGetNoPPNByTSName(tsname string) ([]Record, error) {
 	coll := getRecordsColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks that PPN does not exist
-	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": bson.M{"$ne": IDTypePPN}}).All(&result)
+	err := coll.Find(bson.M{"targetservices.name": tsname, "identifiers.idtype": bson.M{"$ne": IDTypePPN}}).All(&result)
 	if err != nil {
 		logger.Error.Println(err)
 		return result, err
@@ -334,7 +333,7 @@ func RecordsGetWithPPNByTSName(tsname string) ([]Record, error) {
 	coll := getRecordsColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks if PPN exists
-	err := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": IDTypePPN}).All(&result)
+	err := coll.Find(bson.M{"targetservices.name": tsname, "identifiers.idtype": IDTypePPN}).All(&result)
 	if err != nil {
 		logger.Error.Println(err)
 		return result, err
@@ -355,7 +354,7 @@ func RecordsGetWithUnimarcByTSName(tsname string) ([]Record, error) {
 	coll := getRecordsColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Record struct) and checks if PPN exists
-	err := coll.Find(bson.M{"targetservices.tsname": tsname, "recordunimarc": bson.M{"$exists": true}}).All(&result)
+	err := coll.Find(bson.M{"targetservices.name": tsname, "recordunimarc": bson.M{"$exists": true}}).All(&result)
 	if err != nil {
 		logger.Error.Println(err)
 		return result, err

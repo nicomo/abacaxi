@@ -90,7 +90,7 @@ func TSCountRecords(tsname string) int {
 	coll := getRecordsColl()
 
 	//  query records by package name, aka Target Service in SFX (and in models.Records struct)
-	qry := coll.Find(bson.M{"targetservices.tsname": tsname})
+	qry := coll.Find(bson.M{"targetservices.name": tsname})
 	count, err := qry.Count()
 
 	if err != nil {
@@ -110,7 +110,7 @@ func TSCountRecordsUnimarc(tsname string) int {
 	coll := getRecordsColl()
 
 	//  query records by package name, aka Target Service in SFX (and in models.Ebook struct)
-	qry := coll.Find(bson.M{"targetservices.tsname": tsname, "recordunimarc": bson.M{"$ne": nil}})
+	qry := coll.Find(bson.M{"targetservices.name": tsname, "recordunimarc": bson.M{"$ne": nil}})
 	count, err := qry.Count()
 
 	if err != nil {
@@ -130,7 +130,7 @@ func TSCountPPNs(tsname string) int {
 	coll := getRecordsColl()
 
 	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
-	qry := coll.Find(bson.M{"targetservices.tsname": tsname, "identifiers.idtype": IDTypePPN})
+	qry := coll.Find(bson.M{"targetservices.name": tsname, "identifiers.idtype": IDTypePPN})
 	count, err := qry.Count()
 
 	if err != nil {

@@ -127,7 +127,10 @@ func xmlUnmarshall(recordIn XMLRecord, myTS models.TargetService) (models.Record
 	record.Identifiers = append(record.Identifiers, IdentifierSFX)
 
 	record.PublicationTitle = recordIn.Title
-	record.TargetServices = append(record.TargetServices, myTS)
+
+	// add target service
+	TSEmbed := models.TSEmbed{Name: myTS.TSName, DisplayName: myTS.TSDisplayName}
+	record.TargetServices = append(record.TargetServices, TSEmbed)
 
 	if myTS.TSActive {
 		record.Active = true

@@ -88,7 +88,8 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 		}
 
 		// add TS to record
-		record.TargetServices = append(record.TargetServices, myTS)
+		TSEmbed := models.TSEmbed{Name: myTS.TSName, DisplayName: myTS.TSDisplayName}
+		record.TargetServices = append(record.TargetServices, TSEmbed)
 
 		// add record to slice
 		records = append(records, record)

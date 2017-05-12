@@ -21,7 +21,7 @@ func csvConf2String(c models.TSCSVConf) string {
 	}
 	sort.Ints(keys)
 
-	// To perform the opertion you want
+	// construct string with keys in order
 	for _, k := range keys {
 		if sc[k] != "" {
 			csvConfString += sc[k] + "; "
