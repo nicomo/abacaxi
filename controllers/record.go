@@ -61,11 +61,11 @@ func RecordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 		// redirect to home
 		redirectURL := "/record/" + recordID
-		http.Redirect(w, r, redirectURL, 303)
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}
 
 	// redirect to home
-	http.Redirect(w, r, "/", 303)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // RecordExportUnimarcHandler exports a single unimarc record
@@ -127,7 +127,7 @@ func RecordToggleAcquiredHandler(w http.ResponseWriter, r *http.Request) {
 
 	// refresh record page
 	urlStr := "/record/" + recordID
-	http.Redirect(w, r, urlStr, 303)
+	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }
 
 // RecordToggleActiveHandler toggles the boolean value "active" for an record
@@ -155,5 +155,5 @@ func RecordToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 
 	// refresh record page
 	urlStr := "/record/" + recordID
-	http.Redirect(w, r, urlStr, 303)
+	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }

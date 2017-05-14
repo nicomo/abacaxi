@@ -58,7 +58,7 @@ func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
 	// redirect to book detail page
 	// TODO: transmit either error or success message to user
 	urlStr := "/record/" + recordID
-	http.Redirect(w, r, urlStr, 303)
+	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }
 
 // SudocI2PTSHandler retrieves PPNs for all records linked to a Target Service that don't currently have one
@@ -148,7 +148,7 @@ func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
 	// redirect to book detail page
 	// TODO: transmit either error or success message to user
 	urlStr := "/record/" + recordID
-	http.Redirect(w, r, urlStr, 303)
+	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }
 
 // GetRecordsTSHandler retrieves Unimarc Records from Sudoc for all local records using a given target service

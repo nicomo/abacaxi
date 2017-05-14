@@ -353,7 +353,7 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	redirectURL := "/package/" + tsname
-	http.Redirect(w, r, redirectURL, 303)
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
 // TargetServiceNewGetHandler displays the form to register a new Target Service (i.e. ebook package)
@@ -393,7 +393,7 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", 303)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // TargetServiceToggleActiveHandler changes the boolean "active" for a TS *and* records who are linked to *only* this TS
@@ -444,5 +444,5 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 
 	// refresh TS page
 	urlStr := "/package/" + tsname
-	http.Redirect(w, r, urlStr, 303)
+	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }

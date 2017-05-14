@@ -193,7 +193,7 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		// TODO: transmit either error or success message to user
 
 		// redirect to users list
-		http.Redirect(w, r, "/users", 303)
+		http.Redirect(w, r, "/users", http.StatusSeeOther)
 		return
 	}
 
@@ -206,7 +206,7 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Info.Printf("User %s trying to commit suicide and delete itself... Tsss....", currentID)
 
 		// redirect to users list
-		http.Redirect(w, r, "/users", 303)
+		http.Redirect(w, r, "/users", http.StatusSeeOther)
 		return
 	}
 
@@ -214,10 +214,10 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if errUserDelete != nil {
 		logger.Error.Println(errUserDelete)
 		// redirect to users list
-		http.Redirect(w, r, "/users", 303)
+		http.Redirect(w, r, "/users", http.StatusSeeOther)
 		return
 	}
 
 	// redirect to users list
-	http.Redirect(w, r, "/users", 303)
+	http.Redirect(w, r, "/users", http.StatusSeeOther)
 }
