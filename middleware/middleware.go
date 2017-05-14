@@ -15,7 +15,7 @@ func DisallowAnon(h http.Handler) http.Handler {
 
 		// If user is not authenticated, redirect to login
 		if sess.Values["id"] == nil {
-			http.Redirect(w, r, "/", http.StatusFound)
+			http.Redirect(w, r, "/users/login", http.StatusFound)
 			return
 		}
 
