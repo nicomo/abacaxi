@@ -2,16 +2,11 @@ package controllers
 
 import "context"
 
-// UserMessages is used to pass UI messages between Handlers
-// used only with context
-// for UI messages within the same Handler, user ad hoc map[string]interface{} called d for data
-type UserMessages map[string]interface{}
 type key int
 
 const (
-	userMessagesKey key = 0
-	pageKey         key = 1
-	tsnameKey       key = 2
+	pageKey   key = 1
+	tsnameKey key = 2
 )
 
 var (
@@ -19,7 +14,8 @@ var (
 	cancel context.CancelFunc
 )
 
-// newContextPage returns a new Context with the page to skip to (see long lists of records)
+// newContextPage returns a new Context with the page to skip to.
+// Used when we want to display long lists of records
 func newContextPage(ctx context.Context, p int) context.Context {
 	return context.WithValue(ctx, pageKey, p)
 }
@@ -38,17 +34,4 @@ func fromContextPage(ctx context.Context) (string, int, bool) {
 // newContextTSName
 func newContextTSName(ctx context.Context, tsname string) context.Context {
 	return context.WithValue(ctx, tsnameKey, tsname)
-}
-
-// newContextUserM returns a new Context carrying userMessages
-func newContextUserM(ctx context.Context, userM UserMessages) context.Context {
-	return context.WithValue(ctx, userMessagesKey, userM)
-}
-
-// fromContextUserM retrieves userMessages from a http Request Context
-func fromContextUserM(ctx context.Context) (UserMessages, bool) {
-	// ctx.Value returns nil if ctx has no value for the key;
-	// the userMessages type assertion returns ok=false for nil.
-	userM, ok := ctx.Value(userMessagesKey).(UserMessages)
-	return userM, ok
 }

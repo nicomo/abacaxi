@@ -23,7 +23,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	result, searchterms, err := models.Search(r)
 	if err != nil {
-		logger.Error.Println(err)
+		logger.Error.Printf("could not perform a search: %v", err)
 	}
 	d["myRecords"] = result
 	d["searchterms"] = searchterms

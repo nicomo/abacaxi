@@ -1,12 +1,11 @@
 package controllers
 
 import (
-	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
@@ -25,12 +24,11 @@ func UploadGetHandler(w http.ResponseWriter, r *http.Request) {
 		d["IsLoggedIn"] = true
 	}
 
-	// check if we have messages coming in the Request context
-	if userM, ok := fromContextUserM(r.Context()); ok {
-		for k, v := range userM {
-			d[k] = v
-		}
+	// Get flash messages, if any.
+	if flashes := sess.Flashes(); len(flashes) > 0 {
+		d["Flashes"] = flashes
 	}
+	sess.Save(r, w)
 
 	TSListing, _ := models.GetTargetServicesListing()
 	d["TSListing"] = TSListing
@@ -42,16 +40,14 @@ func UploadGetHandler(w http.ResponseWriter, r *http.Request) {
 // then passes the file on to the appropriate controller
 func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
-	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
-	//FIXME: either userMessages struct of d[string] interface{} as used in other funcs, but not both...
-	userM := make(UserMessages)
+	// Get session, to be used for feedback flash messages
+	sess := session.Instance(r)
 
 	// parsing multipart file
 	r.ParseMultipartForm(32 << 20)
 
 	// get the Target Service name
 	tsname := r.PostFormValue("pack")
-	userM["myPackage"] = tsname
 	file, handler, err := r.FormFile("uploadfile")
 	if err != nil {
 		logger.Error.Println(err)
@@ -83,7 +79,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	var myTS models.TargetService
 	if ext == ".kbart" {
 
-		records, myTS, userM, err = fileIO(fpath, tsname, userM, ext)
+		records, myTS, sess, err = fileIO(fpath, tsname, ext, sess)
 		if err != nil {
 			logger.Error.Println(err)
 		}
@@ -91,50 +87,46 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	} else if ext == ".csv" {
 
 		// pass on the name of the package and the name of the file to csvio package
-		records, myTS, userM, err = fileIO(fpath, tsname, userM, ext)
+		records, myTS, sess, err = fileIO(fpath, tsname, ext, sess)
 		if err != nil {
 			logger.Error.Println(err)
-			// insert the user messages in the http.Request Context before redirecting
-			ctx, cancel = context.WithCancel(context.Background())
-			defer cancel()
-			ctx = newContextUserM(ctx, userM)
-
+			sess.AddFlash(err)
+			sess.Save(r, w)
 			// redirect to upload get page
-			UploadGetHandler(w, r.WithContext(ctx))
-			return	
+			UploadGetHandler(w, r)
+			return
 		}
 
 	} else if ext == ".xml" {
 
-		records, myTS, userM, err = xmlIO(fpath, tsname, userM)
+		records, myTS, sess, err = xmlIO(fpath, tsname, sess)
 		if err != nil {
 			logger.Error.Println(err)
+			sess.AddFlash(err)
 		}
 
 	} else {
-
+		logger.Debug.Println(myTS)
 		// manage case wrong file extension : message to the user
 		logger.Error.Println("wrong file extension")
-		userM["wrongExt"] = "wrong file extension"
-
-		// insert the user messages in the http.Request Context before redirecting
-		ctx, cancel = context.WithCancel(context.Background())
-		defer cancel()
-		ctx = newContextUserM(ctx, userM)
+		sess.AddFlash("could not recognize the file extension")
 
 		// redirect to upload get page
-		UploadGetHandler(w, r.WithContext(ctx))
+		UploadGetHandler(w, r)
 		return
 	}
 
 	recordsUpdated, recordsInserted := models.RecordsUpsert(records)
-	logger.Info.Printf("TS: %s; recordsUpdated: %d; recordsInserted: %d", myTS.TSName, recordsUpdated, recordsInserted)
-	userM["createdCounter"] = strconv.Itoa(recordsInserted)
-	userM["updatedCounter"] = strconv.Itoa(recordsUpdated)
+	uploadReport := fmt.Sprintf(`Target Service: %s;
+		Number of records updated: %d
+		Number of records inserted: %d
+		`,
+		tsname,
+		recordsUpdated,
+		recordsInserted)
+	sess.AddFlash(uploadReport)
+	sess.Save(r, w)
 
-	// list of TS appearing in menu
-	TSListing, _ := models.GetTargetServicesListing()
-	userM["TSListing"] = TSListing
-
-	views.RenderTmpl(w, "upload-report", userM)
+	redirectURL := "/package/" + tsname
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }

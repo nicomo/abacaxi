@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 )
@@ -17,7 +18,8 @@ const (
 	kbartNumFields = 25
 )
 
-func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]models.Record, models.TargetService, UserMessages, error) {
+func fileIO(filename, tsname, ext string, sess *sessions.Session) ([]models.Record, models.TargetService, *sessions.Session, error) {
+
 	// retrieve target service (i.e. ebook package) for this file
 	myTS, err := models.GetTargetService(tsname)
 	if err != nil {
@@ -31,14 +33,12 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 	// open csv file
 	csvFile, err := os.Open(filename)
 	if err != nil {
-		logger.Error.Println("cannot open csv file")
+		sess.AddFlash("cannot open the csv file")
+		return nil, myTS, sess, err
 	}
 	defer csvFile.Close()
 
 	reader := csv.NewReader(csvFile)
-
-	// slice will hold successfully parsed records
-	var records []models.Record
 
 	// package csv has n fields, separator is ;
 	var csvConf map[string]int
@@ -53,6 +53,8 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 	// counters to keep track of records parsed, for logging
 	line := 1
 	var rejectedLines []int
+	// slice will hold successfully parsed records
+	var records []models.Record
 
 	for {
 		// read a row
@@ -74,9 +76,8 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 		// if we do abort: source file isn't proper utf8
 		for _, v := range fRecord {
 			if strings.ContainsRune(v, '\uFFFD') {
-				err := errors.New("parsing failed: non utf-8 char. in file")
-				userM["errUTF8"] = err
-				return records, myTS, userM, err
+				err := errors.New("parsing failed: non utf-8 character in file")
+				return nil, myTS, sess, err
 			}
 		}
 
@@ -100,22 +101,21 @@ func fileIO(filename string, tsname string, userM UserMessages, ext string) ([]m
 	// log number of records successfully parsed
 	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s", len(records), filename)
 	logger.Info.Print(parsedLog)
-	userM["parsedLog"] = parsedLog
+	sess.AddFlash(parsedLog)
 
 	// log lines rejected
 	if len(rejectedLines) > 0 {
 		if len(records) == 0 {
 			zeroRecordCreated := fmt.Sprintf("couldn't parse a single line: check file %s. Separator should be ;", filename)
 			logger.Error.Println(zeroRecordCreated)
-			userM["zeroRecordCreated"] = zeroRecordCreated
-			return records, myTS, userM, nil
+			sess.AddFlash(zeroRecordCreated)
+			return records, myTS, sess, nil
 		}
 		rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
-		logger.Info.Println(rejectedLinesLog)
-		userM["rejectedLinesLog"] = rejectedLinesLog
+		sess.AddFlash(rejectedLinesLog)
 	}
 
-	return records, myTS, userM, nil
+	return records, myTS, sess, nil
 }
 
 func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, error) {

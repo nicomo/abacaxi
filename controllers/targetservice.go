@@ -89,6 +89,12 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		d["IsLoggedIn"] = true
 	}
 
+	// Get flash messages, if any.
+	if flashes := sess.Flashes(); len(flashes) > 0 {
+		d["Flashes"] = flashes
+	}
+	sess.Save(r, w)
+
 	tsname, page := getTSNameAndPage(r)
 	d["myPackage"] = tsname
 

@@ -4,6 +4,13 @@
 			<h1>&#127821; Metadata Hub</h1>
 			{{template "nav" .}}
 			<h2>Package : {{ .TSDisplayName }}</h2>
+			<!-- temporary messages: success, failure, etc. -->
+			{{ if .Flashes }}
+				{{ range .Flashes}}
+					<div class="alert alert-info" role="alert">{{ . }}</div>
+				{{ end }}
+			{{ end }}
+
 			<ul>
 				<li>{{ .myPackageRecordsCount }} local records</li>
 				<li>number of local records with Marc Records : {{ .myPackageRecordsUnimarcCount }} / {{ .myPackageRecordsCount }}</li>

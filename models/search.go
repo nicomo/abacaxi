@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/nicomo/abacaxi/logger"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -21,7 +20,6 @@ func Search(r *http.Request) ([]Record, string, error) {
 	// we parse the form
 	err := r.ParseForm()
 	if err != nil {
-		logger.Error.Println(err)
 		return results, "", err
 	}
 

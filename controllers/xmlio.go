@@ -9,6 +9,7 @@ import (
 
 	"github.com/terryh/goisbn"
 
+	"github.com/gorilla/sessions"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 )
@@ -30,7 +31,7 @@ type XMLRecord struct {
 }
 
 // xmlIO takes an xml file to clean it, save copy & unmarshall content
-func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Record, models.TargetService, UserMessages, error) {
+func xmlIO(filename, tsname string, sess *sessions.Session) ([]models.Record, models.TargetService, *sessions.Session, error) {
 
 	// retrieve target service (i.e. ebook package) for this file
 	myTS, err := models.GetTargetService(tsname)
@@ -71,7 +72,7 @@ func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Record,
 	// log number of records successfully parsed
 	parsedLog := fmt.Sprintf("successfully parsed %d records from %s", len(records), filename)
 	logger.Info.Print(parsedLog)
-	userM["parsedLog"] = parsedLog
+	sess.AddFlash(parsedLog)
 
 	// save a server copy of source xml file
 	t := time.Now()
@@ -79,15 +80,14 @@ func xmlIO(filename string, tsname string, userM UserMessages) ([]models.Record,
 	ErrXMLSaveCopy := xmlSaveCopy(dst, filename)
 	if ErrXMLSaveCopy != nil {
 		logger.Error.Println(ErrXMLSaveCopy)
-		return records, myTS, userM, ErrXMLSaveCopy
+		return records, myTS, sess, ErrXMLSaveCopy
 	}
 
 	// logging + user message with result of save copy
 	saveCopyMssg := fmt.Sprintf("successfully saved cleaned up version of xml file as %s", dst)
 	logger.Info.Println(saveCopyMssg)
-	userM["saveCopyMssg"] = saveCopyMssg
 
-	return records, myTS, userM, nil
+	return records, myTS, sess, nil
 }
 
 // ReadRecords reads the XML document
