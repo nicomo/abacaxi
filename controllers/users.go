@@ -42,6 +42,12 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 		d["IsLoggedIn"] = true
 	}
 
+	// get flash messages if any
+	if flashes := sess.Flashes(); len(flashes) > 0 {
+		d["Flashes"] = flashes
+	}
+	sess.Save(r, w)
+
 	result, err := models.GetUsers()
 	if err != nil {
 		logger.Error.Println(err)
@@ -78,7 +84,8 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	sess := session.Instance(r)
 
 	// Prevent brute force login attempt: invalidate request
-	if sess.Values[sessLoginAttempt] != nil && sess.Values[sessLoginAttempt].(int) >= 5 {
+	if sess.Values[sessLoginAttempt] != nil && sess.Values[sessLoginAttempt].(int) >= 10 {
+		sess.AddFlash("Too many login attempts. Account suspended")
 		sess.Save(r, w)
 		UserLoginGetHandler(w, r)
 		return
@@ -91,7 +98,7 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	pw := policy.Sanitize(r.FormValue("password"))
 
 	if username == "" || pw == "" {
-		logger.Info.Println("login attempt missing required field")
+		sess.AddFlash("Login attempt missing required field")
 		sess.Save(r, w)
 		UserLoginGetHandler(w, r)
 		return
@@ -100,7 +107,8 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get user in DB
 	user, err := models.UserByUsername(username)
 	if err != nil {
-		logger.Error.Println(err)
+		sess.AddFlash("User not found")
+		sess.Save(r, w)
 		logAttempt(sess)
 		UserLoginGetHandler(w, r)
 		return
@@ -201,22 +209,19 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	targetUser, err := models.UserByID(userID)
 	if err != nil {
 		logger.Error.Println(err)
-
-		// TODO: transmit either error or success message to user
-
 		// redirect to users list
 		http.Redirect(w, r, "/users", http.StatusSeeOther)
 		return
 	}
 
-	// get the logged in user ID
+	// Get session & the logged in user ID
 	sess := session.Instance(r)
 	currentID := sess.Values["id"]
 
 	// is the user trying to delete herself?
 	if targetUser.ID == bson.ObjectIdHex(currentID.(string)) {
-		logger.Info.Printf("User %s trying to commit suicide and delete itself... Tsss....", currentID)
-
+		sess.AddFlash("This app doesn't allow a user to delete herself...")
+		sess.Save(r, w)
 		// redirect to users list
 		http.Redirect(w, r, "/users", http.StatusSeeOther)
 		return

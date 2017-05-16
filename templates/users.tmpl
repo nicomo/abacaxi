@@ -4,6 +4,13 @@
 		<h1>&#127821; Metadata Hub</h1>
 		{{ template "nav" . }}
 		<h2>Users</h2>
+
+		{{ if .Flashes }}
+			{{ range .Flashes}}
+				<div class="alert alert-info" role="alert">{{ . }}</div>
+			{{ end }}
+		{{ end }}
+
 		<div class="panel panel-default">
 			<table class="table table-striped">
 				<tr>
