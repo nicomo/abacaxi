@@ -2,7 +2,12 @@
 	<body>
 		<div class="container">
 
-			<h1>&#127821; Metadata Hub</h1>
+			<h2>&#127821; Metadata Hub</h2>
+			{{ if .Flashes }}
+				{{ range .Flashes}}
+					<div class="alert alert-info" role="alert">{{ . }}</div>
+				{{ end }}
+			{{ end }}
 			<form class="form-horizontal col-sm-8" action="/users/login" method="post">
 				<div class="form-group">
 					<label class="col-sm-2 control-label" for="username">Username</label>

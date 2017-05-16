@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	// sesssion name to store the number of login attemps
+	// session name to store the number of login attemps
 	sessLoginAttempt = "log_attempts"
 )
 
@@ -58,7 +58,18 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 
 // UserLoginGetHandler to display user login form
 func UserLoginGetHandler(w http.ResponseWriter, r *http.Request) {
-	views.RenderTmpl(w, "userlogin", nil)
+
+	// UI data
+	d := make(map[string]interface{})
+
+	// Get session & flash messages if any
+	sess := session.Instance(r)
+	if flashes := sess.Flashes(); len(flashes) > 0 {
+		d["Flashes"] = flashes
+	}
+	sess.Save(r, w)
+
+	views.RenderTmpl(w, "userlogin", d)
 }
 
 // UserLoginPostHandler to parse user login form
@@ -68,7 +79,6 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Prevent brute force login attempt: invalidate request
 	if sess.Values[sessLoginAttempt] != nil && sess.Values[sessLoginAttempt].(int) >= 5 {
-		logger.Info.Println("Brute force login prevented")
 		sess.Save(r, w)
 		UserLoginGetHandler(w, r)
 		return
@@ -106,8 +116,8 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println(err)
 		}
 
-		// clean session (of login attempts counter)
-		delete(sess.Values, sessLoginAttempt)
+		// reset session login attempts counter
+		sess.Values[sessLoginAttempt] = nil
 
 		// fill session values, save & redirect to home
 		sess.Values["id"] = user.ID.Hex()
@@ -116,8 +126,10 @@ func UserLoginPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	logger.Error.Println("wrong password")
+
 	logAttempt(sess)
+	sess.AddFlash("wrong username or password")
+	sess.Save(r, w)
 	UserLoginGetHandler(w, r)
 	return
 }

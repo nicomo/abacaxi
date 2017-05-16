@@ -99,14 +99,6 @@ func init() {
 		"templates/tslisting.tmpl",
 	))
 
-	// file uploaded
-	tmpl["upload-report"] = template.Must(template.ParseFiles("templates/base.tmpl",
-		"templates/head.tmpl",
-		"templates/nav.tmpl",
-		"templates/tslisting.tmpl",
-		"templates/upload-report.tmpl",
-	))
-
 	// user login form
 	tmpl["userlogin"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
