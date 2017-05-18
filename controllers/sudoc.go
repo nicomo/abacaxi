@@ -70,7 +70,7 @@ func SudocI2PTSHandler(w http.ResponseWriter, r *http.Request) {
 	// retrieve the Target Service from the request
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
-	d["myPackage"] = tsname
+	d["myTS"] = tsname
 
 	records, err := models.RecordsGetNoPPNByTSName(tsname)
 	if err != nil {
@@ -160,7 +160,7 @@ func GetRecordsTSHandler(w http.ResponseWriter, r *http.Request) {
 	// retrieve the Target Service from the request
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
-	d["myPackage"] = tsname
+	d["myTS"] = tsname
 
 	records, err := models.RecordsGetWithPPNByTSName(tsname)
 	if err != nil {

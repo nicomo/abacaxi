@@ -1,0 +1,74 @@
+{{define "body"}}
+	<body>
+		<div class="container">
+			<h1>&#127821; Metadata Hub</h1>
+			{{template "nav" .}}
+			<h2>Package : {{ .TSDisplayName }}</h2>
+			<!-- temporary messages: success, failure, etc. -->
+			{{ if .Flashes }}
+				{{ range .Flashes}}
+					<div class="alert alert-info" role="alert">{{ . }}</div>
+				{{ end }}
+			{{ end }}
+
+			<ul>
+				<li>{{ .myTSRecordsCount }} local records</li>
+				<li>number of local records with Marc Records : {{ .myTSRecordsUnimarcCount }} / {{ .myTSRecordsCount }}</li>
+				<li>number of local records with Pica Publication Numbers : {{ .myTSPPNsCount }} / {{ .myTSRecordsCount }}</li>
+				<li>{{ if .myTSCSVConf }}
+						CSV Configuration : {{ .myTSCSVConf }} 
+						[<a href="/ts/update/{{ .myTS }}">Update</a>]
+					{{ else }}
+						<a href="/ts/update/{{ .myTS }}">Add CSV Configuration</a>
+					{{ end }}
+				</li>
+				<li>
+					{{ if .IsTSActive }}
+						<a href="/ts/toggleactive/{{ .myTS }}"><span class="label label-success">Active</span></a>
+					{{ else }}
+						<a href="/ts/toggleactive/{{ .myTS }}"><span class="label label-danger">Inactive</span></a>
+					{{ end }}
+				</li>
+			</ul>
+			<p>
+				<div class="btn-group" role="group" aria-label="unimarc button">
+					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Unimarc (sudoc) <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						<li><a href="/sudoci2p-ts/{{ .myTS }}">Get Sudoc PPNs</a></li>
+						{{ if .myTSPPNsCount }} 
+							<li><a href="/sudocgetrecords/{{ .myTS }}">Get Sudoc Unimarc Records</a></li>
+						{{ end }}
+					</ul>
+				</div>
+				<a class="btn btn-danger" href="/ts/delete/{{ .myTS }}" role="button">Delete</a>
+
+				{{ if gt .myTSRecordsCount 0 }}
+					<div class="btn-group" role="group" aria-label="export button">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						Export <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li><a href="/ts/export/kbart/{{ .myTS }}">KBart</a></li>
+							{{ if .myTSRecordsUnimarcCount }} 
+								<li><a href="/ts/export/unimarc/{{ .myTS }}">Unimarc Records</a></li>
+							{{ end }}
+						</ul>
+					</div>				
+				{{ end }}
+			</p>
+
+			{{ if gt .myTSRecordsCount 0 }}
+				{{ template "recordslist" . }}
+
+				<div class="row">
+					<div class="col-md-4 text-left">{{ if  .previous   }} <a href="/ts/display/{{.myTS}}/{{.previous}}">< Previous</a>{{ end }}</div>
+					<div class="col-md-4"></div>
+					<div class="col-md-4 text-right">{{ if .next  }} <a href="/ts/display/{{.myTS}}/{{.next}}">Next  ></a>{{ end }}</div>
+				</div>
+				<p>&nbsp;</p>
+			{{ end }}
+		</div>
+	</body>
+{{end}}

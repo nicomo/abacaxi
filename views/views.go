@@ -67,9 +67,9 @@ func init() {
 	tmpl["targetservice"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
 		"templates/head.tmpl",
-		"templates/package.tmpl",
-		"templates/recordslist.tmpl",
 		"templates/nav.tmpl",
+		"templates/recordslist.tmpl",
+		"templates/ts.tmpl",
 		"templates/tslisting.tmpl",
 	))
 

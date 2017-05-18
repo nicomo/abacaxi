@@ -40,7 +40,7 @@ func fileIO(filename, tsname, ext string, sess *sessions.Session) ([]models.Reco
 
 	reader := csv.NewReader(csvFile)
 
-	// package csv has n fields, separator is ;
+	// target service csv has n fields, separator is ;
 	var csvConf map[string]int
 	if ext == ".csv" {
 		csvConf = csvConfSwap(myTS.TSCsvConf)

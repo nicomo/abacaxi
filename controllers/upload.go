@@ -86,7 +86,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	} else if ext == ".csv" {
 
-		// pass on the name of the package and the name of the file to csvio package
+		// pass on the name of the target service and the name of the file to csvio package
 		records, myTS, sess, err = fileIO(fpath, tsname, ext, sess)
 		if err != nil {
 			logger.Error.Println(err)
@@ -127,6 +127,6 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	sess.AddFlash(uploadReport)
 	sess.Save(r, w)
 
-	redirectURL := "/package/" + tsname
+	redirectURL := "/ts/" + tsname
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }

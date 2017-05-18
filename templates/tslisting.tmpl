@@ -1,5 +1,5 @@
 {{ define "tslisting" }}
 	{{ range .TSListing }}
-		<li><a href="/package/{{ .TSName }}">{{ .TSDisplayName }}</a></li>
+		<li><a href="/ts/display/{{ .TSName }}">{{ .TSDisplayName }}</a></li>
 	{{ end}}
 {{ end }}

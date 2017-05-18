@@ -33,7 +33,7 @@ type XMLRecord struct {
 // xmlIO takes an xml file to clean it, save copy & unmarshall content
 func xmlIO(filename, tsname string, sess *sessions.Session) ([]models.Record, models.TargetService, *sessions.Session, error) {
 
-	// retrieve target service (i.e. ebook package) for this file
+	// retrieve target service (i.e. ebook/ejournals package) for this file
 	myTS, err := models.GetTargetService(tsname)
 	if err != nil {
 		logger.Error.Println(err)

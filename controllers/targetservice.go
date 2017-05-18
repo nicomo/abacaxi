@@ -96,7 +96,7 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	sess.Save(r, w)
 
 	tsname, page := getTSNameAndPage(r)
-	d["myPackage"] = tsname
+	d["myTS"] = tsname
 
 	// get the TS Struct from DB
 	myTS, err := models.GetTargetService(tsname)
@@ -107,11 +107,11 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	d["IsTSActive"] = myTS.TSActive
 
 	// convert the csv configuration into a string to be displayed
-	d["myPackageCSVConf"] = csvConf2String(myTS.TSCsvConf)
+	d["myTSCSVConf"] = csvConf2String(myTS.TSCsvConf)
 
 	// any local records records have this TS?
 	count := models.TSCountRecords(tsname)
-	d["myPackageRecordsCount"] = count
+	d["myTSRecordsCount"] = count
 
 	if count > 0 { // no need to query for actual local records otherwise
 
@@ -127,11 +127,11 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 
 		// how many local records have marc records
 		nbRecordsUnimarc := models.TSCountRecordsUnimarc(tsname)
-		d["myPackageRecordsUnimarcCount"] = nbRecordsUnimarc
+		d["myTSRecordsUnimarcCount"] = nbRecordsUnimarc
 
 		// how many local records have a PPN from the Sudoc Union Catalog
 		nbPPNs := models.TSCountPPNs(tsname)
-		d["myPackagePPNsCount"] = nbPPNs
+		d["myTSPPNsCount"] = nbPPNs
 
 		// get the records
 		records, err := models.RecordsGetByTSName(tsname, page)
@@ -160,7 +160,7 @@ func TargetServiceDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error.Println(err)
 		// TODO: transmit either error or success message to user
 		// redirect
-		redirectURL := "/package/" + tsname
+		redirectURL := "/ts/" + tsname
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 	}
 
@@ -267,7 +267,7 @@ func TargetServiceUpdateGetHandler(w http.ResponseWriter, r *http.Request) {
 	// the name of the target service we're interested in is in the router variables
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
-	d["myPackage"] = tsname
+	d["myTS"] = tsname
 
 	// retrieve Target Service Struct
 	myTS, err := models.GetTargetService(tsname)
@@ -311,7 +311,7 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	// the name of the target service we're interested in is in the router variables
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
-	d["myPackage"] = tsname
+	d["myTS"] = tsname
 
 	// list of TS appearing in menu
 	TSListing, _ := models.GetTargetServicesListing()
@@ -358,11 +358,11 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirectURL := "/package/" + tsname
+	redirectURL := "/ts/" + tsname
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
-// TargetServiceNewGetHandler displays the form to register a new Target Service (i.e. ebook package)
+// TargetServiceNewGetHandler displays the form to register a new Target Service (e.g. ebook package)
 func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be store in this map
 	d := make(map[string]interface{})
@@ -372,7 +372,7 @@ func TargetServiceNewGetHandler(w http.ResponseWriter, r *http.Request) {
 	views.RenderTmpl(w, "targetservicenewget", d)
 }
 
-// TargetServiceNewPostHandler manages the form to register a new Target Service (i.e. ebook package)
+// TargetServiceNewPostHandler manages the form to register a new Target Service (e.g. ebook package)
 func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	d := make(map[string]interface{})
 
@@ -449,6 +449,6 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// refresh TS page
-	urlStr := "/package/" + tsname
+	urlStr := "/ts/" + tsname
 	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }

@@ -79,7 +79,7 @@ func GetTargetServicesListing() ([]TargetService, error) {
 
 }
 
-// TSCountRecords counts the number of records for this package
+// TSCountRecords counts the number of records for this target service
 func TSCountRecords(tsname string) int {
 
 	// Request a socket connection from the session to process our query.
@@ -89,7 +89,7 @@ func TSCountRecords(tsname string) int {
 	// collection records
 	coll := getRecordsColl()
 
-	//  query records by package name, aka Target Service in SFX (and in models.Records struct)
+	//  query records by target service name, aka Target Service in SFX (and in models.Records struct)
 	qry := coll.Find(bson.M{"targetservices.name": tsname})
 	count, err := qry.Count()
 
@@ -100,7 +100,7 @@ func TSCountRecords(tsname string) int {
 	return count
 }
 
-// TSCountRecordsUnimarc counts how many records for this package have proper MARC Records
+// TSCountRecordsUnimarc counts how many records for this target service have proper MARC Records
 func TSCountRecordsUnimarc(tsname string) int {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
@@ -109,7 +109,7 @@ func TSCountRecordsUnimarc(tsname string) int {
 	// collection records
 	coll := getRecordsColl()
 
-	//  query records by package name, aka Target Service in SFX (and in models.Ebook struct)
+	//  query records by target service name, aka Target Service in SFX (and in models.Ebook struct)
 	qry := coll.Find(bson.M{"targetservices.name": tsname, "recordunimarc": bson.M{"$ne": nil}})
 	count, err := qry.Count()
 
@@ -120,7 +120,7 @@ func TSCountRecordsUnimarc(tsname string) int {
 	return count
 }
 
-// TSCountPPNs counts how many records for this package have proper PicaPublication Numbers coming from ABES
+// TSCountPPNs counts how many records for this target service have proper PicaPublication Numbers coming from ABES
 func TSCountPPNs(tsname string) int {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
@@ -129,7 +129,7 @@ func TSCountPPNs(tsname string) int {
 	// collection ebooks
 	coll := getRecordsColl()
 
-	//  query ebooks by package name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
+	//  query ebooks by target service name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
 	qry := coll.Find(bson.M{"targetservices.name": tsname, "identifiers.idtype": IDTypePPN})
 	count, err := qry.Count()
 

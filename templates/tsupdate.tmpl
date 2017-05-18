@@ -12,7 +12,7 @@
 				<p class="bg-danger">{{ .ErrTSUpdate }}</p>
 			{{ end }}
 
-			<form class="form-horizontal" action="/package/update/{{ .myTS.TSName }}" method="post">
+			<form class="form-horizontal" action="/ts/update/{{ .myTS.TSName }}" method="post">
 				<input type="hidden" name="tsname" value="{{ .myTS.TSName }}">
 				<div class="form-group">
 					<label for="tsdisplayname" class="col-sm-2 control-label">Display name: </label>
