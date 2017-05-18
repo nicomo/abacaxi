@@ -33,6 +33,6 @@ func GetConfig() Conf {
 		logger.Error.Println(ErrJSONUnmarshal)
 		os.Exit(1)
 	}
-	logger.Debug.Println(config)
+
 	return config
 }

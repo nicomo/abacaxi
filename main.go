@@ -8,6 +8,7 @@ import (
 	"github.com/nicomo/abacaxi/config"
 	"github.com/nicomo/abacaxi/controllers"
 	"github.com/nicomo/abacaxi/middleware"
+	_ "github.com/nicomo/abacaxi/models"
 	"github.com/nicomo/abacaxi/session"
 )
 
