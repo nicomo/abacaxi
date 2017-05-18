@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
@@ -46,8 +45,10 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	// parsing multipart file
 	r.ParseMultipartForm(32 << 20)
 
-	// get the Target Service name
-	tsname := r.PostFormValue("pack")
+	// get the Target Service name and the file type
+	tsname := r.PostFormValue("tsname")
+	filetype := r.PostFormValue("filetype")
+
 	file, handler, err := r.FormFile("uploadfile")
 	if err != nil {
 		logger.Error.Println(err)
@@ -73,21 +74,19 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	// copy uploaded file into new file
 	io.Copy(f, file)
 
-	// if xml pass on to xmlio, if csv, pass on to csvio, if neither, abort
-	ext := filepath.Ext(handler.Filename)
 	var records []models.Record
 	var myTS models.TargetService
-	if ext == ".kbart" {
+	if filetype == "kbart" {
 
-		records, myTS, sess, err = fileIO(fpath, tsname, ext, sess)
+		records, myTS, sess, err = fileIO(fpath, tsname, filetype, sess)
 		if err != nil {
 			logger.Error.Println(err)
 		}
 
-	} else if ext == ".csv" {
+	} else if filetype == "csv" {
 
 		// pass on the name of the target service and the name of the file to csvio package
-		records, myTS, sess, err = fileIO(fpath, tsname, ext, sess)
+		records, myTS, sess, err = fileIO(fpath, tsname, filetype, sess)
 		if err != nil {
 			logger.Error.Println(err)
 			sess.AddFlash(err)
@@ -97,7 +96,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-	} else if ext == ".xml" {
+	} else if filetype == "sfxxml" {
 
 		records, myTS, sess, err = xmlIO(fpath, tsname, sess)
 		if err != nil {
@@ -117,16 +116,12 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	recordsUpdated, recordsInserted := models.RecordsUpsert(records)
-	uploadReport := fmt.Sprintf(`Target Service: %s;
-		Number of records updated: %d
-		Number of records inserted: %d
-		`,
-		tsname,
+	uploadReport := fmt.Sprintf("Updated %d records / Inserted %d records",
 		recordsUpdated,
 		recordsInserted)
 	sess.AddFlash(uploadReport)
 	sess.Save(r, w)
 
-	redirectURL := "/ts/" + tsname
+	redirectURL := "/ts/display/" + tsname
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }

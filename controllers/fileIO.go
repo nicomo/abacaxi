@@ -18,7 +18,7 @@ const (
 	kbartNumFields = 25
 )
 
-func fileIO(filename, tsname, ext string, sess *sessions.Session) ([]models.Record, models.TargetService, *sessions.Session, error) {
+func fileIO(filename, tsname, filetype string, sess *sessions.Session) ([]models.Record, models.TargetService, *sessions.Session, error) {
 
 	// retrieve target service (i.e. ebook package) for this file
 	myTS, err := models.GetTargetService(tsname)
@@ -42,7 +42,7 @@ func fileIO(filename, tsname, ext string, sess *sessions.Session) ([]models.Reco
 
 	// target service csv has n fields, separator is ;
 	var csvConf map[string]int
-	if ext == ".csv" {
+	if filetype == "csv" {
 		csvConf = csvConfSwap(myTS.TSCsvConf)
 		reader.FieldsPerRecord = len(csvConf)
 	} else {
@@ -111,7 +111,7 @@ func fileIO(filename, tsname, ext string, sess *sessions.Session) ([]models.Reco
 			sess.AddFlash(zeroRecordCreated)
 			return records, myTS, sess, nil
 		}
-		rejectedLinesLog := fmt.Sprintf("rejected lines in file %s: %v", filename, rejectedLines)
+		rejectedLinesLog := fmt.Sprintf("lines rejected in source file: %v", rejectedLines)
 		sess.AddFlash(rejectedLinesLog)
 	}
 

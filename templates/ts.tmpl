@@ -6,9 +6,11 @@
 			<h2>Package : {{ .TSDisplayName }}</h2>
 			<!-- temporary messages: success, failure, etc. -->
 			{{ if .Flashes }}
-				{{ range .Flashes}}
-					<div class="alert alert-info" role="alert">{{ . }}</div>
-				{{ end }}
+				<div class="alert alert-info" role="alert">
+					{{ range .Flashes}}
+						<p>{{ . }}</p>
+					{{ end }}
+				</div>
 			{{ end }}
 
 			<ul>
