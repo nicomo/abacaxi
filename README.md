@@ -1,6 +1,13 @@
 # &#127821; Abacaxi - The Library Metadata Hub
 A tool to extract, transform and load metadata for eresources, esp. ebooks, in a DB, and match them with library records
 
+What it does :
+
+- slurps files : publisher csv, kbart files, XML exports from the SFX OpenURL resolver
+- dedupe records using the identifiers it has, e.g. isbn / issn / sfx id...
+- try to get Unimarc records matching these identifiers
+- export those records as unimarc records or kbart files
+
 Requires :
 
 - [MongoDB](https://www.mongodb.com)
@@ -20,3 +27,4 @@ Before you start, fill in the config/config.json file :
 - hostname: "http://localhost:8080/" - hostname (and path) to the root, e.g. http://metadata.mylibrary.com/ - don't forget the trailing /
 - mongodbhosts: "localhost:27017" - where is mongoDB, e.g. localhost:27017
 - authdatabase: "abacaxidb" - name of the mongodb, e.g.  abacaxidb
+- sessionstorekey: "long string of letters, numbers and signs", e.g. g9H4FJa+;y3G7$wyye
