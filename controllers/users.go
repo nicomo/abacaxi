@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -217,6 +218,8 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session & the logged in user ID
 	sess := session.Instance(r)
 	currentID := sess.Values["id"]
+
+	fmt.Printf("type of currentID: %T\n", currentID)
 
 	// is the user trying to delete herself?
 	if targetUser.ID == bson.ObjectIdHex(currentID.(string)) {

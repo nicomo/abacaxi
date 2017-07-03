@@ -44,25 +44,19 @@ type Record struct {
 	ParentPublicationTitleID     string       `bson:",omitempty"`
 	PrecedingPublicationTitleID  string       `bson:",omitempty"`
 	PublicationTitle             string
-	PublicationType              string    `bson:",omitempty"`
-	PublisherName                string    `bson:",omitempty"`
-	RecordMarc21                 string    `bson:",omitempty"`
-	RecordUnimarc                string    `bson:",omitempty"`
-	TargetServices               []TSEmbed `bson:",omitempty"` // this is the name of the package in SFX, e.g. CAIRN QSJ
-	TitleID                      string    `bson:",omitempty"`
-	TitleURL                     string    `bson:",omitempty"`
+	PublicationType              string          `bson:",omitempty"`
+	PublisherName                string          `bson:",omitempty"`
+	RecordMarc21                 string          `bson:",omitempty"`
+	RecordUnimarc                string          `bson:",omitempty"`
+	TargetServices               []TargetService `bson:",omitempty"` // this is the name of the package in SFX, e.g. CAIRN QSJ
+	TitleID                      string          `bson:",omitempty"`
+	TitleURL                     string          `bson:",omitempty"`
 }
 
 // Identifier embedded in an record
 type Identifier struct {
 	Identifier string `bson:",omitempty"`
 	IDType     int
-}
-
-// TSEmbed embeds the necessary fields from a Target Service
-type TSEmbed struct {
-	Name        string
-	DisplayName string
 }
 
 // RecordDelete deletes a single ebook from DB

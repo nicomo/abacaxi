@@ -12,6 +12,13 @@ import (
 	"github.com/nicomo/abacaxi/views"
 )
 
+type parseparams struct {
+	tsname   string
+	fpath    string
+	filetype string
+	csvconf  map[string]int
+}
+
 // UploadGetHandler manages upload of a source file
 func UploadGetHandler(w http.ResponseWriter, r *http.Request) {
 	// our messages (errors, confirmation, etc) to the user & the template will be stored in this map
@@ -48,7 +55,15 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	// get the Target Service name and the file type
 	tsname := r.PostFormValue("tsname")
 	filetype := r.PostFormValue("filetype")
+	logger.Debug.Printf("++++++++ FILETYPE : %s", filetype)
 
+	// get the optional csv fields
+	csvconf, err := getCSVParams(r)
+	if err != nil {
+		logger.Error.Printf("couldn't get csv params: %v", err)
+	}
+
+	// upload the file
 	file, handler, err := r.FormFile("uploadfile")
 	if err != nil {
 		logger.Error.Println(err)
@@ -63,6 +78,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error.Println(ErrPath)
 	}
 
+	// open newly created file
 	fpath := path + "/" + handler.Filename
 	f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -74,19 +90,18 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	// copy uploaded file into new file
 	io.Copy(f, file)
 
+	pp := parseparams{
+		tsname,
+		fpath,
+		filetype,
+		csvconf,
+	}
+	logger.Debug.Printf("parseparams: %v", pp)
+
 	var records []models.Record
-	var myTS models.TargetService
-	if filetype == "kbart" {
-
-		records, myTS, sess, err = fileIO(fpath, tsname, filetype, sess)
-		if err != nil {
-			logger.Error.Println(err)
-		}
-
-	} else if filetype == "csv" {
-
-		// pass on the name of the target service and the name of the file to csvio package
-		records, myTS, sess, err = fileIO(fpath, tsname, filetype, sess)
+	var report string
+	if filetype == "sfxxml" {
+		records, report, err = xmlIO(pp)
 		if err != nil {
 			logger.Error.Println(err)
 			sess.AddFlash(err)
@@ -95,31 +110,33 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 			UploadGetHandler(w, r)
 			return
 		}
-
-	} else if filetype == "sfxxml" {
-
-		records, myTS, sess, err = xmlIO(fpath, tsname, sess)
+	} else if filetype == "publishercsv" || filetype == "kbart" {
+		records, report, err = fileIO(pp)
 		if err != nil {
 			logger.Error.Println(err)
 			sess.AddFlash(err)
+			sess.Save(r, w)
+			// redirect to upload get page
+			UploadGetHandler(w, r)
+			return
 		}
-
 	} else {
-		logger.Debug.Println(myTS)
 		// manage case wrong file extension : message to the user
 		logger.Error.Println("wrong file extension")
 		sess.AddFlash("could not recognize the file extension")
-
+		sess.Save(r, w)
 		// redirect to upload get page
 		UploadGetHandler(w, r)
 		return
 	}
 
 	recordsUpdated, recordsInserted := models.RecordsUpsert(records)
-	uploadReport := fmt.Sprintf("Updated %d records / Inserted %d records",
+
+	reportCount := fmt.Sprintf("Updated %d records / Inserted %d records",
 		recordsUpdated,
 		recordsInserted)
-	sess.AddFlash(uploadReport)
+	report += reportCount
+	sess.AddFlash(report)
 	sess.Save(r, w)
 
 	redirectURL := "/ts/display/" + tsname

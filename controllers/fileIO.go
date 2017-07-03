@@ -7,9 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/gorilla/sessions"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 )
@@ -18,33 +16,28 @@ const (
 	kbartNumFields = 25
 )
 
-func fileIO(filename, tsname, filetype string, sess *sessions.Session) ([]models.Record, models.TargetService, *sessions.Session, error) {
+func fileIO(pp parseparams) ([]models.Record, string, error) {
+	// slice will hold successfully parsed records
+	var records []models.Record
 
-	// retrieve target service (i.e. ebook package) for this file
-	myTS, err := models.GetTargetService(tsname)
+	// retrieve target service (e.g. ebook package) for this file
+	myTS, err := models.GetTargetService(pp.tsname)
 	if err != nil {
-		logger.Error.Println(err)
+		return records, "", err
 	}
 
-	// update date for TS publisher last harvest since
-	// we're harvesting books from a publisher provided csv file
-	myTS.TSPublisherLastHarvest = time.Now()
-
-	// open csv file
-	csvFile, err := os.Open(filename)
+	// open file
+	f, err := os.Open(pp.fpath)
 	if err != nil {
-		sess.AddFlash("cannot open the csv file")
-		return nil, myTS, sess, err
+		return nil, "", errors.New("cannot open the source file")
 	}
-	defer csvFile.Close()
+	defer f.Close()
 
-	reader := csv.NewReader(csvFile)
+	reader := csv.NewReader(f)
 
 	// target service csv has n fields, separator is ;
-	var csvConf map[string]int
-	if filetype == "csv" {
-		csvConf = csvConfSwap(myTS.TSCsvConf)
-		reader.FieldsPerRecord = len(csvConf)
+	if pp.filetype == "publishercsv" {
+		reader.FieldsPerRecord = len(pp.csvconf)
 	} else {
 		reader.FieldsPerRecord = kbartNumFields // kbart is a const: always 25 fields
 	}
@@ -53,12 +46,10 @@ func fileIO(filename, tsname, filetype string, sess *sessions.Session) ([]models
 	// counters to keep track of records parsed, for logging
 	line := 1
 	var rejectedLines []int
-	// slice will hold successfully parsed records
-	var records []models.Record
 
 	for {
 		// read a row
-		fRecord, err := reader.Read()
+		r, err := reader.Read()
 
 		// if at EOF, break out of loop
 		if err != nil {
@@ -69,28 +60,26 @@ func fileIO(filename, tsname, filetype string, sess *sessions.Session) ([]models
 			rejectedLines = append(rejectedLines, line)
 			line++
 			continue
-
 		}
 
 		// validate we don't have an unicode replacement char. in the string
 		// if we do abort: source file isn't proper utf8
-		for _, v := range fRecord {
+		for _, v := range r {
 			if strings.ContainsRune(v, '\uFFFD') {
 				err := errors.New("parsing failed: non utf-8 character in file")
-				return nil, myTS, sess, err
+				return records, "", err
 			}
 		}
 
 		// parse each line into a struct
-		record, err := fileParseRow(fRecord, csvConf)
+		record, err := fileParseRow(r, pp.csvconf)
 		if err != nil {
-			logger.Error.Println(err, fRecord)
+			logger.Error.Println(err, r)
 			continue
 		}
 
 		// add TS to record
-		TSEmbed := models.TSEmbed{Name: myTS.TSName, DisplayName: myTS.TSDisplayName}
-		record.TargetServices = append(record.TargetServices, TSEmbed)
+		record.TargetServices = append(record.TargetServices, myTS)
 
 		// add record to slice
 		records = append(records, record)
@@ -99,151 +88,149 @@ func fileIO(filename, tsname, filetype string, sess *sessions.Session) ([]models
 	}
 
 	// log number of records successfully parsed
-	parsedLog := fmt.Sprintf("successfully parsed %d lines from %s", len(records), filename)
-	logger.Info.Print(parsedLog)
-	sess.AddFlash(parsedLog)
+	report := fmt.Sprintf(
+		`successfully parsed %d lines from %s
+		lines rejected in source file: %v`,
+		len(records), pp.fpath, rejectedLines)
 
-	// log lines rejected
-	if len(rejectedLines) > 0 {
-		if len(records) == 0 {
-			zeroRecordCreated := fmt.Sprintf("couldn't parse a single line: check file %s. Separator should be ;", filename)
-			logger.Error.Println(zeroRecordCreated)
-			sess.AddFlash(zeroRecordCreated)
-			return records, myTS, sess, nil
-		}
-		rejectedLinesLog := fmt.Sprintf("lines rejected in source file: %v", rejectedLines)
-		sess.AddFlash(rejectedLinesLog)
+	// no records parsed
+	if len(records) == 0 {
+		err := errors.New("couldn't parse a single line: check your input file")
+		return records, "", err
+
 	}
 
-	return records, myTS, sess, nil
+	return records, report, nil
 }
 
-func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, error) {
+func fileParseRow(row []string, csvConf map[string]int) (models.Record, error) {
+
 	var record models.Record
 
 	if csvConf == nil { // the csv Configuration is nil, we default to kbart values
-		record.PublicationTitle = fRecord[0]
+
+		record.PublicationTitle = row[0]
 
 		// ISBNs : validate & cleanup, convert isbn 10 <-> isbn13
 		// Identifiers Print ID
-		err := getIsbnIdentifiers(fRecord[1], &record, models.IDTypePrint)
-		if err != nil && fRecord[1] != "" { // doesn't look like an isbn, might be issn, cleanup and add as is
-			idCleaned := strings.Trim(strings.Replace(fRecord[1], "-", "", -1), " ")
+		err := getIsbnIdentifiers(row[1], &record, models.IDTypePrint)
+		if err != nil && row[1] != "" { // doesn't look like an isbn, might be issn, cleanup and add as is
+			idCleaned := strings.Trim(strings.Replace(row[1], "-", "", -1), " ")
 			record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypePrint})
 		}
 		// Identifiers Online ID
-		err = getIsbnIdentifiers(fRecord[2], &record, models.IDTypeOnline)
-		if err != nil && fRecord[2] != "" { // doesn't look like an isbn, might be issn, cleanup and add as is
-			idCleaned := strings.Trim(strings.Replace(fRecord[2], "-", "", -1), " ")
+		err = getIsbnIdentifiers(row[2], &record, models.IDTypeOnline)
+		if err != nil && row[2] != "" { // doesn't look like an isbn, might be issn, cleanup and add as is
+			idCleaned := strings.Trim(strings.Replace(row[2], "-", "", -1), " ")
 			record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypeOnline})
 		}
 
-		record.DateFirstIssueOnline = fRecord[3]
-		record.NumFirstVolOnline = fRecord[4]
-		record.NumFirstIssueOnline = fRecord[5]
-		record.DateLastIssueOnline = fRecord[6]
-		record.NumLastVolOnline = fRecord[7]
-		record.NumLastIssueOnline = fRecord[8]
-		record.TitleURL = fRecord[9]
-		record.FirstAuthor = fRecord[10]
-		record.TitleID = fRecord[11]
-		record.EmbargoInfo = fRecord[12]
-		record.CoverageDepth = fRecord[13]
-		record.Notes = fRecord[14]
-		record.PublisherName = fRecord[15]
-		record.PublicationType = fRecord[16]
-		record.DateMonographPublishedPrint = fRecord[17]
-		record.DateMonographPublishedOnline = fRecord[18]
-		record.MonographVolume = fRecord[19]
-		record.MonographEdition = fRecord[20]
-		record.FirstEditor = fRecord[21]
-		record.ParentPublicationTitleID = fRecord[22]
-		record.PrecedingPublicationTitleID = fRecord[23]
-		record.AccessType = fRecord[24]
+		record.DateFirstIssueOnline = row[3]
+		record.NumFirstVolOnline = row[4]
+		record.NumFirstIssueOnline = row[5]
+		record.DateLastIssueOnline = row[6]
+		record.NumLastVolOnline = row[7]
+		record.NumLastIssueOnline = row[8]
+		record.TitleURL = row[9]
+		record.FirstAuthor = row[10]
+		record.TitleID = row[11]
+		record.EmbargoInfo = row[12]
+		record.CoverageDepth = row[13]
+		record.Notes = row[14]
+		record.PublisherName = row[15]
+		record.PublicationType = row[16]
+		record.DateMonographPublishedPrint = row[17]
+		record.DateMonographPublishedOnline = row[18]
+		record.MonographVolume = row[19]
+		record.MonographEdition = row[20]
+		record.FirstEditor = row[21]
+		record.ParentPublicationTitleID = row[22]
+		record.PrecedingPublicationTitleID = row[23]
+		record.AccessType = row[24]
 	} else { // we do have a csv configuration
 		if i, ok := csvConf["publicationtitle"]; ok {
-			record.PublicationTitle = fRecord[i]
+			record.PublicationTitle = row[i-1]
 		}
 		if i, ok := csvConf["identifierprint"]; ok {
-			err := getIsbnIdentifiers(fRecord[i], &record, models.IDTypePrint)
-			if err != nil && fRecord[i] != "" { // doesn't look like an isbn, might be issn, clean up and add as is
-				idCleaned := strings.Trim(strings.Replace(fRecord[i], "-", "", -1), " ")
+			err := getIsbnIdentifiers(row[i-1], &record, models.IDTypePrint)
+			if err != nil && row[i-1] != "" { // doesn't look like an isbn, might be issn, clean up and add as is
+				idCleaned := strings.Trim(strings.Replace(row[i-1], "-", "", -1), " ")
 				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypePrint})
 			}
 		}
 		if i, ok := csvConf["identifieronline"]; ok {
-			err := getIsbnIdentifiers(fRecord[i], &record, models.IDTypeOnline)
-			if err != nil && fRecord[i] != "" { // doesn't look like an isbn, might be issn, clean up and add as is
-				idCleaned := strings.Trim(strings.Replace(fRecord[i], "-", "", -1), " ")
+			err := getIsbnIdentifiers(row[i-1], &record, models.IDTypeOnline)
+			if err != nil && row[i-1] != "" { // doesn't look like an isbn, might be issn, clean up and add as is
+				idCleaned := strings.Trim(strings.Replace(row[i-1], "-", "", -1), " ")
 				record.Identifiers = append(record.Identifiers, models.Identifier{Identifier: idCleaned, IDType: models.IDTypeOnline})
 			}
 		}
 
 		if i, ok := csvConf["datefirstissueonline"]; ok {
-			record.DateFirstIssueOnline = fRecord[i]
+			record.DateFirstIssueOnline = row[i-1]
 		}
 		if i, ok := csvConf["numfirstvolonline"]; ok {
-			record.NumFirstVolOnline = fRecord[i]
+			record.NumFirstVolOnline = row[i-1]
 		}
 		if i, ok := csvConf["numfirstissueonline"]; ok {
-			record.NumFirstIssueOnline = fRecord[i]
+			record.NumFirstIssueOnline = row[i-1]
 		}
 		if i, ok := csvConf["datelastissueonline"]; ok {
-			record.DateLastIssueOnline = fRecord[i]
+			record.DateLastIssueOnline = row[i-1]
 		}
 		if i, ok := csvConf["numlastvolonline"]; ok {
-			record.NumLastVolOnline = fRecord[i]
+			record.NumLastVolOnline = row[i-1]
 		}
 		if i, ok := csvConf["numlastissueonline"]; ok {
-			record.NumLastIssueOnline = fRecord[i]
+			record.NumLastIssueOnline = row[i-1]
 		}
 		if i, ok := csvConf["titleurl"]; ok {
-			record.TitleURL = fRecord[i]
+			record.TitleURL = row[i-1]
 		}
 		if i, ok := csvConf["firstauthor"]; ok {
-			record.FirstAuthor = fRecord[i]
+			record.FirstAuthor = row[i-1]
 		}
 		if i, ok := csvConf["titleid"]; ok {
-			record.TitleID = fRecord[i]
+			record.TitleID = row[i-1]
 		}
 		if i, ok := csvConf["embargoinfo"]; ok {
-			record.EmbargoInfo = fRecord[i]
+			record.EmbargoInfo = row[i-1]
 		}
 		if i, ok := csvConf["coveragedepth"]; ok {
-			record.CoverageDepth = fRecord[i]
+			record.CoverageDepth = row[i-1]
 		}
 		if i, ok := csvConf["notes"]; ok {
-			record.Notes = fRecord[i]
+			record.Notes = row[i-1]
 		}
 		if i, ok := csvConf["publishername"]; ok {
-			record.PublisherName = fRecord[i]
+			record.PublisherName = row[i-1]
 		}
 		if i, ok := csvConf["publicationtype"]; ok {
-			record.PublicationType = fRecord[i]
+			record.PublicationType = row[i-1]
 		}
 		if i, ok := csvConf["datemonographpublishedprint"]; ok {
-			record.DateMonographPublishedPrint = fRecord[i]
+			record.DateMonographPublishedPrint = row[i-1]
 		}
 		if i, ok := csvConf["datemonographpublishedonline"]; ok {
-			record.DateMonographPublishedOnline = fRecord[i]
+			record.DateMonographPublishedOnline = row[i-1]
 		}
 		if i, ok := csvConf["monographvolume"]; ok {
-			record.MonographVolume = fRecord[i]
+			record.MonographVolume = row[i-1]
 		}
 		if i, ok := csvConf["monographedition"]; ok {
-			record.MonographEdition = fRecord[i]
+			record.MonographEdition = row[i-1]
 		}
 		if i, ok := csvConf["firsteditor"]; ok {
-			record.FirstEditor = fRecord[i]
+			record.FirstEditor = row[i-1]
 		}
 		if i, ok := csvConf["parentpublicationtitleid"]; ok {
-			record.ParentPublicationTitleID = fRecord[i]
+			record.ParentPublicationTitleID = row[i-1]
 		}
 		if i, ok := csvConf["precedingpublicationtitleid"]; ok {
-			record.PrecedingPublicationTitleID = fRecord[i]
+			record.PrecedingPublicationTitleID = row[i-1]
 		}
 		if i, ok := csvConf["accesstype"]; ok {
-			record.AccessType = fRecord[i]
+			record.AccessType = row[i-1]
 		}
 	}
 
@@ -251,8 +238,6 @@ func fileParseRow(fRecord []string, csvConf map[string]int) (models.Record, erro
 		recordNotValid := errors.New("record not valid")
 		return record, recordNotValid
 	}
-
-	record.DateCreated = time.Now()
 
 	return record, nil
 }

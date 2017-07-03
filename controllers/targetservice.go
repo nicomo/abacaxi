@@ -103,11 +103,8 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error.Println(err)
 	}
-	d["TSDisplayName"] = myTS.TSDisplayName
-	d["IsTSActive"] = myTS.TSActive
-
-	// convert the csv configuration into a string to be displayed
-	d["myTSCSVConf"] = csvConf2String(myTS.TSCsvConf)
+	d["TSDisplayName"] = myTS.DisplayName
+	d["IsTSActive"] = myTS.Active
 
 	// any local records records have this TS?
 	count := models.TSCountRecords(tsname)
@@ -325,17 +322,9 @@ func TargetServiceUpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ts.TSDisplayName == "" {
+	if ts.DisplayName == "" {
 		d["ErrTSUpdate"] = "Display name can't be empty for TS " + tsname
 		logger.Info.Println("Display name can't be empty for TS " + tsname)
-		views.RenderTmpl(w, "tsupdate", d)
-		return
-	}
-
-	if !csvConfValidate(ts.TSCsvConf) {
-		csvConfNotValid := "csv configuration not valid for TS " + tsname + " : should have a title and isbn/e-isbn"
-		d["ErrTSUpdate"] = csvConfNotValid
-		logger.Info.Println(csvConfNotValid)
 		views.RenderTmpl(w, "tsupdate", d)
 		return
 	}
@@ -384,13 +373,6 @@ func TargetServiceNewPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !csvConfValidate(ts.TSCsvConf) {
-		csvConfNotValid := "csv configuration not valid : should have a title and isbn/e-isbn"
-		d["tsCreateErr"] = csvConfNotValid
-		views.RenderTmpl(w, "targetservicenewget", d)
-		return
-	}
-
 	err := models.TSCreate(ts)
 	if err != nil {
 		d["tsCreateErr"] = err
@@ -409,6 +391,8 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
 
+	logger.Debug.Printf("tsname in TargetServiceToggleActiveHandler: %s", tsname)
+
 	// retrieve Target Service Struct
 	myTS, err := models.GetTargetService(tsname)
 	if err != nil {
@@ -424,7 +408,7 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	// change "active" bool in those records
 	// and save each to DB
 	for _, v := range records {
-		if myTS.TSActive {
+		if myTS.Active {
 			v.Active = false
 		} else {
 			v.Active = true
@@ -436,10 +420,10 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// change "active" bool in TS struct
-	if myTS.TSActive {
-		myTS.TSActive = false
+	if myTS.Active {
+		myTS.Active = false
 	} else {
-		myTS.TSActive = true
+		myTS.Active = true
 	}
 
 	// save TS to DB
@@ -449,6 +433,6 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// refresh TS page
-	urlStr := "/ts/" + tsname
+	urlStr := "/ts/display/" + tsname
 	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }

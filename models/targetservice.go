@@ -15,30 +15,12 @@ import (
 // i.e. a package with its provider
 // e.g. SPRINGER MATH EBOOKS
 type TargetService struct {
-	ID                     bson.ObjectId `bson:"_id,omitempty"`
-	TSName                 string        `bson:",omitempty" schema:"tsname"`
-	TSDisplayName          string        `bson:",omitempty" schema:"tsdisplayname"`
-	TSDateCreated          time.Time
-	TSDateUpdated          time.Time `bson:",omitempty"`
-	TSPublisherLastHarvest time.Time `bson:",omitempty"`
-	TSSFXLastHarvest       time.Time `bson:",omitempty"`
-	TSSudocLastHarvest     time.Time `bson:",omitempty"`
-	TSActive               bool      `schema:"tsactive"`
-	TSCsvConf              TSCSVConf `bson:",omitempty"`
-}
-
-// TSCSVConf indicates the # of fields + column (index) of the various pieces of info in the csv file
-type TSCSVConf struct {
-	Col1  string `bson:",omitempty" tag_col:"0"`
-	Col2  string `bson:",omitempty" tag_col:"1"`
-	Col3  string `bson:",omitempty" tag_col:"2"`
-	Col4  string `bson:",omitempty" tag_col:"3"`
-	Col5  string `bson:",omitempty" tag_col:"4"`
-	Col6  string `bson:",omitempty" tag_col:"5"`
-	Col7  string `bson:",omitempty" tag_col:"6"`
-	Col8  string `bson:",omitempty" tag_col:"7"`
-	Col9  string `bson:",omitempty" tag_col:"8"`
-	Col10 string `bson:",omitempty" tag_col:"9"`
+	ID          bson.ObjectId `bson:"_id,omitempty"`
+	Name        string        `bson:",omitempty" schema:"tsname"`
+	DisplayName string        `bson:",omitempty" schema:"tsdisplayname"`
+	DateCreated time.Time
+	DateUpdated time.Time `bson:",omitempty"`
+	Active      bool      `schema:"tsactive"`
 }
 
 // GetTargetService retrieves a target service
@@ -50,7 +32,7 @@ func GetTargetService(tsname string) (TargetService, error) {
 	defer mgoSession.Close()
 	coll := getTargetServiceColl()
 
-	qry := bson.M{"tsname": tsname}
+	qry := bson.M{"name": tsname}
 	err := coll.Find(qry).One(&ts)
 	if err != nil {
 		return ts, err
@@ -74,7 +56,6 @@ func GetTargetServicesListing() ([]TargetService, error) {
 	if err != nil {
 		return TSListing, err
 	}
-
 	return TSListing, nil
 
 }
@@ -146,7 +127,7 @@ func TSCountPPNs(tsname string) int {
 func TSCreate(ts TargetService) error {
 
 	// TODO: date created not properly saved
-	ts.TSDateCreated = time.Now()
+	ts.DateCreated = time.Now()
 
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
@@ -157,12 +138,12 @@ func TSCreate(ts TargetService) error {
 	if err != nil {
 		logger.Error.Println(err)
 		if mgo.IsDup(err) { // this Target service already exists in DB
-			ErrTSIsDup := errors.New("Target service " + ts.TSName + " already exists")
+			ErrTSIsDup := errors.New("Target service " + ts.Name + " already exists")
 			return ErrTSIsDup
 		}
 		return err
 	}
-	logger.Info.Printf("Created a new Target Service: %s", ts.TSName)
+	logger.Info.Printf("Created a new Target Service: %s", ts.Name)
 	return nil
 }
 
@@ -176,7 +157,7 @@ func TSDelete(tsname string) error {
 	coll := getTargetServiceColl()
 
 	// delete record
-	qry := bson.M{"tsname": tsname}
+	qry := bson.M{"name": tsname}
 	err := coll.Remove(qry)
 	if err != nil {
 		return err
@@ -188,7 +169,7 @@ func TSDelete(tsname string) error {
 // TSUpdate updates a target service
 func TSUpdate(ts TargetService) error {
 
-	ts.TSDateUpdated = time.Now()
+	ts.DateUpdated = time.Now()
 
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()

@@ -15,15 +15,7 @@
 
 			<ul>
 				<li>{{ .myTSRecordsCount }} local records</li>
-				<li>number of local records with Marc Records : {{ .myTSRecordsUnimarcCount }} / {{ .myTSRecordsCount }}</li>
-				<li>number of local records with Pica Publication Numbers : {{ .myTSPPNsCount }} / {{ .myTSRecordsCount }}</li>
-				<li>{{ if .myTSCSVConf }}
-						CSV Configuration : {{ .myTSCSVConf }} 
-						[<a href="/ts/update/{{ .myTS }}">Update</a>]
-					{{ else }}
-						<a href="/ts/update/{{ .myTS }}">Add CSV Configuration</a>
-					{{ end }}
-				</li>
+				<li>number of local records with Unimarc Records : {{ if .myTSRecordsUnimarcCount }}{{ else }} 0 {{ end }}</li>
 				<li>
 					{{ if .IsTSActive }}
 						<a href="/ts/toggleactive/{{ .myTS }}"><span class="label label-success">Active</span></a>
@@ -33,21 +25,21 @@
 				</li>
 			</ul>
 			<p>
-				<div class="btn-group" role="group" aria-label="unimarc button">
-					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					Unimarc (sudoc) <span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu">
-						<li><a href="/sudoci2p-ts/{{ .myTS }}">Get Sudoc PPNs</a></li>
-						{{ if .myTSPPNsCount }} 
-							<li><a href="/sudocgetrecords/{{ .myTS }}">Get Sudoc Unimarc Records</a></li>
-						{{ end }}
-					</ul>
-				</div>
-				<a class="btn btn-danger" href="/ts/delete/{{ .myTS }}" role="button">Delete</a>
+				
+				
+					<div class="btn-group" role="group" aria-label="unimarc button">
+						<a class="btn btn-danger" href="/ts/delete/{{ .myTS }}" role="button">Delete</a>
+						{{ if gt .myTSRecordsCount 0 }}
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						Unimarc (sudoc) <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li><a href="/sudoci2p-ts/{{ .myTS }}">Get Sudoc PPNs</a></li>
+							{{ if .myTSPPNsCount }} 
+								<li><a href="/sudocgetrecords/{{ .myTS }}">Get Sudoc Unimarc Records</a></li>
+							{{ end }}
+						</ul>
 
-				{{ if gt .myTSRecordsCount 0 }}
-					<div class="btn-group" role="group" aria-label="export button">
 						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						Export <span class="caret"></span>
 						</button>
