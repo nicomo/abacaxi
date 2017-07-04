@@ -13,11 +13,11 @@
 			{{ end }}
 
 			<form class="form-horizontal" action="/ts/update/{{ .myTS.TSName }}" method="post">
-				<input type="hidden" name="tsname" value="{{ .myTS.TSName }}">
+				<input type="hidden" name="name" value="{{ .myTS.TSName }}">
 				<div class="form-group">
-					<label for="tsdisplayname" class="col-sm-2 control-label">Display name: </label>
+					<label for="displayname" class="col-sm-2 control-label">Display name: </label>
 					<div class="col-sm-10">
-						<input type="text" class="form-control" name="tsdisplayname" value="{{ .myTS.DisplayName }}">
+						<input type="text" class="form-control" name="displayname" value="{{ .myTS.DisplayName }}" required>
 					</div>
 				</div>
 				<div class="form-group">

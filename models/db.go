@@ -11,8 +11,8 @@ func getTargetServiceColl() *mgo.Collection {
 }
 
 func getUsersColl() *mgo.Collection {
-	tsUsers := mgoSession.DB(conf.AuthDatabase).C("users")
-	return tsUsers
+	usersColl := mgoSession.DB(conf.AuthDatabase).C("users")
+	return usersColl
 }
 
 func getRecordsColl() *mgo.Collection {

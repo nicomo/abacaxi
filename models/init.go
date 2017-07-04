@@ -51,35 +51,20 @@ func init() {
 		Sparse:     true,
 	}
 
-	ErrTSCollIndex := tsColl.EnsureIndex(tsIndex)
-	if ErrTSCollIndex != nil {
-		panic(ErrTSCollIndex)
-	}
-
-	// create the Users collection, with an index on username
-	usersColl := mgoSession.DB(conf.AuthDatabase).C("users")
-	usersIndex := mgo.Index{
-		Key:        []string{"username"},
-		Unique:     true,
-		DropDups:   true,
-		Background: true,
-		Sparse:     true,
-	}
-
-	ErrUsersCollIndex := usersColl.EnsureIndex(usersIndex)
-	if ErrUsersCollIndex != nil {
-		panic(ErrUsersCollIndex)
+	err = tsColl.EnsureIndex(tsIndex)
+	if err != nil {
+		panic(err)
 	}
 
 	// create admin user if user collection is empty
 	if UsersCount() == 0 {
-		errUserOne := UserCreate("user1", "abacaxi-user1")
-		if errUserOne != nil {
-			logger.Error.Println(errUserOne)
+		err = UserCreate("user1", "abacaxi-user1")
+		if err != nil {
+			logger.Error.Println(err)
 		}
 	}
 
-	// create the records collection with a compound text index
+	// create the records collection with a compound text index for general search
 	// see https://code.tutsplus.com/tutorials/full-text-search-in-mongodb--cms-24835
 	recordsColl := mgoSession.DB(conf.AuthDatabase).C("records")
 	recordIndex := mgo.Index{
@@ -90,11 +75,12 @@ func init() {
 		Sparse:     false,
 	}
 
-	ErrRecordIndex := recordsColl.EnsureIndex(recordIndex)
-	if ErrRecordIndex != nil {
-		logger.Error.Println(ErrRecordIndex)
+	err = recordsColl.EnsureIndex(recordIndex)
+	if err != nil {
+		logger.Error.Println(err)
 	}
 
+	// create an index on records identifiers
 	recordIDIndex := mgo.Index{
 		Key:        []string{"identifiers.identifier"},
 		Unique:     true,
@@ -103,9 +89,21 @@ func init() {
 		Sparse:     false,
 	}
 
-	ErrRecordIDIndex := recordsColl.EnsureIndex(recordIDIndex)
-	if ErrRecordIDIndex != nil {
-		logger.Error.Println(ErrRecordIDIndex)
+	err = recordsColl.EnsureIndex(recordIDIndex)
+	if err != nil {
+		logger.Error.Println(err)
 	}
 
+	// create an ascending index on the field publicationtitle for recordsColl:
+	recordTitleIndex := mgo.Index{
+		Key:        []string{"publicationtitle"},
+		Unique:     false,
+		DropDups:   false,
+		Background: true,
+		Sparse:     false,
+	}
+	err = recordsColl.EnsureIndex(recordTitleIndex)
+	if err != nil {
+		logger.Error.Println(err)
+	}
 }

@@ -16,11 +16,11 @@ import (
 // e.g. SPRINGER MATH EBOOKS
 type TargetService struct {
 	ID          bson.ObjectId `bson:"_id,omitempty"`
-	Name        string        `bson:",omitempty" schema:"tsname"`
-	DisplayName string        `bson:",omitempty" schema:"tsdisplayname"`
+	Name        string        `bson:",omitempty" schema:"name"`
+	DisplayName string        `bson:",omitempty" schema:"displayname"`
 	DateCreated time.Time
 	DateUpdated time.Time `bson:",omitempty"`
-	Active      bool      `schema:"tsactive"`
+	Active      bool      `schema:"active"`
 }
 
 // GetTargetService retrieves a target service
