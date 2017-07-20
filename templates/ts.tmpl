@@ -1,5 +1,26 @@
 {{define "body"}}
 	<body>
+
+
+	<script type="text/javascript">
+		function myWebsocketStart() {
+			var ws = new WebSocket("ws://localhost:8080/routinetest");
+
+			ws.onmessage = function (evt) {
+				var json = JSON.parse(evt.data);
+				var countDone = json.CountDone
+				document.getElementById("countfeedback").innerHTML = 
+					"<p><strong>Working</strong>: parsed " + countDone + " records so far...</p>";
+			};
+
+			ws.onclose = function() {
+				window.location.replace("http://localhost:8080/users");
+			};
+
+		}
+	</script>
+
+
 		<div class="container">
 			<h1>&#127821; Metadata Hub</h1>
 			{{template "nav" .}}
@@ -12,6 +33,10 @@
 					{{ end }}
 				</div>
 			{{ end }}
+
+			<button onclick="javascript:myWebsocketStart()"><span class="glyphicon glyphicon-star" aria-hidden="true"></span></button>
+			<div id="countfeedback"></div>
+
 
 			<ul>
 				<li>{{ .myTSRecordsCount }} local records</li>
@@ -26,31 +51,36 @@
 			</ul>
 			<p>
 				
-				
-					<div class="btn-group" role="group" aria-label="unimarc button">
-						<a class="btn btn-danger" href="/ts/delete/{{ .myTS }}" role="button">Delete</a>
-						{{ if gt .myTSRecordsCount 0 }}
-						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Unimarc (sudoc) <span class="caret"></span>
-						</button>
-						<ul class="dropdown-menu">
+				<div class="btn-group" role="group" aria-label="...">
+					<a class="btn btn-danger" href="/ts/delete/{{ .myTS }}" role="button">Delete</a>
+					{{ if gt .myTSRecordsCount 0 }}
+						<div class="btn-group" role="group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							Unimarc
+							<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
 							<li><a href="/sudoci2p-ts/{{ .myTS }}">Get Sudoc PPNs</a></li>
 							{{ if .myTSPPNsCount }} 
 								<li><a href="/sudocgetrecords/{{ .myTS }}">Get Sudoc Unimarc Records</a></li>
 							{{ end }}
-						</ul>
-
-						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Export <span class="caret"></span>
-						</button>
-						<ul class="dropdown-menu">
-							<li><a href="/ts/export/kbart/{{ .myTS }}">KBart</a></li>
-							{{ if .myTSRecordsUnimarcCount }} 
-								<li><a href="/ts/export/unimarc/{{ .myTS }}">Unimarc Records</a></li>
-							{{ end }}
-						</ul>
-					</div>				
-				{{ end }}
+							</ul>
+						</div>
+						<div class="btn-group" role="group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							Export
+							<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+								<li><a href="/sudoci2p-ts/{{ .myTS }}">Get Sudoc PPNs</a></li>
+								<li><a href="/ts/export/kbart/{{ .myTS }}">KBart</a></li>
+									{{ if .myTSRecordsUnimarcCount }} 
+										<li><a href="/ts/export/unimarc/{{ .myTS }}">Unimarc Records</a></li>
+									{{ end }}
+							</ul>
+						</div>
+					{{ end }}
+				</div>
 			</p>
 
 			{{ if gt .myTSRecordsCount 0 }}

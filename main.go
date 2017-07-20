@@ -26,6 +26,9 @@ func main() {
 	// home page
 	router.Handle("/", http.HandlerFunc(controllers.HomeHandler))
 
+	// TEST REMOVE
+	router.Handle("/routinetest", http.HandlerFunc(controllers.RoutineTestHandler))
+
 	// all inner pages subject to authentication
 	router.Handle("/record/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordHandler)))
 	router.Handle("/record/export/unimarc/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordExportUnimarcHandler)))
