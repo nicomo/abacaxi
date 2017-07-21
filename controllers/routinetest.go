@@ -3,11 +3,9 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/nicomo/abacaxi/session"
 )
 
 type CountFeedback struct {
@@ -24,8 +22,6 @@ var upgrader = websocket.Upgrader{
 
 // RoutineTestHandler handles blabla
 func RoutineTestHandler(w http.ResponseWriter, r *http.Request) {
-	// Get session
-	sess := session.Instance(r)
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -55,24 +51,12 @@ func RoutineTestHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			myCounters.CountDone += 2
 		} else {
-
-			// TODO : close the connection +
-			// pass on counter Report as flash message +
-			// redirect to ts
-
 			fmt.Println("Client unsubscribed")
-
-			reportMssg := "Parsed " +
-				strconv.Itoa(myCounters.CountDone) + "records.\n" +
-				"Discarded " +
-				strconv.Itoa(myCounters.CountDiscard) + "records.\n" +
-				"Created " +
-				strconv.Itoa(myCounters.CountCreate) + "records.\n" +
-				"Updated " +
-				strconv.Itoa(myCounters.CountUpdate)
-
-			sess.AddFlash(reportMssg)
-			sess.Save(r, w)
+			err = ws.WriteJSON(myCounters)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
 			ws.Close()
 			break
 		}

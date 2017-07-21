@@ -8,13 +8,20 @@
 
 			ws.onmessage = function (evt) {
 				var json = JSON.parse(evt.data);
-				var countDone = json.CountDone
+				$( "#countfeedback" ).addClass( "alert alert-info" );
 				document.getElementById("countfeedback").innerHTML = 
-					"<p><strong>Working</strong>: parsed " + countDone + " records so far...</p>";
+					"<p>Parsed " + json.CountDone + " records ...</p>" +
+					"<ul>" +
+						"<li>Discarded: " +json.CountDiscard+ "</li>"+
+						"<li>Created: " +json.CountCreate+ "</li>"+
+						"<li>Updated: " +json.CountUpdate+ "</li>"+
+					"</ul>";
 			};
 
 			ws.onclose = function() {
-				window.location.replace("http://localhost:8080/users");
+				$( "#processcomplete" ).addClass( "alert alert-info" );
+				document.getElementById("processcomplete").innerHTML = "<p>Process completed</p>";
+				setTimeout(function() {window.location.replace("/")} , 2000)
 			};
 
 		}
@@ -36,6 +43,7 @@
 
 			<button onclick="javascript:myWebsocketStart()"><span class="glyphicon glyphicon-star" aria-hidden="true"></span></button>
 			<div id="countfeedback"></div>
+			<div id="processcomplete"></div>
 
 
 			<ul>
