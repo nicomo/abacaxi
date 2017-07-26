@@ -27,7 +27,9 @@ func main() {
 	router.Handle("/", http.HandlerFunc(controllers.HomeHandler))
 
 	// TEST REMOVE
+	router.Handle("/wsform", http.HandlerFunc(controllers.RoutineTestGetHandler)).Methods("GET")
 	router.Handle("/routinetest", http.HandlerFunc(controllers.RoutineTestHandler))
+	router.Handle("/wsform", http.HandlerFunc(controllers.RoutineTestPostHandler)).Methods("POST")
 
 	// all inner pages subject to authentication
 	router.Handle("/record/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordHandler)))

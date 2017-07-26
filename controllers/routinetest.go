@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nicomo/abacaxi/views"
 )
 
 type CountFeedback struct {
@@ -60,5 +61,16 @@ func RoutineTestHandler(w http.ResponseWriter, r *http.Request) {
 			ws.Close()
 			break
 		}
+	}
+}
+
+func RoutineTestGetHandler(w http.ResponseWriter, r *http.Request) {
+	views.RenderTmpl(w, "wsform", nil)
+}
+
+func RoutineTestPostHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	for k, v := range r.Form {
+		fmt.Printf("k: %v / v: %v", k, v)
 	}
 }
