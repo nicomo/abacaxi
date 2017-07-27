@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/views"
 )
 
@@ -21,56 +22,84 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+/*
+##
+##
+POST to Handler #1
+Handler #1 :
+  -- creates a channel
+  -- returns to handler #2 passing the channel through a context
+  -- parses file
+Handler #2 :
+  -- receives the channel through the context
+  -- polls the channel to get the data and display it
+##
+##
+*/
+
 // RoutineTestHandler handles blabla
 func RoutineTestHandler(w http.ResponseWriter, r *http.Request) {
+	logger.Debug.Println("in RoutineTestHandler")
 
-	ws, err := upgrader.Upgrade(w, r, nil)
+	d := make(map[string]interface{})
+
+	// grab channel from context
+	ch, err := fromContextCountFeedback(r.Context())
 	if err != nil {
-		fmt.Println(err)
-		return
+		logger.Error.Println(err)
 	}
-	fmt.Println("Client subscribed")
+	logger.Debug.Println(ch)
+	for elem := range ch {
+		logger.Debug.Println("++++ %v", elem)
+		d["countFeedback"] = elem
+		views.RenderTmpl(w, "wsform2", d)
+	}
+}
 
+func FormGetHandler(w http.ResponseWriter, r *http.Request) {
+	logger.Debug.Println("in FormGetHandler")
+	views.RenderTmpl(w, "wsform", nil)
+}
+
+func FormPostHandler(w http.ResponseWriter, r *http.Request) {
+	logger.Debug.Println("in FormPostHandler")
+
+	r.ParseForm()
+	// create the channel
+	ch := make(chan CountFeedback)
+	defer close(ch)
+	// get a context
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+	// create the counter
 	myCounters := CountFeedback{
 		CountDone:    0,
 		CountDiscard: 0,
 		CountCreate:  0,
 		CountUpdate:  0,
 	}
+	// insert channel in context
+	ctx = newContextCountFeedback(ctx, ch)
 
+	// initial redirect to http, with context
+	go RoutineTestHandler(w, r.WithContext(ctx))
+
+	// do something with the values received from the form
+	/*
+		for k, v := range r.Form {
+			fmt.Printf("k: %v / v: %v", k, v)
+		}
+	*/
+	// count and update the channel
 	for {
+		logger.Debug.Println("in FormPostHandler for loop")
 		time.Sleep(1 * time.Second)
 		if myCounters.CountDone < 10 {
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			err = ws.WriteJSON(myCounters)
-			if err != nil {
-				fmt.Println(err)
-				break
-			}
+			// send mycounters in the channel
 			myCounters.CountDone += 2
+			ch <- myCounters
 		} else {
-			fmt.Println("Client unsubscribed")
-			err = ws.WriteJSON(myCounters)
-			if err != nil {
-				fmt.Println(err)
-				break
-			}
-			ws.Close()
 			break
 		}
-	}
-}
-
-func RoutineTestGetHandler(w http.ResponseWriter, r *http.Request) {
-	views.RenderTmpl(w, "wsform", nil)
-}
-
-func RoutineTestPostHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	for k, v := range r.Form {
-		fmt.Printf("k: %v / v: %v", k, v)
 	}
 }

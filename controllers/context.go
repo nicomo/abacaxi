@@ -3,14 +3,16 @@ package controllers
 import (
 	"context"
 	"errors"
+
+	"github.com/nicomo/abacaxi/logger"
 )
 
 type key int
 
 const (
-	pageKey   key = 1
-	tsnameKey key = 2
-	workerKey key = 3
+	pageKey      key = 1
+	tsnameKey    key = 2
+	cFeedbackKey key = 3
 )
 
 var (
@@ -40,16 +42,18 @@ func newContextTSName(ctx context.Context, tsname string) context.Context {
 	return context.WithValue(ctx, tsnameKey, tsname)
 }
 
-// newContextWorker
-func newContextWorker(ctx context.Context, results chan int) context.Context {
-	return context.WithValue(ctx, workerKey, results)
+// newContextCountFeedback
+func newContextCountFeedback(ctx context.Context, results chan CountFeedback) context.Context {
+	logger.Debug.Println("in newContextCountFeedback")
+	return context.WithValue(ctx, cFeedbackKey, results)
 }
 
-// fromContextWorker
-func fromContextWorker(ctx context.Context) (chan int, error) {
-	results, ok := ctx.Value(workerKey).(chan int)
+// fromContextCountFeedback
+func fromContextCountFeedback(ctx context.Context) (chan CountFeedback, error) {
+	logger.Debug.Println("in fromContextCountFeedback")
+	counter, ok := ctx.Value(cFeedbackKey).(chan CountFeedback)
 	if !ok {
-		return results, errors.New("could not retrieve context")
+		return counter, errors.New("could not retrieve context")
 	}
-	return results, nil
+	return counter, nil
 }

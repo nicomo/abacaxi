@@ -128,7 +128,6 @@ func init() {
 	tmpl["wsform"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
 		"templates/head.tmpl",
-		"templates/ws.tmpl",
 		"templates/ws-form.tmpl",
 	))
 
@@ -136,7 +135,6 @@ func init() {
 	tmpl["wsform2"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
 		"templates/head.tmpl",
-		"templates/ws.tmpl",
 		"templates/ws-form2.tmpl",
 	))
 }
