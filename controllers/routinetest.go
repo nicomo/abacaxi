@@ -1,12 +1,14 @@
 package controllers
 
 import (
-	"context"
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/nicomo/abacaxi/logger"
+	"github.com/nicomo/abacaxi/models"
 	"github.com/nicomo/abacaxi/views"
 )
 
@@ -17,43 +19,19 @@ type CountFeedback struct {
 	CountUpdate  int
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-/*
-##
-##
-POST to Handler #1
-Handler #1 :
-  -- creates a channel
-  -- returns to handler #2 passing the channel through a context
-  -- parses file
-Handler #2 :
-  -- receives the channel through the context
-  -- polls the channel to get the data and display it
-##
-##
-*/
-
 // RoutineTestHandler handles blabla
 func RoutineTestHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug.Println("in RoutineTestHandler")
 
 	d := make(map[string]interface{})
-
-	// grab channel from context
-	ch, err := fromContextCountFeedback(r.Context())
+	d["working"] = "working..."
+	reports, err := models.ReportsGet()
 	if err != nil {
 		logger.Error.Println(err)
 	}
-	logger.Debug.Println(ch)
-	for elem := range ch {
-		logger.Debug.Println("++++ %v", elem)
-		d["countFeedback"] = elem
-		views.RenderTmpl(w, "wsform2", d)
-	}
+	d["reports"] = reports
+	views.RenderTmpl(w, "wsform2", d)
+
 }
 
 func FormGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,12 +43,7 @@ func FormPostHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug.Println("in FormPostHandler")
 
 	r.ParseForm()
-	// create the channel
-	ch := make(chan CountFeedback)
-	defer close(ch)
-	// get a context
-	ctx, cancel = context.WithCancel(context.Background())
-	defer cancel()
+
 	// create the counter
 	myCounters := CountFeedback{
 		CountDone:    0,
@@ -78,28 +51,39 @@ func FormPostHandler(w http.ResponseWriter, r *http.Request) {
 		CountCreate:  0,
 		CountUpdate:  0,
 	}
-	// insert channel in context
-	ctx = newContextCountFeedback(ctx, ch)
 
-	// initial redirect to http, with context
-	go RoutineTestHandler(w, r.WithContext(ctx))
+	go myCounters.testReport()
 
 	// do something with the values received from the form
-	/*
-		for k, v := range r.Form {
-			fmt.Printf("k: %v / v: %v", k, v)
-		}
-	*/
-	// count and update the channel
+	for k, v := range r.Form {
+		fmt.Printf("k: %v / v: %v\n", k, v)
+	}
+
+	http.Redirect(w, r, "routinetest", http.StatusFound)
+
+}
+
+func (myCF *CountFeedback) testReport() {
+	logger.Debug.Println("in testReport")
 	for {
-		logger.Debug.Println("in FormPostHandler for loop")
 		time.Sleep(1 * time.Second)
-		if myCounters.CountDone < 10 {
-			// send mycounters in the channel
-			myCounters.CountDone += 2
-			ch <- myCounters
+		if myCF.CountDone < 10 {
+			logger.Debug.Println(myCF.CountDone)
+			myCF.CountDone += 2
 		} else {
 			break
 		}
 	}
+
+	report := models.Report{
+		ID:          bson.NewObjectId(),
+		DateCreated: time.Now(),
+		ReportType:  models.UploadCsv,
+		Text:        "some lame text for now",
+	}
+
+	if err := report.ReportCreate(); err != nil {
+		logger.Error.Println(err)
+	}
+
 }
