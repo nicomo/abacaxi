@@ -55,7 +55,6 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	// get the Target Service name and the file type
 	tsname := r.PostFormValue("tsname")
 	filetype := r.PostFormValue("filetype")
-	logger.Debug.Printf("++++++++ FILETYPE : %s", filetype)
 
 	// get the optional csv fields
 	csvconf, err := getCSVParams(r)
@@ -96,49 +95,70 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		filetype,
 		csvconf,
 	}
-	logger.Debug.Printf("parseparams: %v", pp)
 
-	var records []models.Record
-	var report string
-	if filetype == "sfxxml" {
-		records, report, err = xmlIO(pp)
+	// we have a file to parse
+	// let's do that in a separate go routine
+	go parseFile(pp)
+
+	// and redirect the user home with a flash message
+	sess.AddFlash("Your upload is currently being treated in the background, result will be in the reports")
+	sess.Save(r, w)
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func parseFile(pp parseparams) {
+	var (
+		records []models.Record
+		report  models.Report
+		err     error
+	)
+
+	if pp.filetype == "sfxxml" {
+		records, err = xmlIO(pp, &report)
 		if err != nil {
 			logger.Error.Println(err)
-			sess.AddFlash(err)
-			sess.Save(r, w)
-			// redirect to upload get page
-			UploadGetHandler(w, r)
+			report.Success = false
+			report.Text = append(report.Text, fmt.Sprintf("Upload process couldn't complete: %v", err))
+			report.ReportCreate()
 			return
 		}
-	} else if filetype == "publishercsv" || filetype == "kbart" {
-		records, report, err = fileIO(pp)
+		report.ReportType = models.UploadSfx
+	} else if pp.filetype == "publishercsv" || pp.filetype == "kbart" {
+		records, err = fileIO(pp, &report)
 		if err != nil {
 			logger.Error.Println(err)
-			sess.AddFlash(err)
-			sess.Save(r, w)
-			// redirect to upload get page
-			UploadGetHandler(w, r)
+			report.Success = false
+			report.Text = append(report.Text, fmt.Sprintf("Upload process couldn't complete: %v", err))
+			report.ReportCreate()
 			return
+		}
+		if pp.filetype == "publishercsv" {
+			report.ReportType = models.UploadCsv
+		}
+		if pp.filetype == "kbart" {
+			report.ReportType = models.UploadKbart
 		}
 	} else {
 		// manage case wrong file extension : message to the user
 		logger.Error.Println("wrong file extension")
-		sess.AddFlash("could not recognize the file extension")
-		sess.Save(r, w)
-		// redirect to upload get page
-		UploadGetHandler(w, r)
+		report.Success = false
+		report.Text = append(report.Text, fmt.Sprintln("wrong file extension"))
+		report.ReportCreate()
 		return
 	}
 
+	// save the records to DB
 	recordsUpdated, recordsInserted := models.RecordsUpsert(records)
 
-	reportCount := fmt.Sprintf("Updated %d records / Inserted %d records",
+	// report
+	report.Text = append(report.Text, fmt.Sprintf("Updated %d records / Inserted %d records",
 		recordsUpdated,
-		recordsInserted)
-	report += reportCount
-	sess.AddFlash(report)
-	sess.Save(r, w)
+		recordsInserted))
+	report.Success = true
 
-	redirectURL := "/ts/display/" + tsname
-	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+	// save the report to DB
+	if err := report.ReportCreate(); err != nil {
+		logger.Error.Printf("couldn't save the report to DB: %v", err)
+	}
+
 }

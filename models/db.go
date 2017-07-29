@@ -19,3 +19,8 @@ func getRecordsColl() *mgo.Collection {
 	recordsColl := mgoSession.DB(conf.AuthDatabase).C("records")
 	return recordsColl
 }
+
+func getReportsColl() *mgo.Collection {
+	reportsColl := mgoSession.DB(conf.AuthDatabase).C("reports")
+	return reportsColl
+}

@@ -29,7 +29,7 @@ type XMLRecord struct {
 }
 
 // xmlIO takes an xml file to clean it, save copy & unmarshall content
-func xmlIO(pp parseparams) ([]models.Record, string, error) {
+func xmlIO(pp parseparams, report *models.Report) ([]models.Record, error) {
 
 	// retrieve target service (i.e. ebook/ejournals package) for this file
 	myTS, err := models.GetTargetService(pp.tsname)
@@ -50,7 +50,6 @@ func xmlIO(pp parseparams) ([]models.Record, string, error) {
 	if err != nil {
 		logger.Error.Println(err)
 		os.Exit(1)
-
 	}
 
 	// unmarshall  records into record structs
@@ -65,7 +64,7 @@ func xmlIO(pp parseparams) ([]models.Record, string, error) {
 	}
 
 	// log number of records successfully parsed
-	report := fmt.Sprintf("successfully parsed %d records\n", len(records))
+	report.Text = append(report.Text, fmt.Sprintf("successfully parsed %d records\n", len(records)))
 
 	/*	// save a server copy of source xml file
 		t := time.Now()
@@ -79,7 +78,7 @@ func xmlIO(pp parseparams) ([]models.Record, string, error) {
 		report = report + fmt.Sprintf("successfully saved cleaned up version of xml file as %s\n", dst)
 		logger.Info.Println(saveCopyMssg)
 	*/
-	return records, report, nil
+	return records, nil
 }
 
 // ReadRecords reads the XML document

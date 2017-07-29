@@ -141,7 +141,6 @@ func GenI2PURL(ri []models.Identifier) (string, error) {
 		}
 		i2purl = i2purl + m[i] + ","
 	}
-	logger.Debug.Println(i2purl)
 	return i2purl, nil
 }
 

@@ -391,8 +391,6 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tsname := vars["targetservice"]
 
-	logger.Debug.Printf("tsname in TargetServiceToggleActiveHandler: %s", tsname)
-
 	// retrieve Target Service Struct
 	myTS, err := models.GetTargetService(tsname)
 	if err != nil {

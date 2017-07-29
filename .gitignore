@@ -9,6 +9,7 @@ _test
 data/
 static/downloads/*.*
 testdata/
+.vscode/*.*
 
 # Architecture specific extensions/prefixes
 *.[568vq]
