@@ -22,6 +22,12 @@ func RecordHandler(w http.ResponseWriter, r *http.Request) {
 		d["IsLoggedIn"] = true
 	}
 
+	// Get flash messages, if any.
+	if flashes := sess.Flashes(); len(flashes) > 0 {
+		d["Flashes"] = flashes
+	}
+	sess.Save(r, w)
+
 	// retrieve the record ID from the request
 	vars := mux.Vars(r)
 	recordID := vars["recordID"]
@@ -59,7 +65,7 @@ func RecordDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 		// TODO: transmit either error or success message to user
 
-		// redirect to home
+		// redirect
 		redirectURL := "/record/" + recordID
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}

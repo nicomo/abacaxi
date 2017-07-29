@@ -3,8 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/nicomo/abacaxi/logger"
-
 	"gopkg.in/mgo.v2/bson"
 )
 

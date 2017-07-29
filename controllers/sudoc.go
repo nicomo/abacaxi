@@ -1,64 +1,146 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
+	"github.com/nicomo/abacaxi/session"
 	"github.com/nicomo/abacaxi/sudoc"
 	"github.com/nicomo/abacaxi/views"
+	"github.com/nicomo/gosudoc"
 )
 
-// SudocI2PHandler manages the consuming of a web service to retrieve a Sudoc ID
-func SudocI2PHandler(w http.ResponseWriter, r *http.Request) {
+// GetSudocRecordHandler takes Identifiers (e.g. ISBN) and asks the Sudoc Web Service for a Unimarc record
+func GetSudocRecordHandler(w http.ResponseWriter, r *http.Request) {
+	// Get session
+	sess := session.Instance(r)
+
 	// retrieve the record ID from the request
 	vars := mux.Vars(r)
 	recordID := vars["recordID"]
 
+	// retrieve the record
 	myRecord, err := models.RecordGetByID(recordID)
 	if err != nil {
 		logger.Error.Println(err)
+		// redirect
+		redirectURL := "/record/" + recordID
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+		return
 	}
 
-	// generate the web service url for this record
-	i2purl, err := sudoc.GenI2PURL(myRecord.Identifiers)
-	if err != nil {
-		logger.Error.Println(err)
-	}
+	// retrieves the identifiers we care about (isbn/issn)
+	var isbn []string
+	var issn []string
+	var PPN string
+	for _, v := range myRecord.Identifiers {
+		// we already have a Unimarc record ID
+		if v.IDType == models.IDTypePPN {
+			//TODO: fetch the unimarc record right away
+			PPN = v.Identifier
+			break
+		}
 
-	// get PPN for i2purl
-	result := sudoc.FetchPPN(i2purl)
-	if result.Err != nil {
-		logger.Error.Println(result.Err)
-	}
-
-	// update live record with PPNs
-	for _, v := range result.PPNs {
-		var exists bool
-		for _, w := range myRecord.Identifiers {
-			if v == w.Identifier {
-				exists = true
+		// we have Print or online identifiers
+		if v.IDType == models.IDTypePrint || v.IDType == models.IDTypeOnline {
+			if len(v.Identifier) == 8 { // looks like an ISSN
+				issn = append(issn, v.Identifier)
 				continue
 			}
-		}
-		if !exists {
-			newPPN := models.Identifier{Identifier: v, IDType: models.IDTypePPN}
-			myRecord.Identifiers = append(myRecord.Identifiers, newPPN)
+			isbn = append(isbn, v.Identifier)
 		}
 	}
 
-	// actually save updated record struct to DB
-	var ErrRecordUpdate error
-	myRecord, ErrRecordUpdate = models.RecordUpdate(myRecord)
-	if ErrRecordUpdate != nil {
-		logger.Error.Println(ErrRecordUpdate)
+	// no PPN yet, let's try and fetch one
+	if PPN == "" {
+		var res map[string][]string
+		// we have an issn
+		if len(issn) > 0 && len(isbn) == 0 {
+			res, err = gosudoc.Issn2ppn(issn)
+			if err != nil {
+				logger.Error.Println(err)
+			}
+		}
+
+		// we have isbns
+		res, err = gosudoc.ID2ppn(isbn, "isbn2ppn")
+		if err != nil {
+
+			// user friendly message
+			msg := fmt.Sprintf("Couldn't find a PPN: %v", err)
+			logger.Error.Println(msg)
+			sess.AddFlash(msg)
+			sess.Save(r, w)
+
+			// redirect & return
+			urlStr := "/record/" + recordID
+			http.Redirect(w, r, urlStr, http.StatusSeeOther)
+			return
+		}
+
+		// insert new PPNs into the record struct
+		for _, v := range res {
+			for _, value := range v {
+				var exists bool
+				for _, w := range myRecord.Identifiers {
+					if value == w.Identifier {
+						exists = true
+						continue
+					}
+				}
+				if !exists {
+					newPPN := models.Identifier{Identifier: value, IDType: models.IDTypePPN}
+					myRecord.Identifiers = append(myRecord.Identifiers, newPPN)
+					PPN = newPPN.Identifier
+				}
+			}
+		}
+
+		// save the update record struct to DB
+		myRecord, err = models.RecordUpdate(myRecord)
+		if err != nil {
+			logger.Error.Printf("couldn't save PPN to record: %v", err)
+		}
 	}
 
-	// redirect to book detail page
-	// TODO: transmit either error or success message to user
+	// we have a PPN -> now get the unimarc record
+	unimarc, err := sudoc.GetRecord("http://www.sudoc.fr/" + PPN + ".abes")
+	if err != nil {
+		// user friendly message
+		msg := fmt.Sprintf("Couldn't find a Unimarc Record: %v", err)
+		logger.Error.Println(msg)
+		sess.AddFlash(msg)
+		sess.Save(r, w)
+
+		// redirect & return
+		urlStr := "/record/" + recordID
+		http.Redirect(w, r, urlStr, http.StatusSeeOther)
+		return
+	}
+
+	// actually save updated ebook struct to DB
+	if unimarc != "" {
+		myRecord.RecordUnimarc = unimarc
+		myRecord, err = models.RecordUpdate(myRecord)
+		if err != nil {
+			logger.Error.Println(err)
+		}
+	}
+
+	// user friendly success message
+	msg := fmt.Sprintf("Unimarc Record has been saved")
+	logger.Debug.Println(msg)
+	sess.AddFlash(msg)
+	sess.Save(r, w)
+
+	// redirect & return
 	urlStr := "/record/" + recordID
 	http.Redirect(w, r, urlStr, http.StatusSeeOther)
+	return
+
 }
 
 // SudocI2PTSHandler retrieves PPNs for all records linked to a Target Service that don't currently have one
@@ -102,53 +184,6 @@ func SudocI2PTSHandler(w http.ResponseWriter, r *http.Request) {
 	d["TSListing"] = TSListing
 
 	views.RenderTmpl(w, "sudoci2p-report", d)
-}
-
-// GetRecordHandler manages http request to use sudoc web service to retrieve marc record for 1 given ebook
-func GetRecordHandler(w http.ResponseWriter, r *http.Request) {
-
-	// retrieve the record ID from the request
-	vars := mux.Vars(r)
-	recordID := vars["recordID"]
-
-	myRecord, err := models.RecordGetByID(recordID)
-	if err != nil {
-		logger.Error.Println(err)
-	}
-
-	// ranging over the PPNs in a given local record
-	// we fetch the sudoc marc record, and stop as soon as we get one
-	for _, v := range myRecord.Identifiers {
-		if v.IDType != models.IDTypePPN {
-			continue
-		}
-		record, err := sudoc.GetRecord("http://www.sudoc.fr/" + v.Identifier + ".abes")
-		if err != nil {
-			logger.Error.Println(err)
-			continue
-		}
-
-		if record != "" {
-
-			myRecord.RecordUnimarc = record
-
-			// actually save updated ebook struct to DB
-			var ErrRecordUpdate error
-			myRecord, ErrRecordUpdate = models.RecordUpdate(myRecord)
-			if ErrRecordUpdate != nil {
-				logger.Error.Println(ErrRecordUpdate)
-			}
-
-			if len(myRecord.RecordUnimarc) > 0 {
-				break
-			}
-		}
-	}
-
-	// redirect to book detail page
-	// TODO: transmit either error or success message to user
-	urlStr := "/record/" + recordID
-	http.Redirect(w, r, urlStr, http.StatusSeeOther)
 }
 
 // GetRecordsTSHandler retrieves Unimarc Records from Sudoc for all local records using a given target service

@@ -6,11 +6,17 @@
 
 			{{ template "nav" . }}
 
+			{{ if .Flashes }}
+				{{ range .Flashes}}
+					<div class="alert alert-info" role="alert">{{ . }}</div>
+				{{ end }}
+			{{ end }}
+
 			<h2>Record #{{ .Record.ID.Hex }}</h2>
 
 			<p>
 				Created: {{ .formattedDateCreated }}
-				{{ if .formattedDateUpdated }} / Updated from source: {{ .formattedDateUpdated }} {{ end }}
+				{{ if .formattedDateUpdated }} / Updated: {{ .formattedDateUpdated }} {{ end }}
 			</p>
 			<p>
 				{{ if .Record.Active }}
@@ -27,15 +33,10 @@
 			<p>
 				<div class="btn-group" role="group" aria-label="unimarc button">
 					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					Unimarc (sudoc) <span class="caret"></span>
+					Marc <span class="caret"></span>
 					</button>
 					<ul class="dropdown-menu">
-						<li><a href="/sudoci2p/{{ .Record.ID.Hex }}">Get Sudoc PPNs</a></li>
-						{{ range .Record.Identifiers }} 
-							{{ if eq .IDType 2 }} <!-- PPN -->
-								<li><a href="/sudocgetrecord/{{ $.Record.ID.Hex }}">Get Sudoc Unimarc</a></li>
-							{{ end }}
-						{{ end }}
+						<li><a href="/sudocgetrecord/{{ .Record.ID.Hex }}">Get Sudoc Unimarc</a></li>
 					</ul>
 				</div>
 				<div class="btn-group" role="group" aria-label="export button">
