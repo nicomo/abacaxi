@@ -1,0 +1,41 @@
+{{define "body"}}
+	<body>
+		<div class="container">
+			<h1>&#127821; Metadata Hub</h1>
+			{{ template "nav" . }}
+			<h2>Reports</h2>
+			{{ if .Flashes }}
+				{{ range .Flashes}}
+					<div class="alert alert-info" role="alert">{{ . }}</div>
+				{{ end }}
+			{{ end }}
+            <div class="panel panel-default">
+				<table class="table table-striped">
+					<tr>
+						<th>Status</th>
+						<th>Date created</th>
+						<th>Operation</th>
+						<th>Report</th>
+					</tr>
+					{{ range .reports }}
+					<tr {{ if .Success }}class="success" {{ else }} class="danger" {{ end }}>
+						<td>{{ if .Success }}
+								<span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+							{{ else }} 
+								<span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+							{{ end }}</td>
+						<td>{{ .DateCreated }}</td>
+						<td>
+							{{ if eq .ReportType 0 }}Upload - csv{{ end }}
+							{{ if eq .ReportType 1 }}Upload - kbart{{ end }}
+							{{ if eq .ReportType 2 }}Upload - sfx xml{{ end }}
+							{{ if eq .ReportType 3 }}Sudoc Unimarc{{ end }}
+						</td>
+						<td>{{ range .Text }}{{.}}<br />{{ end }}</td>
+					</tr>
+					{{ end }}
+				</table>
+			</div>
+		</div>
+	</body>
+{{end}}

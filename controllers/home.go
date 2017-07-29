@@ -20,6 +20,12 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		d["IsLoggedIn"] = true
 	}
 
+	// get flash messages if any
+	if flashes := sess.Flashes(); len(flashes) > 0 {
+		d["Flashes"] = flashes
+	}
+	sess.Save(r, w)
+
 	// various stats about the data in the DB
 	recordsCount := models.RecordsCount()
 	d["recordsCount"] = recordsCount

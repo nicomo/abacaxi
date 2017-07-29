@@ -16,20 +16,20 @@ const (
 	kbartNumFields = 25
 )
 
-func fileIO(pp parseparams) ([]models.Record, string, error) {
+func fileIO(pp parseparams, report *models.Report) ([]models.Record, error) {
 	// slice will hold successfully parsed records
 	var records []models.Record
 
 	// retrieve target service (e.g. ebook package) for this file
 	myTS, err := models.GetTargetService(pp.tsname)
 	if err != nil {
-		return records, "", err
+		return records, err
 	}
 
 	// open file
 	f, err := os.Open(pp.fpath)
 	if err != nil {
-		return nil, "", errors.New("cannot open the source file")
+		return nil, errors.New("cannot open the source file")
 	}
 	defer f.Close()
 
@@ -41,7 +41,7 @@ func fileIO(pp parseparams) ([]models.Record, string, error) {
 	} else {
 		reader.FieldsPerRecord = kbartNumFields // kbart is a const: always 25 fields
 	}
-	reader.Comma = ';'
+	reader.Comma = ';' //TODO: detect separator, tab or comma, rather than force comma
 
 	// counters to keep track of records parsed, for logging
 	line := 1
@@ -67,7 +67,7 @@ func fileIO(pp parseparams) ([]models.Record, string, error) {
 		for _, v := range r {
 			if strings.ContainsRune(v, '\uFFFD') {
 				err := errors.New("parsing failed: non utf-8 character in file")
-				return records, "", err
+				return records, err
 			}
 		}
 
@@ -88,19 +88,22 @@ func fileIO(pp parseparams) ([]models.Record, string, error) {
 	}
 
 	// log number of records successfully parsed
-	report := fmt.Sprintf(
-		`successfully parsed %d lines from %s
-		lines rejected in source file: %v`,
-		len(records), pp.fpath, rejectedLines)
+	report.Text = append(report.Text, fmt.Sprintf("successfully parsed %d lines from %s",
+		len(records), pp.fpath))
+
+	// log the lines we rejected, if any
+	if len(rejectedLines) > 0 {
+		report.Text = append(report.Text, fmt.Sprintf("lines rejected in source file: %v", rejectedLines))
+	}
 
 	// no records parsed
 	if len(records) == 0 {
 		err := errors.New("couldn't parse a single line: check your input file")
-		return records, "", err
+		return records, err
 
 	}
 
-	return records, report, nil
+	return records, nil
 }
 
 func fileParseRow(row []string, csvConf map[string]int) (models.Record, error) {

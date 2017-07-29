@@ -19,17 +19,12 @@ func main() {
 	// create a session store
 	session.StoreCreate(conf.SessionStoreKey)
 
-	// create a router & all toures
+	// create a router & all routes
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
 	// home page
 	router.Handle("/", http.HandlerFunc(controllers.HomeHandler))
-
-	// TEST REMOVE
-	router.Handle("/wsform", http.HandlerFunc(controllers.FormGetHandler)).Methods("GET")
-	router.Handle("/routinetest", http.HandlerFunc(controllers.RoutineTestHandler))
-	router.Handle("/wsform", http.HandlerFunc(controllers.FormPostHandler)).Methods("POST")
 
 	// all inner pages subject to authentication
 	router.Handle("/record/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordHandler)))
@@ -37,6 +32,7 @@ func main() {
 	router.Handle("/record/delete/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordDeleteHandler)))
 	router.Handle("/record/toggleacquired/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordToggleAcquiredHandler)))
 	router.Handle("/record/toggleactive/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.RecordToggleActiveHandler)))
+	router.Handle("/reports", middleware.DisallowAnon(http.HandlerFunc(controllers.ReportsHandler)))
 	router.Handle("/ts/display/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceHandler)))
 	router.Handle("/ts/display/{targetservice}/{page:[0-9]+}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServicePageHandler)))
 	router.Handle("/ts/delete/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceDeleteHandler)))

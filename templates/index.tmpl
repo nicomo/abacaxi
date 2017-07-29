@@ -3,6 +3,11 @@
 		<div class="container">
 			<h1>&#127821; Metadata Hub</h1>
 			{{ template "nav" . }}
+			{{ if .Flashes }}
+				{{ range .Flashes}}
+					<div class="alert alert-info" role="alert">{{ . }}</div>
+				{{ end }}
+			{{ end }}
 			{{ if .TSCount }}
 				<h2>Some info about the data currently stored</h2>
 				<ul>
