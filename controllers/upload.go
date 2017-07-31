@@ -58,7 +58,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// get the optional csv fields
 	csvconf, err := getCSVParams(r)
-	if err != nil {
+	if filetype == "publishercsv" && err != nil {
 		logger.Error.Printf("couldn't get csv params: %v", err)
 	}
 
