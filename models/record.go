@@ -105,6 +105,16 @@ func RecordGetByID(ID string) (Record, error) {
 	return record, nil
 }
 
+func (record Record) GetPPN() []string {
+	PPN := []string{}
+	for _, v := range record.Identifiers {
+		if v.IDType == IDTypePPN {
+			PPN = append(PPN, v.Identifier)
+		}
+	}
+	return PPN
+}
+
 // RecordUpdate saves an updated record struct to DB
 // FIXME: should be a method, not a function
 func RecordUpdate(record Record) (Record, error) {

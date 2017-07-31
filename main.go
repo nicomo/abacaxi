@@ -45,7 +45,7 @@ func main() {
 	router.Handle("/ts/new", middleware.DisallowAnon(http.HandlerFunc(controllers.TargetServiceNewPostHandler))).Methods("POST")
 	router.Handle("/search", middleware.DisallowAnon(http.HandlerFunc(controllers.SearchHandler)))
 	router.Handle("/sudocgetrecord/{recordID}", middleware.DisallowAnon(http.HandlerFunc(controllers.GetSudocRecordHandler)))
-	router.Handle("/sudocgetrecords/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.GetRecordsTSHandler)))
+	router.Handle("/sudocgetrecords/{targetservice}", middleware.DisallowAnon(http.HandlerFunc(controllers.GetSudocRecordsTSHandler)))
 	router.Handle("/upload", middleware.DisallowAnon(http.HandlerFunc(controllers.UploadGetHandler))).Methods("GET")
 	router.Handle("/upload", middleware.DisallowAnon(http.HandlerFunc(controllers.UploadPostHandler))).Methods("POST")
 	router.Handle("/users", middleware.DisallowAnon(http.HandlerFunc(controllers.UsersHandler)))

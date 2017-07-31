@@ -56,22 +56,6 @@ func init() {
 		"templates/tslisting.tmpl",
 	))
 
-	// report page after batch sudoc isbn2ppn web service
-	tmpl["sudoci2p-report"] = template.Must(template.ParseFiles("templates/base.tmpl",
-		"templates/head.tmpl",
-		"templates/nav.tmpl",
-		"templates/tslisting.tmpl",
-		"templates/sudoci2p-report.tmpl",
-	))
-
-	// report page after batch sudoc isbn2ppn web service
-	tmpl["sudocgetrecords-report"] = template.Must(template.ParseFiles("templates/base.tmpl",
-		"templates/head.tmpl",
-		"templates/nav.tmpl",
-		"templates/tslisting.tmpl",
-		"templates/sudocgetrecords-report.tmpl",
-	))
-
 	// targetservice page
 	tmpl["targetservice"] = template.Must(template.ParseFiles(
 		"templates/base.tmpl",
