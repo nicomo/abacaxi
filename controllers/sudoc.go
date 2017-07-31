@@ -54,8 +54,8 @@ func GetSudocRecordHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetSudocRecordsTSHandler retrieves Unimarc Records from Sudoc for all local records using a given target service
-func GetSudocRecordsTSHandler(w http.ResponseWriter, r *http.Request) {
+// GetSudocRecordsHandler retrieves Unimarc Records from Sudoc for all local records using a given target service
+func GetSudocRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get session
 	sess := session.Instance(r)
 
@@ -68,7 +68,7 @@ func GetSudocRecordsTSHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error.Println(err)
 	}
 
-	// we have records, thus can proceed
+	// we have records, and can proceed
 	// - redirect user to home with a flash message
 	// - continue our work in a separate go routine
 	sess.AddFlash("Request is running in the background, result will be in the reports")

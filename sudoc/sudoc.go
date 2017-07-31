@@ -135,8 +135,9 @@ func CrawlRecords(in <-chan models.Record) <-chan int {
 	go func() {
 		for record := range in {
 			if err := GetSudocRecord(record); err != nil {
-				logger.Error.Printf("failed to get a Sudoc Unimarc record: %v", err)
+				logger.Error.Printf("failed to get Sudoc Unimarc for record %v: %v", record.ID, err)
 				out <- 0
+				continue
 			}
 			// everything OK, notify result channel
 			out <- 1
@@ -178,6 +179,9 @@ func MergeResults(cs ...<-chan int) <-chan int {
 	return out
 }
 
+// GetSudocRecord tries to retrieve a Unimarc record from Sudoc, in 2 passes :
+// get their ID from our IDs
+// get the actual record from their ID
 func GetSudocRecord(record models.Record) error {
 
 	// Do we already have a Unimarc record ID?
@@ -244,6 +248,7 @@ func GetSudocRecord(record models.Record) error {
 	return nil
 }
 
+// GetSudocRecords tries to get batches of unimarc record from Sudoc web services
 func GetSudocRecords(records []models.Record) {
 	// set up the pipeline
 	in := GenChannel(records)
