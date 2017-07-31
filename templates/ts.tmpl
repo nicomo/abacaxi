@@ -1,33 +1,5 @@
 {{define "body"}}
 	<body>
-
-
-	<script type="text/javascript">
-		function myWebsocketStart() {
-			var ws = new WebSocket("ws://localhost:8080/routinetest");
-
-			ws.onmessage = function (evt) {
-				var json = JSON.parse(evt.data);
-				$( "#countfeedback" ).addClass( "alert alert-info" );
-				document.getElementById("countfeedback").innerHTML = 
-					"<p>Parsed " + json.CountDone + " records ...</p>" +
-					"<ul>" +
-						"<li>Discarded: " +json.CountDiscard+ "</li>"+
-						"<li>Created: " +json.CountCreate+ "</li>"+
-						"<li>Updated: " +json.CountUpdate+ "</li>"+
-					"</ul>";
-			};
-
-			ws.onclose = function() {
-				$( "#processcomplete" ).addClass( "alert alert-info" );
-				document.getElementById("processcomplete").innerHTML = "<p>Process completed</p>";
-				setTimeout(function() {window.location.replace("/")} , 2000)
-			};
-
-		}
-	</script>
-
-
 		<div class="container">
 			<h1>&#127821; Metadata Hub</h1>
 			{{template "nav" .}}
@@ -41,14 +13,11 @@
 				</div>
 			{{ end }}
 
-			<button onclick="javascript:myWebsocketStart()"><span class="glyphicon glyphicon-star" aria-hidden="true"></span></button>
-			<div id="countfeedback"></div>
-			<div id="processcomplete"></div>
-
-
 			<ul>
 				<li>{{ .myTSRecordsCount }} local records</li>
-				<li>number of local records with Unimarc Records : {{ if .myTSRecordsUnimarcCount }}{{ else }} 0 {{ end }}</li>
+				{{ if .myTSRecordsUnimarcCount }}
+					<li>{{ .myTSRecordsUnimarcCount }} unimarc Records</li>
+				{{ end }}
 				<li>
 					{{ if .IsTSActive }}
 						<a href="/ts/toggleactive/{{ .myTS }}"><span class="label label-success">Active</span></a>
@@ -64,14 +33,11 @@
 					{{ if gt .myTSRecordsCount 0 }}
 						<div class="btn-group" role="group">
 							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							Unimarc
+							Marc
 							<span class="caret"></span>
 							</button>
 							<ul class="dropdown-menu">
-							<li><a href="/sudoci2p-ts/{{ .myTS }}">Get Sudoc PPNs</a></li>
-							{{ if .myTSPPNsCount }} 
-								<li><a href="/sudocgetrecords/{{ .myTS }}">Get Sudoc Unimarc Records</a></li>
-							{{ end }}
+								<li><a href="/sudocgetrecords/{{ .myTS }}">Get Sudoc Unimarc</a></li>
 							</ul>
 						</div>
 						<div class="btn-group" role="group">
@@ -80,11 +46,10 @@
 							<span class="caret"></span>
 							</button>
 							<ul class="dropdown-menu">
-								<li><a href="/sudoci2p-ts/{{ .myTS }}">Get Sudoc PPNs</a></li>
 								<li><a href="/ts/export/kbart/{{ .myTS }}">KBart</a></li>
-									{{ if .myTSRecordsUnimarcCount }} 
-										<li><a href="/ts/export/unimarc/{{ .myTS }}">Unimarc Records</a></li>
-									{{ end }}
+								{{ if .myTSRecordsUnimarcCount }} 
+									<li><a href="/ts/export/unimarc/{{ .myTS }}">Unimarc Records</a></li>
+								{{ end }}
 							</ul>
 						</div>
 					{{ end }}

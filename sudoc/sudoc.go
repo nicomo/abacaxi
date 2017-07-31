@@ -2,7 +2,6 @@
 package sudoc
 
 import (
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,56 +9,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nicomo/gosudoc"
+
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
 )
 
-// PPNData is used to parse xml response
-type PPNData struct {
-	Err  string   `xml:"error"`
-	PPNs []string `xml:"query>result>ppn"`
-}
-
-// PPNDataResult is the type returned
-type PPNDataResult struct {
-	Err  error
-	PPNs []string
-}
-
-// FetchPPN retrieves ebook ppns from the sudoc web service
-func FetchPPN(isbn2ppnURL string) PPNDataResult {
-	resp, err := http.Get(isbn2ppnURL)
-	if err != nil {
-		logger.Error.Printf("fetch: reading %s %v\n", isbn2ppnURL, err)
-		panic(err)
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		logger.Error.Printf("fetch: reading %s: %v\n", isbn2ppnURL, err)
-		panic(err)
-	}
-
-	var data PPNData
-	var result PPNDataResult
-
-	if err := xml.Unmarshal(b, &data); err != nil {
-		logger.Error.Println(err)
-	}
-
-	if data.Err != "" {
-		result.Err = errors.New(data.Err)
-		return result
-	}
-
-	result.PPNs = data.PPNs
-
-	return result
-}
-
-// GetRecord returns a marc record for a given PPN (i.e. sudoc ID for the record)
-func GetRecord(recordURL string) (string, error) {
+// FetchRecord returns a marc record for a given PPN (i.e. sudoc ID for the record)
+func FetchRecord(recordURL string) (string, error) {
 
 	var result string
 
@@ -83,104 +40,77 @@ func GetRecord(recordURL string) (string, error) {
 func GenChannel(records []models.Record) <-chan models.Record {
 	out := make(chan models.Record)
 	go func() {
-		for _, ebk := range records {
-			out <- ebk
+		for _, r := range records {
+			out <- r
 		}
 		close(out)
 	}()
 	return out
 }
 
-// GenI2PURL generates an url to be consumed by the sudoc web services
-// we use both ths ISBN and ISSN web services and try to get back a sudoc ID
-//FIXME: add error management
-func GenI2PURL(ri []models.Identifier) (string, error) {
-
-	var i2purl string
-	isbn2purl := "http://www.sudoc.fr/services/isbn2ppn/"
-	issn2purl := "http://www.sudoc.fr/services/issn2ppn/"
-	m := make(map[int]string)
-	var se, s []string
-
-	// 2 slices : one for electronic identifiers, one for others
+// GenI2Input generates the input to be consumed by the sudoc web services
+// we use both the ISBNs and ISSNs
+func GenI2Input(ri []models.Identifier) []string {
+	var s []string
 	for _, v := range ri {
-		if v.IDType == models.IDTypeOnline {
-			se = append(se, v.Identifier)
-			continue
-		}
-		if v.IDType == models.IDTypePrint {
+		if v.IDType == models.IDTypeOnline || v.IDType == models.IDTypePrint {
 			s = append(s, v.Identifier)
 			continue
 		}
 	}
-
-	// we put the online identifiers in the map first
-	for i := 0; i < len(se); i++ {
-		m[i] = se[i]
-	}
-
-	// then the others
-	for i := 0; i < len(s); i++ {
-		m[len(se)+i] = s[i]
-	}
-
-	// we generate a single url string from the map
-	if len(m) == 0 {
-		return "", fmt.Errorf("no usable identifier available, can't generate URL")
-	}
-	if len(m[0]) < 10 { // probably an ISSN
-		i2purl = issn2purl
-	} else {
-		i2purl = isbn2purl
-	}
-
-	for i := 0; i < len(m); i++ {
-		if i == len(m)-1 {
-			i2purl += m[i]
-			continue
-		}
-		i2purl = i2purl + m[i] + ","
-	}
-	return i2purl, nil
+	return s
 }
 
-// CrawlPPN takes a channel with a Record, passes it on to FetchPPN, retrieves the result
+// CrawlPPN takes a channel with a Record, passes it on to gosudoc package, retrieves the result
 func CrawlPPN(in <-chan models.Record) <-chan int {
 	out := make(chan int)
 	go func() {
 		for record := range in {
 			// generate the url for the web service
-			i2purl, err := GenI2PURL(record.Identifiers)
-			if err != nil {
-				logger.Error.Println(err)
-				continue
-			}
-
-			// get PPN for i2purl
-			result := FetchPPN(i2purl)
-			if result.Err != nil {
-				logger.Error.Println(result.Err)
+			i2input := GenI2Input(record.Identifiers)
+			if len(i2input) == 0 {
+				logger.Info.Printf("No usable ID in record: %v", record.ID)
 				out <- 0
 				continue
 			}
 
-			// update live record with PPNs
-			for _, v := range result.PPNs {
-				var exists bool
-				for _, w := range record.Identifiers {
-					if v == w.Identifier {
-						exists = true
-						continue
-					}
+			// get PPN for input
+			var res map[string][]string
+			var err error
+			if len(i2input[0]) == 8 {
+				res, err = gosudoc.Issn2ppn(i2input)
+				if err != nil {
+					logger.Error.Printf("couldn't get PPN: %v", err)
+					out <- 0
+					continue
 				}
-				if !exists {
-					newPPN := models.Identifier{Identifier: v, IDType: models.IDTypePPN}
-					record.Identifiers = append(record.Identifiers, newPPN)
+			} else {
+				res, err = gosudoc.ID2ppn(i2input, "isbn2ppn")
+				if err != nil {
+					logger.Error.Printf("couldn't get PPN: %v", err)
+					out <- 0
+					continue
+				}
+			}
+
+			// update live record with PPNs
+			for _, v := range res {
+				for _, ppn := range v {
+					var exists bool
+					for _, w := range record.Identifiers {
+						if ppn == w.Identifier {
+							exists = true
+							continue
+						}
+					}
+					if !exists {
+						newPPN := models.Identifier{Identifier: ppn, IDType: models.IDTypePPN}
+						record.Identifiers = append(record.Identifiers, newPPN)
+					}
 				}
 			}
 
 			// update record in DB
-			// NOTE: would be better to get back to controller and controller calls models.EbookUpdate
 			_, err = models.RecordUpdate(record)
 			if err != nil {
 				logger.Error.Println(err)
@@ -200,42 +130,19 @@ func CrawlPPN(in <-chan models.Record) <-chan int {
 
 // CrawlRecords takes a channel with a record, passes it on to FetchRecord, retrieves the result
 func CrawlRecords(in <-chan models.Record) <-chan int {
+
 	out := make(chan int)
 	go func() {
 		for record := range in {
-			var rURL string
-			for i := 0; i < len(record.Identifiers); i++ {
-				// generate the URL for the web service
-				if record.Identifiers[i].IDType == models.IDTypePPN {
-					rURL = "http://www.sudoc.fr/" + record.Identifiers[i].Identifier + ".abes"
-
-					// get record for this PPN
-					result, err := GetRecord(rURL)
-					if err != nil {
-						logger.Error.Println(err)
-						continue
-					}
-
-					// add record to ebook struct
-					record.RecordUnimarc = result
-					break
-				}
-			}
-
-			// update record in DB
-			_, err := models.RecordUpdate(record)
-			if err != nil {
-				logger.Error.Println(err)
+			if err := GetSudocRecord(record); err != nil {
+				logger.Error.Printf("failed to get Sudoc Unimarc for record %v: %v", record.ID, err)
 				out <- 0
 				continue
 			}
-
 			// everything OK, notify result channel
 			out <- 1
-
 			// as a curtesy to http://www.abes.fr
 			time.Sleep(time.Millisecond * 250)
-
 		}
 		close(out)
 	}()
@@ -270,4 +177,108 @@ func MergeResults(cs ...<-chan int) <-chan int {
 	}()
 
 	return out
+}
+
+// GetSudocRecord tries to retrieve a Unimarc record from Sudoc, in 2 passes :
+// get their ID from our IDs
+// get the actual record from their ID
+func GetSudocRecord(record models.Record) error {
+
+	// Do we already have a Unimarc record ID?
+	PPN := record.GetPPN()
+
+	var res map[string][]string // used to store PPN given back by sudoc web service
+	var unimarc string          // used to store marc record given back by sudoc web service
+	var err error
+	if len(PPN) == 0 { // we don't have a PPN yet, let's try to get one
+
+		// take the known identifiers
+		input := GenI2Input(record.Identifiers)
+		if len(input) == 0 {
+			// nothing to work with, can't go any further
+			err = errors.New("no usable ID in record")
+			return err
+		}
+
+		// first ID look like an ISSN, let's try that
+		if len(input[0]) == 8 {
+			res, err = gosudoc.Issn2ppn(input)
+			if err != nil {
+				return err
+			}
+		} else { // we have isbns
+			res, err = gosudoc.ID2ppn(input, "isbn2ppn")
+			if err != nil {
+				return err
+			}
+		}
+
+		// now we have PPNs, let's insert them into the live record struct
+		for _, v := range res {
+			for _, value := range v {
+				var exists bool
+				for _, w := range record.Identifiers {
+					if value == w.Identifier {
+						exists = true
+						continue
+					}
+				}
+				if !exists {
+					newPPN := models.Identifier{Identifier: value, IDType: models.IDTypePPN}
+					record.Identifiers = append(record.Identifiers, newPPN)
+					PPN = append(PPN, newPPN.Identifier)
+				}
+			}
+		}
+	}
+
+	// we have a PPN -> now get the unimarc record
+	unimarc, err = FetchRecord("http://www.sudoc.fr/" + PPN[0] + ".abes")
+	if err != nil {
+		return err
+	}
+
+	// actually save updated ebook struct to DB
+	record.RecordUnimarc = unimarc
+	record, err = models.RecordUpdate(record)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetSudocRecords tries to get batches of unimarc record from Sudoc web services
+func GetSudocRecords(records []models.Record) {
+	// set up the pipeline
+	in := GenChannel(records)
+
+	// fan out to 2 workers
+	c1 := CrawlRecords(in)
+	c2 := CrawlRecords(in)
+
+	// fan in results
+	recordsCounter := 0
+	for n := range MergeResults(c1, c2) {
+		recordsCounter += n
+	}
+
+	// let's do a little reporting to the user
+	report := models.Report{
+		ReportType: models.SudocWs,
+	}
+	msg := fmt.Sprintf("Number of local records sent : %d - number of unimarc records received  : %d", len(records), recordsCounter)
+	report.Text = append(report.Text, msg)
+	if recordsCounter == 0 {
+		report.Success = false
+		report.Text = append(report.Text, "Check the server logs for details.")
+		if err := report.ReportCreate(); err != nil {
+			logger.Error.Printf("couldn't create report: %v", err)
+		}
+	}
+
+	report.Success = true
+	if err := report.ReportCreate(); err != nil {
+		logger.Error.Printf("couldn't create report: %v", err)
+	}
 }

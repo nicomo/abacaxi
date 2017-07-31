@@ -105,7 +105,18 @@ func RecordGetByID(ID string) (Record, error) {
 	return record, nil
 }
 
+func (record Record) GetPPN() []string {
+	PPN := []string{}
+	for _, v := range record.Identifiers {
+		if v.IDType == IDTypePPN {
+			PPN = append(PPN, v.Identifier)
+		}
+	}
+	return PPN
+}
+
 // RecordUpdate saves an updated record struct to DB
+// FIXME: should be a method, not a function
 func RecordUpdate(record Record) (Record, error) {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
@@ -128,6 +139,7 @@ func RecordUpdate(record Record) (Record, error) {
 }
 
 // RecordUpsert inserts or updates a record in DB
+// FIXME: should be a method, not a function
 func RecordUpsert(record Record) (int, int, error) {
 
 	var updated, upserted int
@@ -164,6 +176,7 @@ func RecordUpsert(record Record) (int, int, error) {
 	return updated, upserted, nil
 }
 
+// FIXME: should be a method, not a function
 func recordToKbart(record Record) []string {
 	var printID, onlineID string
 

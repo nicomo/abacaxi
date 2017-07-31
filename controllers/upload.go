@@ -101,7 +101,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	go parseFile(pp)
 
 	// and redirect the user home with a flash message
-	sess.AddFlash("Your upload is currently being treated in the background, result will be in the reports")
+	sess.AddFlash("Upload is running in the background, result will be in the reports")
 	sess.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
