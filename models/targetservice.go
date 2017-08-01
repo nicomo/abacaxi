@@ -20,7 +20,7 @@ type TargetService struct {
 	DisplayName string        `bson:",omitempty" schema:"displayname"`
 	DateCreated time.Time
 	DateUpdated time.Time `bson:",omitempty"`
-	Active      bool      `schema:"active"`
+	Active      bool      `schema:"tsactive"`
 }
 
 // GetTargetService retrieves a target service
