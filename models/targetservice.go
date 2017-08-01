@@ -52,7 +52,7 @@ func GetTargetServicesListing() ([]TargetService, error) {
 	defer mgoSession.Close()
 	coll := getTargetServiceColl()
 
-	err := coll.Find(bson.M{}).Sort("tsname").All(&TSListing)
+	err := coll.Find(bson.M{}).Sort("displayname").All(&TSListing)
 	if err != nil {
 		return TSListing, err
 	}
