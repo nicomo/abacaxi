@@ -30,9 +30,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	recordsCount := models.RecordsCount()
 	d["recordsCount"] = recordsCount
 
-	ppnCount := models.RecordsCountPPNs()
-	d["ppnCount"] = ppnCount
-
 	unimarcCount := models.RecordsCountUnimarc()
 	d["unimarcCount"] = unimarcCount
 

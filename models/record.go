@@ -235,26 +235,6 @@ func RecordsCount() int {
 	return count
 }
 
-// RecordsCountPPNs retrieves the number of record that have a PPN Identifier
-func RecordsCountPPNs() int {
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-
-	// collection ebooks
-	coll := getRecordsColl()
-
-	//  query ebooks
-	qry := coll.Find(bson.M{"identifiers.idtype": IDTypePPN})
-	count, err := qry.Count()
-
-	if err != nil {
-		logger.Error.Println(err)
-	}
-
-	return count
-}
-
 // RecordsCountUnimarc retrieves the number of record that have a RecordUnimarc field
 func RecordsCountUnimarc() int {
 	// Request a socket connection from the session to process our query.
