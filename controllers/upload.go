@@ -140,9 +140,9 @@ func parseFile(pp parseparams) {
 		}
 	} else {
 		// manage case wrong file extension : message to the user
-		logger.Error.Println("wrong file extension")
+		logger.Error.Println("unknown file type")
 		report.Success = false
-		report.Text = append(report.Text, fmt.Sprintln("wrong file extension"))
+		report.Text = append(report.Text, fmt.Sprintln("unknown file type"))
 		report.ReportCreate()
 		return
 	}

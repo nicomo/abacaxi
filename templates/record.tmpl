@@ -92,7 +92,7 @@
 						<th scope="row">Target Services</th>
 						<td>
 							{{ range .Record.TargetServices }}
-									{{ .DisplayName }}<br />
+								<a href="/ts/display/{{ .Name }}" alt="target service">{{ .DisplayName }}</a><br />
 							{{ end }}							
 						</td>
 					</tr>
