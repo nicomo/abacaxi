@@ -215,6 +215,9 @@ func GetSudocRecord(record models.Record) error {
 
 		// now we have PPNs, let's insert them into the live record struct
 		for _, v := range res {
+			if len(v) == 0 { // result empty, abort
+				return errors.New("no PPN found")
+			}
 			for _, value := range v {
 				var exists bool
 				for _, w := range record.Identifiers {

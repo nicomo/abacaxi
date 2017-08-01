@@ -56,7 +56,6 @@ func fileIO(pp parseparams, report *models.Report) ([]models.Record, error) {
 			if err == io.EOF {
 				break
 			}
-			logger.Error.Println(err)
 			rejectedLines = append(rejectedLines, line)
 			line++
 			continue
