@@ -73,7 +73,7 @@ func GetSudocRecordsHandler(w http.ResponseWriter, r *http.Request) {
 	// - continue our work in a separate go routine
 	sess.AddFlash("Request is running in the background, result will be in the reports")
 	sess.Save(r, w)
-	go sudoc.GetSudocRecords(records)
+	go sudoc.GetSudocRecords(records, tsname)
 	http.Redirect(w, r, "/", http.StatusFound)
 
 }

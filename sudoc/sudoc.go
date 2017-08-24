@@ -252,7 +252,7 @@ func GetSudocRecord(record models.Record) error {
 }
 
 // GetSudocRecords tries to get batches of unimarc record from Sudoc web services
-func GetSudocRecords(records []models.Record) {
+func GetSudocRecords(records []models.Record, tsname string) {
 	// set up the pipeline
 	in := GenChannel(records)
 
@@ -271,7 +271,7 @@ func GetSudocRecords(records []models.Record) {
 		ReportType: models.SudocWs,
 	}
 	msg := fmt.Sprintf("Number of local records sent : %d - number of unimarc records received  : %d", len(records), recordsCounter)
-	report.Text = append(report.Text, msg)
+	report.Text = append(report.Text, tsname, msg)
 	if recordsCounter == 0 {
 		report.Success = false
 		report.Text = append(report.Text, "Check the server logs for details.")

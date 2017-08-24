@@ -19,6 +19,7 @@ Requires :
   - [gorilla mux](http://www.gorillatoolkit.org/pkg/mux): `$ go get github.com/gorilla/mux`
   - [gorilla schema](http://www.gorillatoolkit.org/pkg/Schema): `$ go get github.com/gorilla/Schema`
   - [gorilla sessions](http://www.gorillatoolkit.org/pkg/Sessions): `$ go get github.com/gorilla/sessions`
+  - [go sudoc](https://github.com/nicomo/gosudoc): `$ go get  github.com/nicomo/gosudoc`
   - [mgo.v2](https://godoc.org/gopkg.in/mgo.v2): `$ go get gopkg.in/mgo.v2`
   - [mgo.v2/bson](https://godoc.org/gopkg.in/mgo.v2/bson): `$ go get gopkg.in/mgo.v2/bson`
 
