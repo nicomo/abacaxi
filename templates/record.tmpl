@@ -39,16 +39,16 @@
 						<li><a href="/sudocgetrecord/{{ .Record.ID.Hex }}">Get Sudoc Unimarc</a></li>
 					</ul>
 				</div>
-				<div class="btn-group" role="group" aria-label="export button">
-					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					Export <span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu">
-						{{ if .Record.RecordUnimarc }} 
+				{{ if .Record.RecordUnimarc }}
+					<div class="btn-group" role="group" aria-label="export button">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						Export <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
 							<li><a href="/record/export/unimarc/{{ .Record.ID.Hex }}">Export Unimarc Record</a></li>
-						{{ end }}
-					</ul>
-				</div>	
+						</ul>
+					</div>
+				{{ end }}
 				<a class="btn btn-danger" href="/record/delete/{{ .Record.ID.Hex }}" role="button">Delete</a>
 			</p>
 			<table class="table table-condensed table-hover">
