@@ -79,6 +79,9 @@ func fileIO(pp parseparams, report *models.Report) ([]models.Record, error) {
 
 		// add TS to record
 		record.TargetServices = append(record.TargetServices, myTS)
+		if myTS.Active {
+			record.Active = true
+		}
 
 		// add record to slice
 		records = append(records, record)
