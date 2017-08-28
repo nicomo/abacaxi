@@ -76,6 +76,10 @@
 						<td>{{ if .Record.MonographEdition }} {{ .Record.MonographEdition }} {{ else }} - {{ end }}</td>
 					</tr>
 					<tr>
+						<th scope="row">Publication Type</th>
+						<td>{{ if .Record.PublicationType }} {{ .Record.PublicationType }} {{ else }} Undefined {{ end }}</td>
+					</tr>
+					<tr>
 						<th scope="row">Identifiers</th>
 						<td>
 							{{ range .Record.Identifiers }}

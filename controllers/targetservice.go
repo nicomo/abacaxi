@@ -126,10 +126,6 @@ func TargetServiceHandler(w http.ResponseWriter, r *http.Request) {
 		nbRecordsUnimarc := models.TSCountRecordsUnimarc(tsname)
 		d["myTSRecordsUnimarcCount"] = nbRecordsUnimarc
 
-		// how many local records have a PPN from the Sudoc Union Catalog
-		nbPPNs := models.TSCountPPNs(tsname)
-		d["myTSPPNsCount"] = nbPPNs
-
 		// get the records
 		records, err := models.RecordsGetByTSName(tsname, page)
 		if err != nil {

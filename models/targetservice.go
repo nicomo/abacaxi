@@ -101,26 +101,6 @@ func TSCountRecordsUnimarc(tsname string) int {
 	return count
 }
 
-// TSCountPPNs counts how many records for this target service have proper PicaPublication Numbers coming from ABES
-func TSCountPPNs(tsname string) int {
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-
-	// collection ebooks
-	coll := getRecordsColl()
-
-	//  query ebooks by target service name, aka Target Service in SFX (and in models.Ebook struct) and checks if PPN exists
-	qry := coll.Find(bson.M{"targetservices.name": tsname, "identifiers.idtype": IDTypePPN})
-	count, err := qry.Count()
-
-	if err != nil {
-		logger.Error.Println(err)
-	}
-
-	return count
-}
-
 //TSCreate registers a new target service, aka ebook package in mongo db
 //NOTE: should review the code generally to see when to really use pointers rather than values
 // here : should pbly be a value, since we neither change nor return the struct
