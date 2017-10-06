@@ -59,6 +59,21 @@ type Identifier struct {
 	IDType     int
 }
 
+func recordCreate(r Record) error {
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection records
+	coll := getRecordsColl()
+
+	err := coll.Insert(r)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // RecordDelete deletes a single ebook from DB
 func RecordDelete(ID string) error {
 
@@ -105,6 +120,35 @@ func RecordGetByID(ID string) (Record, error) {
 	return record, nil
 }
 
+// RecordGetByIdentifiers searches for a record using the identifiers (ISSN, ISBN, PPN, etc)
+func RecordGetByIdentifiers(identifiers []Identifier) (Record, error) {
+	record := Record{}
+
+	// Request a socket connection from the session to process our query.
+	mgoSession := mgoSession.Copy()
+	defer mgoSession.Close()
+
+	// collection records
+	coll := getRecordsColl()
+
+	// selectorQry
+	var qryIDs []bson.M
+	for i := 0; i < len(identifiers); i++ {
+		sTerm := bson.M{"identifiers.identifier": identifiers[i].Identifier}
+		qryIDs = append(qryIDs, sTerm)
+	}
+	qry := bson.M{
+		"$or": qryIDs,
+	}
+
+	err := coll.Find(qry).One(&record)
+	if err != nil {
+		return record, err
+	}
+
+	return record, nil
+}
+
 func (record Record) GetPPN() []string {
 	PPN := []string{}
 	for _, v := range record.Identifiers {
@@ -138,42 +182,37 @@ func RecordUpdate(record Record) (Record, error) {
 	return record, nil
 }
 
-// RecordUpsert inserts or updates a record in DB
+// recordUpsert inserts or updates a record in DB
+// not using the upsert of mongodb because we want
+// fine grained control of fields protected, merged, etc
 // FIXME: should be a method, not a function
-func RecordUpsert(record Record) (int, int, error) {
+func recordUpsert(record Record) (int, int, error) {
 
-	var updated, upserted int
+	var updated, inserted int
 
-	// Request a socket connection from the session to process our query.
-	mgoSession := mgoSession.Copy()
-	defer mgoSession.Close()
-	coll := getRecordsColl()
+	existingRecord, err := RecordGetByIdentifiers(record.Identifiers)
 
-	// selectorQry
-	var IDsToQry []bson.M
-	for i := 0; i < len(record.Identifiers); i++ {
-		sTerm := bson.M{"identifiers.identifier": record.Identifiers[i].Identifier}
-		IDsToQry = append(IDsToQry, sTerm)
-	}
-	selectorQry := bson.M{
-		"$or": IDsToQry,
+	if err != nil { // no existing record returned, we just create one as is
+		err := recordCreate(record)
+		if err != nil {
+			return updated, inserted, err
+		}
+
+		inserted++
+		return updated, inserted, nil
 	}
 
-	// updateQry
-	changeInfo, err := coll.Upsert(selectorQry, record)
+	// we have an existing record
+	recordsMerge(&record, existingRecord)
+
+	// update existing record in DB
+	record, err = RecordUpdate(record)
 	if err != nil {
-		return updated, upserted, err
+		return updated, inserted, err
 	}
 
-	// changeInfo tells us if there's been an update or an insert
-	if changeInfo.UpsertedId != nil {
-		upserted++
-	}
-	if changeInfo.Updated != 0 {
-		updated++
-	}
-
-	return updated, upserted, nil
+	updated++
+	return updated, inserted, nil
 }
 
 // FIXME: should be a method, not a function
@@ -350,11 +389,36 @@ func RecordsGetWithUnimarcByTSName(tsname string) ([]Record, error) {
 	return result, nil
 }
 
+// recordsMerge protects and merges fields between 2 records
+func recordsMerge(r1 *Record, r2 Record) {
+
+	r1.ID = r2.ID
+
+	// protects fields already in DB for this record
+	r1.DateCreated = r2.DateCreated
+	r1.RecordMarc21 = r2.RecordMarc21
+	r1.RecordUnimarc = r2.RecordUnimarc
+
+	// merge identifiers between incoming record and DB record
+	for _, v2 := range r2.Identifiers {
+		var exists bool
+		for _, v1 := range r1.Identifiers {
+			if v2.Identifier == v1.Identifier {
+				exists = true
+			}
+		}
+		if !exists {
+			r1.Identifiers = append(r1.Identifiers, v2)
+		}
+	}
+}
+
 // RecordsUpsert updates or inserts a number of records in DB
 func RecordsUpsert(records []Record) (int, int) {
+
 	var recordsUpdates, recordsInserts int
 	for _, r := range records {
-		updated, upserted, err := RecordUpsert(r)
+		updated, upserted, err := recordUpsert(r)
 		if err != nil {
 			logger.Error.Println(err)
 		}
