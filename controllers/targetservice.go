@@ -179,7 +179,7 @@ func TargetServiceDeleteHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		_, err := models.RecordUpdate(record)
+		err := record.RecordUpdate()
 		if err != nil {
 			logger.Error.Printf("could not update linked record: %v", err)
 		}
@@ -407,7 +407,7 @@ func TargetServiceToggleActiveHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			v.Active = true
 		}
-		_, ErrRecordUpdate := models.RecordUpdate(v)
+		ErrRecordUpdate := v.RecordUpdate()
 		if ErrRecordUpdate != nil {
 			logger.Error.Printf("can't update record %v: %v", v.ID, ErrRecordUpdate)
 		}

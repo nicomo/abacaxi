@@ -13,6 +13,7 @@ const (
 	SudocWs            // Types of batch operation: retrieve Unimarc Records from Sudoc Web Service
 )
 
+// Report is a report about a batch operation, stored in DB
 type Report struct {
 	ID          bson.ObjectId `bson:"_id"`
 	DateCreated time.Time

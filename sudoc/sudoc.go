@@ -111,7 +111,7 @@ func CrawlPPN(in <-chan models.Record) <-chan int {
 			}
 
 			// update record in DB
-			_, err = models.RecordUpdate(record)
+			err = record.RecordUpdate()
 			if err != nil {
 				logger.Error.Println(err)
 				out <- 0
@@ -243,7 +243,7 @@ func GetSudocRecord(record models.Record) error {
 
 	// actually save updated ebook struct to DB
 	record.RecordUnimarc = unimarc
-	record, err = models.RecordUpdate(record)
+	err = record.RecordUpdate()
 	if err != nil {
 		return err
 	}

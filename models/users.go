@@ -36,6 +36,7 @@ func GetUsers() ([]User, error) {
 	return Users, nil
 }
 
+// UserByID retrieves a used given its ID in the DB
 func UserByID(ID string) (User, error) {
 	user := User{}
 
@@ -155,6 +156,7 @@ func UserUpdateDateLastSeen(u User) error {
 	return nil
 }
 
+// UsersCount counts the number of user accounts in DB
 func UsersCount() int {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()

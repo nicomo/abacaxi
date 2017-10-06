@@ -59,7 +59,7 @@ type Identifier struct {
 	IDType     int
 }
 
-func recordCreate(r Record) error {
+func (r Record) create() error {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
@@ -149,9 +149,10 @@ func RecordGetByIdentifiers(identifiers []Identifier) (Record, error) {
 	return record, nil
 }
 
-func (record Record) GetPPN() []string {
+// GetPPN retrieves the list of Sudoc Unimarc IDs (PPNs) for a record
+func (r Record) GetPPN() []string {
 	PPN := []string{}
-	for _, v := range record.Identifiers {
+	for _, v := range r.Identifiers {
 		if v.IDType == IDTypePPN {
 			PPN = append(PPN, v.Identifier)
 		}
@@ -160,40 +161,38 @@ func (record Record) GetPPN() []string {
 }
 
 // RecordUpdate saves an updated record struct to DB
-// FIXME: should be a method, not a function
-func RecordUpdate(record Record) (Record, error) {
+func (r *Record) RecordUpdate() error {
 	// Request a socket connection from the session to process our query.
 	mgoSession := mgoSession.Copy()
 	defer mgoSession.Close()
 	coll := getRecordsColl()
 
 	// let's add the time and save
-	record.DateUpdated = time.Now()
+	r.DateUpdated = time.Now()
 
 	// we select on the record's ID
-	selector := bson.M{"_id": record.ID}
+	selector := bson.M{"_id": r.ID}
 
-	err := coll.Update(selector, &record)
+	err := coll.Update(selector, &r)
 	if err != nil {
 		logger.Error.Printf("Couldn't update record: %v", err)
-		return record, err
+		return err
 	}
 
-	return record, nil
+	return nil
 }
 
 // recordUpsert inserts or updates a record in DB
 // not using the upsert of mongodb because we want
 // fine grained control of fields protected, merged, etc
-// FIXME: should be a method, not a function
-func recordUpsert(record Record) (int, int, error) {
+func (r Record) recordUpsert() (int, int, error) {
 
 	var updated, inserted int
 
-	existingRecord, err := RecordGetByIdentifiers(record.Identifiers)
+	existingRecord, err := RecordGetByIdentifiers(r.Identifiers)
 
 	if err != nil { // no existing record returned, we just create one as is
-		err := recordCreate(record)
+		err := r.create()
 		if err != nil {
 			return updated, inserted, err
 		}
@@ -203,10 +202,10 @@ func recordUpsert(record Record) (int, int, error) {
 	}
 
 	// we have an existing record
-	recordsMerge(&record, existingRecord)
+	recordsMerge(&r, existingRecord)
 
 	// update existing record in DB
-	record, err = RecordUpdate(record)
+	err = r.RecordUpdate()
 	if err != nil {
 		return updated, inserted, err
 	}
@@ -418,7 +417,7 @@ func RecordsUpsert(records []Record) (int, int) {
 
 	var recordsUpdates, recordsInserts int
 	for _, r := range records {
-		updated, upserted, err := recordUpsert(r)
+		updated, upserted, err := r.recordUpsert()
 		if err != nil {
 			logger.Error.Println(err)
 		}
