@@ -4,6 +4,7 @@
 			<tr>
 				<th>1st Author</th>
 				<th>Title</th>
+				<th>Pub. Date</th>
 				<th>Identifiers</th>
 				<th>Unimarc Record</th>
 				<th>see more</th>
@@ -12,6 +13,13 @@
 			<tr>
 				<td>{{ .FirstAuthor }}</td>
 				<td>{{ .PublicationTitle }}</td>
+				<td>
+					{{ if .DateFirstIssueOnline }} {{ .DateFirstIssueOnline }}-
+						{{ if .DateLastIssueOnline }} {{ .DateLastIssueOnline }} {{else}}...{{ end}}
+					{{ end}}
+					{{ if .DateMonographPublishedOnline }} {{ .DateMonographPublishedOnline }} (Online)<br>{{ end}}
+					{{ if .DateMonographPublishedPrint }} {{ .DateMonographPublishedPrint }} (Print)<br>{{ end}}				
+				</td>
 				<td>
 					{{ range .Identifiers }} 
 						{{ .Identifier }} 
