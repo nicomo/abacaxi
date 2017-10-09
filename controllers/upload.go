@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/nicomo/abacaxi/logger"
 	"github.com/nicomo/abacaxi/models"
@@ -85,7 +86,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// open newly created file
-	fpath := path + "/" + handler.Filename
+	fpath := path + "/" + time.Now().Format("2006-01-02-15:04:05") + "-" + handler.Filename
 	f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		logger.Error.Println(err)
