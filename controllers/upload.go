@@ -13,10 +13,11 @@ import (
 )
 
 type parseparams struct {
-	tsname   string
-	fpath    string
-	filetype string
-	csvconf  map[string]int
+	tsname    string
+	fpath     string
+	filetype  string
+	delimiter rune
+	csvconf   map[string]int
 }
 
 // UploadGetHandler manages upload of a source file
@@ -56,6 +57,12 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 	tsname := r.PostFormValue("tsname")
 	filetype := r.PostFormValue("filetype")
 
+	// get the file delimiter (for csv and kbart), defaulting to tab
+	delimiter := rune('\t')
+	if r.PostFormValue("delimiter") == "semicolon" {
+		delimiter = ';'
+	}
+
 	// get the optional csv fields
 	csvconf, err := getCSVParams(r)
 	if filetype == "publishercsv" && err != nil {
@@ -93,6 +100,7 @@ func UploadPostHandler(w http.ResponseWriter, r *http.Request) {
 		tsname,
 		fpath,
 		filetype,
+		delimiter,
 		csvconf,
 	}
 

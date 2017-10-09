@@ -35,13 +35,13 @@ func fileIO(pp parseparams, report *models.Report) ([]models.Record, error) {
 
 	reader := csv.NewReader(f)
 
-	// target service csv has n fields, separator is ;
+	// target service csv has n fields, separator is provided
 	if pp.filetype == "publishercsv" {
 		reader.FieldsPerRecord = len(pp.csvconf)
 	} else {
 		reader.FieldsPerRecord = kbartNumFields // kbart is a const: always 25 fields
 	}
-	reader.Comma = ';' //TODO: detect separator, tab or comma, rather than force comma
+	reader.Comma = pp.delimiter
 
 	// counters to keep track of records parsed, for logging
 	line := 1

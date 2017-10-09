@@ -27,20 +27,41 @@
 				<div class="form-group">
 					<label for="filetype" class="col-sm-2 control-label">File type: </label>
 					<div class="col-sm-10">
+
 						<label for="kbart" class="radio-inline">
-							<input type="radio" name="filetype" value="kbart">&nbsp;kbart
-						</label>
-						
-						<label for="sfxxml" class="radio-inline">
-							<input type="radio" name="filetype" value="sfxxml">&nbsp;sfx xml
+							<input type="radio" name="filetype" value="kbart" checked="checked">&nbsp;kbart
 						</label>
 						
 						<label for="csv" class="radio-inline" data-toggle="collapse" data-target="#collapseCsv" aria-expanded="false" aria-controls="collapseCsv">
 							<input type="radio" name="filetype" value="publishercsv">&nbsp;publisher csv
 						</label>
 
+						<label for="sfxxml" class="radio-inline">
+							<input type="radio" name="filetype" value="sfxxml">&nbsp;sfx xml
+						</label>
+
 					</div>
 				</div>
+
+				<div class="form-group">
+					<label for="delimiter" class="col-sm-2 control-label">Delimiter : </label>
+					<div class="col-sm-10">
+						
+						<label for="tab" class="radio-inline">
+							<input type="radio" name="delimiter" value="tab" checked="checked">&nbsp;tab
+						</label>
+
+						<label for="semicolon" class="radio-inline">
+							<input type="radio" name="delimiter" value="semicolon">&nbsp;semicolon
+						</label>
+
+						<label for="notapplicable" class="radio-inline">
+							<input type="radio" name="delimiter" value="">&nbsp;n/a
+						</label>
+
+					</div>
+				</div>
+
 				<div class="collapse" id="collapseCsv">
 					<div class="form-group">
 						<label for="csvconf" class="col-sm-2 control-label">Csv conf.: </label>
